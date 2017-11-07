@@ -25,7 +25,7 @@ def cpsd_common_properties():
 def get_tls_certs():
     hostname = socket.gethostname()
     print('Getting tls certs from tls_service')
-    tls_file = '/usr/local/share/ca-certificates/' + hostname + '.cpsd.dell.ca.crt'
+    tls_file = '/usr/local/share/ca-certificates/' + hostname + '.ca.crt'
     if os.path.isfile(tls_file):
         print('TLS Certs exist already')
     else:
@@ -42,8 +42,8 @@ def get_tls_certs():
         print(p)
     print('Creating test user in Rabbitmq')
     r = requests.put("https://pam-service.cpsd.dell:7002/pam-service/v1/amqp/users", cert=(
-        '/usr/local/share/ca-certificates/' + hostname + '.cpsd.dell.crt',
-        '/usr/local/share/ca-certificates/' + hostname + '.cpsd.dell.key'),
+        '/usr/local/share/ca-certificates/' + hostname + '.crt',
+        '/usr/local/share/ca-certificates/' + hostname + '.key'),
                      verify='/usr/local/share/ca-certificates/cpsd.dell.ca.crt')
 
     assert r.status_code == 200, "Error---Rabbitmq credentials for test not created"
