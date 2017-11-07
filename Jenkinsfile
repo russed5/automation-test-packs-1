@@ -21,11 +21,11 @@ pipeline {
                 doCheckout()
             }
         }
-        stage('Run pytest Scanner') {
+        /*stage('Run pytest Scanner') {
             steps {
                 runPyTestScanner()
             }
-        }
+        }*/
     }
     post {
         always {
