@@ -98,7 +98,6 @@ def test_core_serviceup(setup, core_container):
 #
 #     """
 #     print(test_coreamqptls.__doc__)
-#
 #     err = []
 #     for service in core_services:
 #
