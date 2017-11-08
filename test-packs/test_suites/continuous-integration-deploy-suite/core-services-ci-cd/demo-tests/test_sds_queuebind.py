@@ -4,6 +4,7 @@ import requests
 import socket
 import json
 
+@pytest.mark.demo_test
 def test_sysdef_serviceup(setup):
     """
     Title: Verify the sds services containers are UP
@@ -26,7 +27,8 @@ def test_sysdef_serviceup(setup):
 
     assert "Up" in my_return_status, " %s is not up" % service
 
-# def test_pam_createRMQuser():
+#@pytest.mark.ta_test
+#def test_pam_createRMQuser():
 #
 #     """
 #         Title: Creating RMQ username and password
@@ -52,14 +54,14 @@ def test_sysdef_serviceup(setup):
 #                 data['response']['amqp']['username'] != hostname):
 #         err.append("Error--- amqp username is not correct")
 
-
+@pytest.mark.demo_test
 def test_bindrmq_queue(setup):
 
     af_support_tools.rmq_bind_queue(host='amqp' , port=5671, ssl_enabled=True, queue='test.TA.system.list.request',
                                     exchange='exchange.dell.cpsd.syds.system.definition.request',
                                     routing_key='#')
     assert True , 'Failed'
-
+@pytest.mark.demo_test
 def test_deletermq_queue():
         af_support_tools.rmq_delete_queue(host='amqp', port=5671, ssl_enabled=True, queue='test.TA.system.list.request')
 
