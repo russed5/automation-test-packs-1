@@ -22,11 +22,6 @@ def load_test_data():
     import cpsd
     global cpsd
 
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
-
     # Set config ini file name
     global env_file
     env_file = 'env.ini'
@@ -43,15 +38,15 @@ def load_test_data():
                                                              property='password')
 
     # RMQ Details
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
-    global port
+    global port, rabbit_hostname
     port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
                                                      property='ssl_port')
+    rabbit_hostname = "amqp.cpsd.dell"
+
+    #Consul Details
+    global consul_hostname
+    consul_hostname = "consul.cpsd.dell"
+
 
     # Update setup_config.ini file at runtime
     my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/setup_config.properties'
@@ -97,7 +92,7 @@ def test_scaleio_adapter_servicerunning():
 
     print('\n* * * Testing the ScaleIO Adapter on system:', ipaddress, '* * *\n')
 
-    service_name = 'cpsd-scaleio-adapter-service'
+    service_name = 'dell-cpsd-scaleio-adapter'
 
     # 1. Test the service is running
     sendCommand = "docker ps --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
@@ -121,33 +116,28 @@ def test_registerscaleio():
 
     time.sleep(2)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671,
+                                     ssl_enabled=True,
                                      queue='test.controlplane.scaleio.response')
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671,
+                                     ssl_enabled=True,
                                      queue='test.endpoint.registration.event')
 
     the_payload = '{"messageProperties":{"timestamp":"2017-06-14T12:00:00Z","correlationId":"manually-reg-scaleio-3fb0-9696-3f7d28e17f72"},"registrationInfo":{"address":"https://' + scaleio_IP + '","username":"' + scaleio_username + '","password":"' + scaleio_password + '"}}'
     print(the_payload)
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671,
                                          exchange='exchange.dell.cpsd.controlplane.scaleio.request',
                                          routing_key='dell.cpsd.scaleio.consul.register.request',
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.scaleio.registration.info.request'},
-                                         payload=the_payload, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         payload=the_payload, ssl_enabled=True)
 
     # Verify the scaleio account can be validated
     assert waitForMsg('test.controlplane.scaleio.response'), 'Error: No scaleio validation message received'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
+                                                          ssl_enabled=True,
                                                           queue='test.controlplane.scaleio.response',
                                                           remove_message=True)
     return_json = json.loads(return_message, encoding='utf-8')
@@ -156,10 +146,8 @@ def test_registerscaleio():
 
     # Verify that an event to register the scaleio with endpoint registry is triggered
     assert waitForMsg('test.endpoint.registration.event'), 'Error: No message to register with Consul sent by system'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
+                                                          ssl_enabled=True,
                                                           queue='test.endpoint.registration.event',
                                                           remove_message=True)
 
@@ -197,7 +185,7 @@ def test_scaleio_RMQ_bindings_core(exchange, queue):
     Returns         :       None
     """
 
-    queues = rest_queue_list(user=rmq_username, password=rmq_password, host=ipaddress, port=15672, virtual_host='%2f',
+    queues = rest_queue_list(user="guest", host=rabbit_hostname, password="guest",port=15672, virtual_host='%2f',
                              exchange=exchange)
     queues = json.dumps(queues)
 
@@ -228,23 +216,20 @@ def test_scaleio_adapter_full_ListCapabilities():
     originalcorrelationID = 'capability-registry-list-scaleio-adapter-corID'
     the_payload = '{}'
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=5671,
                                          exchange='exchange.dell.cpsd.hdp.capability.registry.request',
                                          routing_key='dell.cpsd.hdp.capability.registry.request',
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.hdp.capability.registry.list.capability.providers'},
                                          payload=the_payload,
                                          payload_type='json',
-                                         correlation_id={originalcorrelationID}, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         correlation_id={originalcorrelationID}, ssl_enabled=True)
 
     # Wait for and consume the Capability Response Message
     assert waitForMsg('test.capability.registry.response'), 'Error: No List Capability Responce message received'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                           queue='test.capability.registry.response',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                                          ssl_enabled=True)
     time.sleep(5)
 
     print(return_message)
@@ -298,15 +283,15 @@ def test_consul_verify_scaleio_registered():
     Returns         :       None
     """
 
-    service = 'scaleio'
+    service = 'scaleio-adapter'
 
     url_body = ':8500/v1/agent/services'
-    my_url = 'http://' + ipaddress + url_body
+    my_url = 'https://' + consul_hostname + url_body
 
     print('GET:', my_url)
 
     try:
-        url_response = requests.get(my_url)
+        url_response = requests.get(my_url, verify='/usr/local/share/ca-certificates/cpsd.dell.ca.crt')
         url_response.raise_for_status()
 
         # A 200 has been received
@@ -315,7 +300,7 @@ def test_consul_verify_scaleio_registered():
         the_response = url_response.text
 
         # Create the sting as it should appear in the API
-        serviceToCheck = '"Service": "' + service + '"'
+        serviceToCheck = '"Service":"' + service + '"'
 
         assert serviceToCheck in the_response, ('ERROR:', service, 'is not in Consul\n')
 
@@ -340,22 +325,22 @@ def test_consul_verify_scaleio_passing_status():
     Parameters      :       none
     Returns         :       None
     """
-    service = 'scaleio'
+    service = 'scaleio-adapter'
 
     url_body = ':8500/v1/health/checks/' + service
-    my_url = 'http://' + ipaddress + url_body
+    my_url = 'https://' + consul_hostname + url_body
 
     print('GET:', my_url)
 
     try:
-        url_response = requests.get(my_url)
+        url_response = requests.get(my_url, verify='/usr/local/share/ca-certificates/cpsd.dell.ca.crt')
         url_response.raise_for_status()
 
         # A 200 has been received
         print(url_response)
         the_response = url_response.text
 
-        serviceStatus = '"Status": "passing"'
+        serviceStatus = '"Status":"passing"'
         assert serviceStatus in the_response, ('ERROR:', service, 'is not Passing in Consul\n')
         print(service, 'Status = Passing in consul\n\n')
 
@@ -379,11 +364,11 @@ def test_scaleio_adapter_log_files_exist():
     Returns         :       None
     """
 
-    filePath = '/opt/dell/cpsd/scaleio-adapter/logs/'
+    filePath = '/opt/dell/cpsd/scaleio-adapter-service/logs/'
     errorLogFile = 'scaleio-adapter-error.log'
     infoLogFile = 'scaleio-adapter-info.log'
 
-    sendCommand = 'ls ' + filePath
+    sendCommand = 'docker exec dell-cpsd-scaleio-adapter ls ' + filePath
 
     my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
                                                          command=sendCommand, return_output=True)
@@ -413,7 +398,7 @@ def test_scaleio_adapter_log_files_free_of_exceptions():
     Returns         :       None
     """
 
-    filePath = '/opt/dell/cpsd/scaleio-adapter/logs/'
+    filePath = '/opt/dell/cpsd/scaleio-adapter-service/logs/'
     errorLogFile = 'scaleio-adapter-error.log'
     excep1 = 'AuthenticationFailureException'
     excep2 = 'RuntimeException'
@@ -421,7 +406,7 @@ def test_scaleio_adapter_log_files_free_of_exceptions():
     excep4 = 'BeanCreationException'
 
     # Verify the log files exist
-    sendCommand = 'ls ' + filePath
+    sendCommand = ' docker exec dell-cpsd-scaleio-adapter ls ' + filePath
 
     my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
                                                          command=sendCommand, return_output=True)
@@ -465,19 +450,15 @@ def test_scaleio_adapter_log_files_free_of_exceptions():
 
 ##############################################################################################
 def bindQueues(exchange, queue):
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username,
-                                    rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671,
                                     queue=queue,
                                     exchange=exchange,
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                    routing_key='#', ssl_enabled=True)
 
 
 def cleanup(queue):
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username,
-                                      rmq_password=cpsd.props.rmq_password,
-                                      queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port='5671',
+                                      queue=queue, ssl_enabled=True)
 
 
 def waitForMsg(queue):
@@ -500,10 +481,8 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                   rmq_username=cpsd.props.rmq_username,
-                                                   rmq_password=cpsd.props.rmq_password,
-                                                   queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671,
+                                                   queue=queue, ssl_enabled=True)
 
         if timeout > max_timeout:
             print('ERROR: Message took too long to return. Something is wrong')
@@ -518,8 +497,8 @@ def rest_queue_list(user=None, password=None, host=None, port=None, virtual_host
     Parameters      :       RMQ User, RMQ password, host, port & exchange. Always virtual_host = '%2f'
     Returns         :       A list of the Queues bound to the named Exchange/
     """
-    url = 'http://%s:%s/api/exchanges/%s/%s/bindings/source' % (host, port, virtual_host, exchange)
-    response = requests.get(url, auth=(user, password))
+    url = 'https://%s:%s/api/exchanges/%s/%s/bindings/source' % (host,port, virtual_host, exchange)
+    response = requests.get(url, verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt", auth=(user, password))
     queues = [q['destination'] for q in response.json()]
     return queues
 
