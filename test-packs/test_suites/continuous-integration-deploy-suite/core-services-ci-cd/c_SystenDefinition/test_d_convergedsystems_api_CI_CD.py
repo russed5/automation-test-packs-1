@@ -72,7 +72,7 @@ def test_common_ui_install(setup):
         err.append(common_ui+ " did not install properly")
     assert not err
 
-
+@pytest.skip(reason="common_ui not tls enabled yet")
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
 def test_ConvergedSystem_RestAPI():
