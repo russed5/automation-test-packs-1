@@ -32,6 +32,7 @@ def get_tls_certs():
         ex = subprocess.Popen('chmod +x tls_enable.sh', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         ex = ex.wait()
         p = subprocess.check_output('./test_suites/tls_enable.sh')
+        print(p)
 
     print('Creating test user in Rabbitmq')
     r = requests.put("https://pam-service.cpsd.dell:7002/pam-service/v1/amqp/users", cert=(
