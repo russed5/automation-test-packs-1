@@ -28,9 +28,7 @@ import time
     ('endpoint-registry', 'endpoint-registry-lookup'),
     ('scaleio-adapter', 'scaleio-consul-register')])
 
-# @pytest.mark.parametrize('param_providerName, param_capabilities1', [
-#
-#     ('vcenter-adapter', 'vcenter-consul-register')])
+
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
