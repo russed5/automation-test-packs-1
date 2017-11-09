@@ -1,43 +1,21 @@
 #!/usr/bin/python
 # Author: cullia
 # Revision: 2.1
+# Refactor by : Toqeer Akhtar
 # Code Reviewed by:
 # Description: Verify all expected capabilities are returned for all providers and adapters when the user submits a
 #               registry.list.capability Message
 #
 # Copyright (c) 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
 # Dell EMC Confidential/Proprietary Information
-#
+
 import af_support_tools
 import json
 import pytest
 import time
 
 
-@pytest.fixture(scope="module", autouse=True)
-def load_test_data():
-    import cpsd
-    global cpsd
 
-
-
-    # Set config ini file name
-    global env_file
-    env_file = 'env.ini'
-
-    # Test VM Details
-    global ipaddress
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-
-    # RMQ Details
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
-    global rmq_port
-    rmq_port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
 
 
 #####################################################################
@@ -46,9 +24,11 @@ def load_test_data():
 
 @pytest.mark.parametrize('param_providerName, param_capabilities1', [
     ('rackhd-adapter', 'rackhd-consul-register',),
-    ('vcenter-adapter', 'vcenter-consul-register'),    
+    ('vcenter-adapter', 'vcenter-consul-register'),
     ('endpoint-registry', 'endpoint-registry-lookup'),
     ('scaleio-adapter', 'scaleio-consul-register')])
+
+
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
@@ -95,7 +75,7 @@ def test_capabilityRegistry_ListCapabilities_core_1(param_providerName, param_ca
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
-def test_capabilityRegistry_ListCapabilities_core_2(param_providerName, param_capabilities1, param_capabilities2):
+def test_capabilityRegistry_ListCapabilities_core_2(param_providerName, param_capabilities1, param_capabilities2, setup):
     """
     Title           :       Verify the registry.list.capability Message returns all capabilities for the provider under test
     Description     :       A registry.list.capability message is sent.  It is expected that a response is returned that
