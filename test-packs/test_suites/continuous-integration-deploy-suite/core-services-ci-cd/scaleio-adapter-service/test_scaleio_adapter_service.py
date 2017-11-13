@@ -92,7 +92,7 @@ def test_scaleio_adapter_servicerunning():
 
     print('\n* * * Testing the ScaleIO Adapter on system:', ipaddress, '* * *\n')
 
-    service_name = 'dell-cpsd-scaleio-adapter'
+    service_name = 'dell-cpsd-hal-scaleio-adapter'
 
     # 1. Test the service is running
     sendCommand = "docker ps --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
@@ -369,7 +369,7 @@ def test_scaleio_adapter_log_files_exist():
     errorLogFile = 'scaleio-adapter-error.log'
     infoLogFile = 'scaleio-adapter-info.log'
 
-    sendCommand = 'docker exec dell-cpsd-scaleio-adapter ls ' + filePath
+    sendCommand = 'docker exec dell-cpsd-hal-scaleio-adapter ls ' + filePath
 
     my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
                                                          command=sendCommand, return_output=True)
@@ -407,7 +407,7 @@ def test_scaleio_adapter_log_files_free_of_exceptions():
     excep4 = 'BeanCreationException'
 
     # Verify the log files exist
-    sendCommand = ' docker exec dell-cpsd-scaleio-adapter ls ' + filePath
+    sendCommand = ' docker exec dell-cpsd-hal-scaleio-adapter ls ' + filePath
 
     my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
                                                          command=sendCommand, return_output=True)
