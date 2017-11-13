@@ -141,7 +141,7 @@ def test_registerRackHD():
                                      ssl_enabled=cpsd.props.rmq_ssl_enabled,
                                      queue='test.endpoint.registration.event')
 
-    the_payload = '{"messageProperties":{"timestamp":"2017-06-14T12:00:00Z","correlationId":"manually-reg-rackhd-3fb0-9696-3f7d28e17f72"},"registrationInfo":{"address":"http://' + rackHD_IP + ':32080/swagger-ui/","username":"' + rackHD_username + '","password":"' + rackHD_password + '"}}'
+    the_payload = '{"messageProperties":{"timestamp":"2017-06-14T12:00:00Z","correlationId":"manually-reg-rackhd-3fb0-9696-3f7d28e17f72"},"registrationInfo":{"address":"http://' + rackHD_IP + ':8080/swagger-ui/","username":"' + rackHD_username + '","password":"' + rackHD_password + '"}}'
     print(the_payload)
 
     af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
