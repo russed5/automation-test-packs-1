@@ -174,6 +174,7 @@ def test_registerscaleio():
     ('exchange.dell.cpsd.endpoint.registration.event', 'queue.dell.cpsd.scaleio.endpoint.unavailable.event')])
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
+@pytest.mark.skip(reason="Currently under review if these tests should be performed at unit test level")
 def test_scaleio_RMQ_bindings_core(exchange, queue):
     """
     Title           :       Verify the RMQ bindings

@@ -201,6 +201,7 @@ def test_registerVcenter():
      'queue.dell.cpsd.hdp.capability.registry.response.vcenter-adapter')])
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
+@pytest.mark.skip(reason="Currently under review if these tests should be performed at unit test level")
 def test_vcenter_adapter_RMQ_bindings_core(exchange, queue):
     """
     Title           :       Verify the RMQ bindings
