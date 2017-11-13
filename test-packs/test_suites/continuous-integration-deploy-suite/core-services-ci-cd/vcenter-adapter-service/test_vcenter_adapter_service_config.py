@@ -22,10 +22,6 @@ def load_test_data():
     import cpsd
     global cpsd
 
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
 
     # Set config ini file name
     global env_file
@@ -43,15 +39,14 @@ def load_test_data():
                                                              property='password')
 
     # RMQ Details
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
-    global port
+    global rabbitmq_hostname ,port
     port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
                                                      property='ssl_port')
+    rabbitmq_hostname = "amqp.cpsd.dell"
+
+    #Consul Details
+    global consul_hostname
+    consul_hostname = "consul.cpsd.dell"
 
     # Update setup_config.ini file at runtime
     my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/setup_config.properties'
@@ -76,10 +71,10 @@ def load_test_data():
                                                                  heading=setup_config_header,
                                                                  property='vcenter_password')
     global rpm_name
-    rpm_name = "dell-cpsd-vcenter-adapter"
+    rpm_name = "dell-cpsd-hal-vcenter-adapter"
 
     global service_name
-    service_name = 'symphony-vcenter-adapter-service'
+    service_name = 'dell-cpsd-hal-vcenter-adapter'
 
     global vcenter_port
     vcenter_port = '443'
@@ -128,21 +123,18 @@ def test_registerVcenter():
 
     time.sleep(2)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671,
+                                     ssl_enabled=True,
                                      queue='test.controlplane.vcenter.response')
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671,
+                                     ssl_enabled=True,
                                      queue='test.endpoint.registration.event')
 
     the_payload = '{"messageProperties":{"timestamp":"2010-01-01T12:00:00Z","correlationId":"vcenter-registtration-corr-id","replyTo":"localhost"},"registrationInfo":{"address":"https://' + vcenter_IP + ':' + vcenter_port + '","username":"' + vcenter_username + '","password":"' + vcenter_password + '"}}'
     print(the_payload)
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                         ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671,
+                                         ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.controlplane.vcenter.request',
                                          routing_key='controlplane.hypervisor.vcenter.endpoint.register',
                                          headers={
@@ -151,28 +143,26 @@ def test_registerVcenter():
 
     # Verify the vcenter is validated
     assert waitForMsg('test.controlplane.vcenter.response'), 'ERROR: No validation Message Returned'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
+                                                          ssl_enabled=True,
                                                           queue='test.controlplane.vcenter.response',
                                                           remove_message=True)
     return_json = json.loads(return_message, encoding='utf-8')
     print (return_json)
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: Vcenter validation failure'
 
-    # Verify the system triggers a msg to register vcenter with consul
-    assert waitForMsg('test.endpoint.registration.event'), 'ERROR: No message to register with Consul sent'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
-                                                          queue='test.endpoint.registration.event',
-                                                          remove_message=True)
+    #May remove the below commented test due to test cases already existing for consul registration further down
 
-    return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
-    assert return_json['endpoint']['type'] == 'vcenter', 'vcenter not registered with endpoint'
+    # # Verify the system triggers a msg to register vcenter with consul
+    # assert waitForMsg('test.endpoint.registration.event'), 'ERROR: No message to register with Consul sent'
+    # return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
+    #                                                       ssl_enabled=True,
+    #                                                       queue='test.endpoint.registration.event',
+    #                                                       remove_message=True)
+    #
+    # return_json = json.loads(return_message, encoding='utf-8')
+    # print (return_json)
+    # assert return_json['endpoint']['type'] == 'vcenter', 'vcenter not registered with endpoint'
 
     cleanup('test.controlplane.vcenter.response')
     cleanup('test.endpoint.registration.event')
@@ -222,7 +212,7 @@ def test_vcenter_adapter_RMQ_bindings_core(exchange, queue):
     Returns         :       None
     """
 
-    queues = rest_queue_list(user=rmq_username, password=rmq_password, host=ipaddress, port=15672, virtual_host='%2f',
+    queues = rest_queue_list(user="guest", password="guest", host=rabbitmq_hostname, port=15672, virtual_host='%2f',
                              exchange=exchange)
     queues = json.dumps(queues)
 
@@ -252,23 +242,20 @@ def test_vcenter_adapter_full_ListCapabilities():
     originalcorrelationID = 'capability-registry-list-vcenter-adapter-corID'
     the_payload = '{}'
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671,
                                          exchange='exchange.dell.cpsd.hdp.capability.registry.request',
                                          routing_key='dell.cpsd.hdp.capability.registry.request',
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.hdp.capability.registry.list.capability.providers'},
                                          payload=the_payload,
                                          payload_type='json',
-                                         correlation_id={originalcorrelationID}, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         correlation_id={originalcorrelationID}, ssl_enabled=True)
 
     # Wait for and consume the Capability Response Message
     assert waitForMsg('test.capability.registry.response'), 'ERROR: No List Capabilities Message returned'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                           queue='test.capability.registry.response',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                                          ssl_enabled=True)
     print(return_message)
     time.sleep(5)
     # Verify the vcenter Apapter Response
@@ -369,12 +356,12 @@ def test_consul_verify_vcenter_registered():
     service = 'vcenter'
 
     url_body = ':8500/v1/agent/services'
-    my_url = 'http://' + ipaddress + url_body
+    my_url = 'https://' + consul_hostname + url_body
 
     print('GET:', my_url)
 
     try:
-        url_response = requests.get(my_url)
+        url_response = requests.get(my_url,verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt")
         url_response.raise_for_status()
 
         # A 200 has been received
@@ -383,7 +370,7 @@ def test_consul_verify_vcenter_registered():
         the_response = url_response.text
 
         # Create the sting as it should appear in the API
-        serviceToCheck = '"Service": "' + service + '"'
+        serviceToCheck = '"Service":"' + service + '"'
 
         assert serviceToCheck in the_response, ('ERROR:', service, 'is not in Consul\n')
 
@@ -411,19 +398,19 @@ def test_consul_verify_vcenter_passing_status():
     service = 'vcenter'
 
     url_body = ':8500/v1/health/checks/' + service
-    my_url = 'http://' + ipaddress + url_body
+    my_url = 'https://' + consul_hostname + url_body
 
     print('GET:', my_url)
 
     try:
-        url_response = requests.get(my_url)
+        url_response = requests.get(my_url,verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt")
         url_response.raise_for_status()
 
         # A 200 has been received
         print(url_response)
         the_response = url_response.text
 
-        serviceStatus = '"Status": "passing"'
+        serviceStatus = '"Status":"passing"'
         assert serviceStatus in the_response, ('ERROR:', service, 'is not Passing in Consul\n')
         print(service, 'Status = Passing in consul\n\n')
 
@@ -447,7 +434,7 @@ def test_vcenter_adapter_log_files_exist():
     Returns         :       None
     """
 
-    service = 'vcenter-adapter-service'
+    service = 'dell-cpsd-hal-vcenter-adapter'
     filePath = '/opt/dell/cpsd/vcenter-adapter-service/logs/'
     errorLogFile = 'vcenter-adapter-error.log'
     infoLogFile = 'vcenter-adapter-info.log'
@@ -482,7 +469,7 @@ def test_vcenter_adapter_log_files_free_of_exceptions():
     Returns         :       None
     """
 
-    service = 'vcenter-adapter-service'
+    service = 'dell-cpsd-hal-vcenter-adapter'
     filePath = '/opt/dell/cpsd/vcenter-adapter-service/logs/'
     errorLogFile = 'vcenter-adapter-error.log'
     excep1 = 'AuthenticationFailureException'
@@ -536,6 +523,7 @@ def test_vcenter_adapter_log_files_free_of_exceptions():
 
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
+@pytest.mark.skip(reason="This test will be moved to another suite")
 def test_vcenter_removerpm():
     err = []
 
@@ -579,19 +567,15 @@ def test_vcenter_removerpm():
 
 
 def bindQueues(exchange, queue):
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username,
-                                    rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671,
                                     queue=queue,
                                     exchange=exchange,
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                    routing_key='#', ssl_enabled=True)
 
 
 def cleanup(queue):
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username,
-                                      rmq_password=cpsd.props.rmq_password,
-                                      queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671,
+                                      queue=queue, ssl_enabled=True)
 
 
 def waitForMsg(queue):
@@ -614,10 +598,8 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                   rmq_username=cpsd.props.rmq_username,
-                                                   rmq_password=cpsd.props.rmq_password,
-                                                   queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671,
+                                                   queue=queue, ssl_enabled=True)
 
         if timeout > max_timeout:
             print('ERROR: Message took too long to return. Something is wrong')
@@ -625,15 +607,14 @@ def waitForMsg(queue):
 
     return True
 
-
 def rest_queue_list(user=None, password=None, host=None, port=None, virtual_host=None, exchange=None):
     """
     Description     :       This method returns all the RMQ Queues that are bound to a names RMQ Exchange.
     Parameters      :       RMQ User, RMQ password, host, port & exchange. Always virtual_host = '%2f'
     Returns         :       A list of the Queues bound to the named Exchange/
     """
-    url = 'http://%s:%s/api/exchanges/%s/%s/bindings/source' % (host, port, virtual_host, exchange)
-    response = requests.get(url, auth=(user, password))
+    url = 'https://%s:%s/api/exchanges/%s/%s/bindings/source' % (host,port, virtual_host, exchange)
+    response = requests.get(url, verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt", auth=(user, password))
     queues = [q['destination'] for q in response.json()]
     return queues
 
