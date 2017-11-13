@@ -1,46 +1,21 @@
 #!/usr/bin/python
 # Author: cullia
 # Revision: 2.1
+# Refactor by : Toqeer Akhtar
 # Code Reviewed by:
 # Description: Verify all expected capabilities are returned for all providers and adapters when the user submits a
 #               registry.list.capability Message
 #
 # Copyright (c) 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
 # Dell EMC Confidential/Proprietary Information
-#
+
 import af_support_tools
 import json
 import pytest
 import time
 
 
-@pytest.fixture(scope="module", autouse=True)
-def load_test_data():
-    import cpsd
-    global cpsd
 
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
-
-    # Set config ini file name
-    global env_file
-    env_file = 'env.ini'
-
-    # Test VM Details
-    global ipaddress
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-
-    # RMQ Details
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
-    global rmq_port
-    rmq_port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
 
 
 #####################################################################
@@ -50,9 +25,10 @@ def load_test_data():
 @pytest.mark.parametrize('param_providerName, param_capabilities1', [
     ('rackhd-adapter', 'rackhd-consul-register',),
     ('vcenter-adapter', 'vcenter-consul-register'),
-    ('coprhd-adapter', 'coprhd-consul-register'),
     ('endpoint-registry', 'endpoint-registry-lookup'),
     ('scaleio-adapter', 'scaleio-consul-register')])
+
+
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
@@ -99,7 +75,7 @@ def test_capabilityRegistry_ListCapabilities_core_1(param_providerName, param_ca
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
-def test_capabilityRegistry_ListCapabilities_core_2(param_providerName, param_capabilities1, param_capabilities2):
+def test_capabilityRegistry_ListCapabilities_core_2(param_providerName, param_capabilities1, param_capabilities2, setup):
     """
     Title           :       Verify the registry.list.capability Message returns all capabilities for the provider under test
     Description     :       A registry.list.capability message is sent.  It is expected that a response is returned that
@@ -188,19 +164,16 @@ def test_capabilityRegistry_ListCapabilities_dne_2(param_providerName, param_cap
 # These are common functions that are used throughout the main test.
 
 def bindQueues():
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username,
-                                    rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_bind_queue(host= 'amqp', port=5671,
                                     queue='test.capability.registry.response',
                                     exchange='exchange.dell.cpsd.hdp.capability.registry.response',
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                    routing_key='#', ssl_enabled=True)
 
 
 def cleanup():
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username,
-                                      rmq_password=cpsd.props.rmq_password,
-                                      queue='test.capability.registry.response', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host= 'amqp', port=5671,                                     
+                                      queue='test.capability.registry.response',
+                                      ssl_enabled=True)
 
 
 def waitForMsg(queue):
@@ -223,10 +196,8 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                   rmq_username=cpsd.props.rmq_username,
-                                                   rmq_password=cpsd.props.rmq_password,
-                                                   queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671,                                                  
+                                                   queue=queue, ssl_enabled=True)
 
         if timeout > max_timeout:
             print('ERROR: Message took too long to return. Something is wrong')
@@ -260,23 +231,20 @@ def publish_list_capability_msg():
     originalcorrelationID = 'capability-registry-list-test'
     the_payload = '{}'
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671,                                         
                                          exchange='exchange.dell.cpsd.hdp.capability.registry.request',
                                          routing_key='dell.cpsd.hdp.capability.registry.request',
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.hdp.capability.registry.list.capability.providers'},
                                          payload=the_payload,
                                          payload_type='json',
-                                         correlation_id={originalcorrelationID}, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         correlation_id={originalcorrelationID}, ssl_enabled=True)
 
     # Wait for and consume the Capability Response Message
     waitForMsg('test.capability.registry.response')
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,                                                          
                                                           queue='test.capability.registry.response',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                                          ssl_enabled=True)
 
     checkForErrors(return_message)
     checkForFailures(return_message)

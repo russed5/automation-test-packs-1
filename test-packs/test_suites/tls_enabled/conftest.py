@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright © 2017 Dell Inc. or its subsidiaries.  All Rights Reserved
+
 import pytest
 import json
 import af_support_tools
@@ -43,23 +43,22 @@ class RabbitMq:
     def bind_queue_with_key(self, exchange, queue, routing_key):
         self.delete_queue(queue)
         print("INFO: binding queue {} to exchange {} with key {}".format(queue, exchange, routing_key))
-        af_support_tools.rmq_bind_queue(host=self.connection.ipAddress, port=self.connection.port, 
-                                        rmq_username=self.connection.username,rmq_password=self.connection.password,
-                                        queue=queue, exchange=exchange, routing_key=routing_key, ssl_enabled=True)
+        af_support_tools.rmq_bind_queue(self.connection.ipAddress, self.connection.port, self.connection.username,
+                                        self.connection.password, queue, exchange, routing_key)
 
     def delete_queue(self, queue):
         print("INFO: deleting queue", queue)
         af_support_tools.rmq_delete_queue(self.connection.ipAddress, self.connection.port, self.connection.username,
-                                          self.connection.password, queue, ssl_enabled=True)
+                                          self.connection.password, queue)
 
     def consume_message_from_queue(self, queue):
         message_found = af_support_tools.rmq_wait_for_messages_in_queue(host=self.connection.ipAddress, port=self.connection.port,
                                                                        rmq_username=self.connection.username, rmq_password=self.connection.password,
-                                                                       queue=queue, wait_time=300, check_interval=5, ssl_enabled=True)
+                                                                       queue=queue, wait_time=300, check_interval=5)
         if message_found:
             message = af_support_tools.rmq_consume_message(host=self.connection.ipAddress, port=self.connection.port,
                                                            rmq_username=self.connection.username, rmq_password=self.connection.password,
-                                                           queue=queue, ssl_enabled=True)
+                                                           queue=queue)
             print("INFO message consumed from queue {}: {}".format(queue, message))
             return json.loads(message, encoding='utf-8')
         else:
@@ -69,19 +68,19 @@ class RabbitMq:
         af_support_tools.rmq_publish_message(host=self.connection.ipAddress, port=self.connection.port,
                                              rmq_username=self.connection.username, rmq_password=self.connection.password,
                                              exchange=exchange, routing_key=routing_key,
-                                             headers=message.headers, payload=message.payload, payload_type=message.payloadType, ssl_enabled=True)
+                                             headers=message.headers, payload=message.payload, payload_type=message.payloadType)
 
 
 @pytest.fixture(scope="session")
 def hostIpAddress():
     import cpsd
-    #global cpsd
+    global cpsd
     return cpsd.props.base_hostname
 
 @pytest.fixture(scope="session")
 def hostConnection(hostIpAddress):
     import cpsd
-    #global cpsd
+    global cpsd
     username = cpsd.props.base_username
     password = cpsd.props.base_password
 
@@ -90,11 +89,11 @@ def hostConnection(hostIpAddress):
 
 @pytest.fixture(scope="session")
 def rabbitMq(hostIpAddress):
-    from common_libs import cpsd
-    creds = cpsd.get_rmq_credentials()
-    username = creds['rmq_user']
-    password = creds['rmq_password']
-    port = 5671
+    import cpsd
+    global cpsd
+    port = 5672
+    username = cpsd.props.rmq_username
+    password = cpsd.props.rmq_password
 
     rmq_connection = RmqConnection(hostIpAddress, username, password, port)
     return RabbitMq(rmq_connection)
