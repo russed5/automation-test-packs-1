@@ -30,7 +30,7 @@ def test_sds_consul():
 
 
     consul_url = 'https://ragu89.mpe.lab.vce.com:8088/about'
-    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/system-definition-service.cpsd.dell.crt')
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
