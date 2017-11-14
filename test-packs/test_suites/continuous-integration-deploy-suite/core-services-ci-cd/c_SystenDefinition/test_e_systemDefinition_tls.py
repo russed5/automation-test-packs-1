@@ -7,14 +7,10 @@
 # Copyright (c) 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
 # Dell EMC Confidential/Proprietary Information
 
-import time
-import sys
-import af_support_tools
+
 import pytest
-import string
 import requests
 import json
-import os
 
 
 
@@ -28,7 +24,7 @@ def test_sds_consul():
         """
     err = []
 
-
+    print('HHHHHHHHHH')
     consul_url = 'https://ragu89.mpe.lab.vce.com:8088/about'
     resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/system-definition-service.cpsd.dell.crt')
     print("---------------------------")
