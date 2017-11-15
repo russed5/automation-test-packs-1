@@ -23,10 +23,12 @@ def test_sds_consul():
             Returns: None
         """
     err = []
+	
+	consul = "consul.cpsd.dell"
 
     print('HHHHHHHHHH')
-    consul_url = 'https://ragu89.mpe.lab.vce.com:8088/about'
-    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/system-definition-service.cpsd.dell.crt')
+    consul_url = 'https://' + consul + ':8088/about'
+    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.crt')
     print("---------------------------")
     print(resp.text)
     data = json.loads(resp.text)
