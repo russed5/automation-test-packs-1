@@ -23,8 +23,8 @@ def test_sds_consul():
             Returns: None
         """
     err = []
-	
-	consul = "consul.cpsd.dell"
+
+    consul = "consul.cpsd.dell"
 
     print('HHHHHHHHHH')
     consul_url = 'https://' + consul + ':8088/about'
