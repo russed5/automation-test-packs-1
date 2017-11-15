@@ -28,7 +28,7 @@ def test_sds_consul():
 
     print('HHHHHHHHHH')
     consul_url = 'https://' + consul + ':8088/about'
-    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.crt')
+    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     print("---------------------------")
     print(resp.text)
     data = json.loads(resp.text)
