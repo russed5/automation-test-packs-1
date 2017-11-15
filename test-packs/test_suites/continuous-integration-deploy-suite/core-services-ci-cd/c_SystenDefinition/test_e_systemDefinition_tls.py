@@ -27,7 +27,7 @@ def test_sds_consul():
     consul = 'consul.cpsd.dell'
 
     print('HHHHHHHHHH')
-    consul_url = 'https://' + consulHost + ':8500/v1/catalog/services'
+    consul_url = 'https://' + consul + ':8500/v1/catalog/services'
     resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     print("---------------------------")
     print(resp.text)
