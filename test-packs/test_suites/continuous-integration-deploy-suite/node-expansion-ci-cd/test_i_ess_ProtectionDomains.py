@@ -19,39 +19,9 @@ def load_test_data():
     import cpsd
     global cpsd
 
-    # Set config ini file name
-    global env_file
-    env_file = 'env.ini'
-
-    # Test VM Details
-    global ipaddress
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                          property='hostname')
-    global cli_username
-    cli_username = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                              property='username')
-    global cli_password
-    cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                              property='password')
-
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
-
-    global rmq_username
-    rmq_username = cpsd.props.rmq_username
-    global rmq_password
-    rmq_password = cpsd.props.rmq_password
-    global rmq_port
-    rmq_port = cpsd.props.rmq_port
-    global rmq_cert_path
-    rmq_cert_path = cpsd.props.rmq_cert_path
-    global rmq_ssl_enabled
-    rmq_ssl_enabled = cpsd.props.rmq_ssl_enabled
-
     global FIXTURES_PATH
     FIXTURES_PATH = "/continuous-integration-deploy-suite/node-expansion-ci-cd/fixtures/essProtectionDomains/"
+    
 ##############################################################################################
 
 @pytest.mark.daily_status
@@ -1017,8 +987,7 @@ def sendRequestMessageToESS(my_payload):
 
     try:
         # publish the AMQP message
-        af_support_tools.rmq_publish_message(host=ipaddress, rmq_username=rmq_username, rmq_password=rmq_password,
-                                         port=rmq_port, ssl_enabled=rmq_ssl_enabled,
+        af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange=my_exchange,
                                          routing_key=my_routing_key,
                                          headers={'__TypeId__': my_type_id},
@@ -1035,9 +1004,8 @@ def sendRequestMessageToESS(my_payload):
 def consumeResponseMessageFromESS():
     """ Consume the ESS Response message """
     ess_response = ""
-    ess_response = af_support_tools.rmq_consume_message(host=ipaddress, port=rmq_port, rmq_username=rmq_username,
-                                                          rmq_password=rmq_password,
-                                                          queue='testQueue', ssl_enabled=rmq_ssl_enabled)
+    ess_response = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
+                                                          queue='testQueue')
     Qcleanup()
 
     if ess_response :
@@ -1056,20 +1024,17 @@ def bindQueues(exchangeName, routeName):
     :return:
     Create & bind the test queue called testQueue"""
 
-    af_support_tools.rmq_bind_queue(host=ipaddress,
-                                    port=rmq_port, rmq_username=rmq_username, rmq_password=rmq_password,
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671, ssl_enabled=True,
                                     queue='testQueue',
                                     exchange=exchangeName,
-                                    routing_key=routeName,
-                                    ssl_enabled=rmq_ssl_enabled)
+                                    routing_key=routeName)
 
 ##############################################################################################
 
 def Qcleanup():
     """ Delete the test queue """
     print('Cleaning up testQueue...')
-    af_support_tools.rmq_delete_queue(host=ipaddress, port=rmq_port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                      queue='testQueue', ssl_enabled=rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671, ssl_enabled=True, queue='testQueue')
 
 ##############################################################################################
 
