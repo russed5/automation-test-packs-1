@@ -21,19 +21,20 @@ def test_sds_consul():
             Description: This test verify SystemDefinition Services is running in TLS protocol
             Params: None
             Returns: None
-        """
+        """    
+    sysdef = 'system-definition-service.cpsd.dell'
+    hostname = socket.gethostname()
     err = []
 
-    consul = 'consul.cpsd.dell'
-
     print('HHHHHHHHHH')
-    consul_url = 'https://' + consul + ':8500/v1/catalog/services'
-    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+    
+    consul_url = 'https://' + sysdef + ':8080/about'
+    resp = requests.get(consul_url, cert=(
+        '/usr/local/share/ca-certificates/' + hostname + '.crt',
+        '/usr/local/share/ca-certificates/' + hostname + '.key'),
+                     verify='/usr/local/share/ca-certificates/cpsd.dell.ca.crt')
     print("---------------------------")
     print(resp.text)
-    data = json.loads(resp.text)
-    print(data)
     print("---------------------------")
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-
