@@ -5,6 +5,7 @@
 import af_support_tools
 import pytest
 
+
 ################################################
 @pytest.fixture()
 def setup():
@@ -15,16 +16,18 @@ def setup():
     parameters['IP'] = ipaddress
     cli_user = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                          property='username')
-    parameters['user'] = cli_user
+    parameters['cli_user'] = cli_user
     cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                              property='password')
-    parameters['password'] = cli_password
+    parameters['cli_password'] = cli_password
     return parameters
 
+
 ################################################
-@pytest.mark.parametrize('service_name',["cpsd-node-expansion-ui", "symphony-engineering-standards-service", "symphony-dne-paqx",
-                          "symphony-node-discovery-paqx", "symphony-vcenter-adapter-service",
-                          "cpsd-scaleio-adapter-service", "symphony-rackhd-adapter-service", "cpsd-api-gateway"])
+@pytest.mark.parametrize('service_name', ["symphony-engineering-standards-service", "symphony-dne-paqx",
+                                          "dell-cpsd-node-discovery-paqx", "dell-cpsd-hal-vcenter-adapter",
+                                          "dell-cpsd-hal-scaleio-adapter", "dell-cpsd-hal-rackhd-adapter",
+                                          "dell-cpsd-core-api-gateway"])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -42,8 +45,8 @@ def test_dne_services_up(service_name, setup):
 
     # for service_name in dne_dir:
     sendcommand = "docker ps --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
-    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                         password=setup['password'],
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
                                                          command=sendcommand, return_output=True)
     my_return_status = my_return_status.strip()
 
@@ -56,10 +59,9 @@ def test_dne_services_up(service_name, setup):
     assert not err
 
 
-#"symphony-rackhd-adapter-service" This has been removed as there is a defect open for it
-@pytest.mark.parametrize('service_name',["symphony-engineering-standards-service", "symphony-dne-paqx",
-                          "symphony-vcenter-adapter-service","cpsd-scaleio-adapter-service",
-                                         "symphony-node-discovery-paqx"])
+@pytest.mark.parametrize('service_name', ["symphony-engineering-standards-service", "symphony-dne-paqx",
+                                          "dell-cpsd-hal-vcenter-adapter", "dell-cpsd-hal-scaleio-adapter",
+                                          "dell-cpsd-node-discovery-paqx", "dell-cpsd-hal-rackhd-adapter"])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -77,8 +79,8 @@ def test_dne_amqpconnection_tls_port(service_name, setup):
 
     # Verify services are connected to port 5671 and only once
     cmd_1 = "docker exec " + service_name + " netstat -an 2>&1 | grep 5671 | awk '{print $6}'"
-    response1 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                  password=setup['password'],
+    response1 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                  password=setup['cli_password'],
                                                   command=cmd_1, return_output=True)
     response1 = response1.splitlines()
     response_list_5671 = [response1]
@@ -90,11 +92,10 @@ def test_dne_amqpconnection_tls_port(service_name, setup):
     else:
         err.append(service_name + " not connected to rabbitmq 5671")
 
-
     # Verify services are NOT connected to port 5672
     cmd2 = "docker exec " + service_name + " netstat -an 2>&1 | grep 5672 | awk '{print $6}'"
-    response2 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                  password=setup['password'],
+    response2 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                  password=setup['cli_password'],
                                                   command=cmd2, return_output=True)
     response2 = response2.splitlines()
     response_list_5672 = [response2]
@@ -107,10 +108,10 @@ def test_dne_amqpconnection_tls_port(service_name, setup):
     assert not err
 
 
-#"cpsd-node-expansion-ui", This is removed as there is a defcet open against it
-@pytest.mark.parametrize('service_name',["symphony-engineering-standards-service", "symphony-dne-paqx",
-                          "symphony-node-discovery-paqx", "symphony-vcenter-adapter-service",
-                          "cpsd-scaleio-adapter-service", "symphony-rackhd-adapter-service", "cpsd-api-gateway"])
+@pytest.mark.parametrize('service_name', ["symphony-engineering-standards-service", "symphony-dne-paqx",
+                                          "dell-cpsd-node-discovery-paqx", "dell-cpsd-hal-vcenter-adapter",
+                                          "dell-cpsd-hal-scaleio-adapter", "dell-cpsd-hal-rackhd-adapter",
+                                          "dell-cpsd-core-api-gateway"])
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_service_stop_start(service_name, setup):
@@ -125,40 +126,39 @@ def test_dne_service_stop_start(service_name, setup):
 
     err = []
 
-
     sendcommand = "docker ps --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
-    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                         password=setup['password'],
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
                                                          command=sendcommand, return_output=True)
     if "Up" not in my_return_status:
         err.append(service_name + " not running")
     else:
 
         cmd = "docker stop " + service_name
-        response = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                     password=setup['password'],
+        response = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                     password=setup['cli_password'],
                                                      command=cmd, return_output=False)
 
         cmd2 = "docker ps -a --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
-        response2 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                      password=setup['password'],
+        response2 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                      password=setup['cli_password'],
                                                       command=cmd2, return_output=True)
         if "Exited" not in response2:
             err.append(service_name + " has not stopped or has been removed")
 
     sendcommand = "docker ps -a --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
-    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                         password=setup['password'],
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
                                                          command=sendcommand, return_output=True)
     if "Exited" in my_return_status:
         cmd4 = "docker start " + service_name
-        response = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                     password=setup['password'],
+        response = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                     password=setup['cli_password'],
                                                      command=cmd4, return_output=False)
 
         cmd3 = "docker ps -a --filter name=" + service_name + "  --format '{{.Status}}' | awk '{print $1}'"
-        response3 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                      password=setup['password'],
+        response3 = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                      password=setup['cli_password'],
                                                       command=cmd3, return_output=True)
     if "Up" not in response3:
         err.append(service_name + " has not started or has been removed")
@@ -166,11 +166,16 @@ def test_dne_service_stop_start(service_name, setup):
     assert not err
 
 
-@pytest.mark.parametrize('directory',["vcenter-adapter", "rackhd-adapter", "dne-paqx", "ess", "node-discovery-paqx"])
+@pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),
+                                                ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),
+                                                ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),
+                                                ("symphony-dne-paqx", "dne-paqx"),
+                                                ("symphony-engineering-standards-service", "ess"),
+                                                ("dell-cpsd-node-discovery-paqx", "node-discovery-paqx")])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_services_log_files_exceptions(directory, setup):
+def test_dne_services_log_files_exceptions(service, directory, setup):
     """
     Description     :       This method tests that the ESS log files exist and contain no Exceptions.
                             It will fail:
@@ -180,47 +185,73 @@ def test_dne_services_log_files_exceptions(directory, setup):
     Returns         :       None
     """
 
-    filePath = '/opt/dell/cpsd/'+ directory +'/logs/'
+    filePath = '/opt/dell/cpsd/' + directory + '/logs/'
 
-
-    infoLogFile = directory+'-info.log'
+    infoLogFile = directory + '-info.log'
 
     # Need this exception as the node-discovery-paqx log file format is different to the others
     if filePath == '/opt/dell/cpsd/node-discovery-paqx/logs/':
         infoLogFile = 'node-discovery-info.log'
 
     # Verify the log files exist
-    sendcommand = 'ls ' + filePath
-    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                         password=setup['password'],
-                                                         command=sendcommand, return_output=True)
+    sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" ls ' + filePath + '") }\''
+
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
+                                                         command=sendCommand, return_output=True)
+    print(my_return_status)
     error_list = []
 
     if (infoLogFile not in my_return_status):
         error_list.append(infoLogFile)
 
-    excep1 = 'java.net.SocketException: Socket is closed'
-    excep2 = 'AuthenticationFailureException'
+    excep1 = 'AuthenticationFailureException'
+    excep2 = 'RuntimeException'
+    excep3 = 'NullPointerException'
+    excep4 = 'BeanCreationException'
+    excep5 = 'java.net.SocketException: Socket is closed'
 
-    # Verify there are no SocketException errors
-    sendcommand = 'cat ' + filePath + infoLogFile + ' | grep \'' + excep1 + '\''
-    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                         password=setup['password'],
-                                                         command=sendcommand, return_output=True)
-
+    # Verify there are no Authentication errors
+    sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" cat ' + filePath + infoLogFile + ' | grep ' + excep1 + '")}\''
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
+                                                         command=sendCommand, return_output=True)
     if (excep1 in my_return_status):
         error_list.append(excep1)
 
-    # Verify there are no AuthenticationFailureException errors
-    sendcommand = 'cat ' + filePath + infoLogFile + ' | grep \'' + excep2 + '\''
-    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
-                                                         password=setup['password'],
-                                                         command=sendcommand, return_output=True)
-
+    # Verify there are no RuntimeException errors
+    sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" cat ' + filePath + infoLogFile + ' | grep ' + excep2 + '")}\''
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
+                                                         command=sendCommand, return_output=True)
     if (excep2 in my_return_status):
         error_list.append(excep2)
 
+    # Verify there are no NullPointerException errors
+    sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" cat ' + filePath + infoLogFile + ' | grep ' + excep3 + '")}\''
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
+                                                         command=sendCommand, return_output=True)
+    if (excep3 in my_return_status):
+        error_list.append(excep3)
 
-    assert not error_list, 'Log file missing'
+    # Verify there are no BeanCreationException errors
+    sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" cat ' + filePath + infoLogFile + ' | grep ' + excep4 + '")}\''
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
+                                                         command=sendCommand, return_output=True)
+    if (excep4 in my_return_status):
+        error_list.append(excep4)
 
-    print('Valid log files exist')
+    # Verify there are no BeanCreationException errors
+    sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" cat ' + filePath + infoLogFile + ' | grep ' + excep5 + '")}\''
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['cli_user'],
+                                                         password=setup['cli_password'],
+                                                         command=sendCommand, return_output=True)
+    if (excep4 in my_return_status):
+        error_list.append(excep5)
+
+    assert not error_list, 'Exceptions in log files, Review the ' + infoLogFile + ' file'
+
+    print(
+        '\nNo Authentication, RuntimeException, BeanCreationException, SocketException or NullPointerException in log files\n')
