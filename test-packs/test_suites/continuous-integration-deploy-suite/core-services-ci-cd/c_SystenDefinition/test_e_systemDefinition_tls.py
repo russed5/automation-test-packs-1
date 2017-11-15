@@ -24,7 +24,7 @@ def test_sds_consul():
         """
     err = []
 
-    consul = "consul.cpsd.dell"
+    consul = "system-definition-service.cpsd.dell"
 
     print('HHHHHHHHHH')
     consul_url = 'https://' + consul + ':8088/about'
