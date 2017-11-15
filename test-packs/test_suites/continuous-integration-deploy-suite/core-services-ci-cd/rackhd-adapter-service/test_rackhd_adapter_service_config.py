@@ -212,6 +212,7 @@ def test_rackHD_RMQ_bindings_core(exchange, queue):
     ('exchange.dell.cpsd.controlplane.rackhd.response', 'controlplane.hardware.list.nodes.response')])
 @pytest.mark.dne_paqx_parent
 @pytest.mark.dne_paqx_parent_mvp_extended
+@pytest.mark.skip(reason="Currently under review if these tests should be performed at unit test level")
 def test_rackHD_RMQ_bindings_dne(exchange, queue):
     """
     Title           :       Verify the RMQ bindings
