@@ -74,7 +74,7 @@ def setup():
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_services_log_files_passwords(service, directory, setup):
+def test_dne_log_files_free_of_passwords(service, directory, setup):
     filePath = '/opt/dell/cpsd/' + directory + '/logs/'
 
     infoLogFile = directory + '-info.log'
