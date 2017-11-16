@@ -1,7 +1,7 @@
 #!/usr/bin/python
-# Author: Shane McGowan
+# Author: Ragubathy Jayaraju
 # Revision: 1.0
-# Code Reviewed by: Toqeer Akhtar
+# Code Reviewed by: Azar
 # Description: Testing the Converged System Components Rest API V's JSON input file
 #
 # Copyright (c) 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
@@ -15,22 +15,18 @@ import json
 import socket
 
 
-
 @pytest.mark.sds_tls_enabled
 def test_sds_consul():
     """
-            Title: sds Registered in con
+            Title: sds TLS test
             Description: This test verify SystemDefinition Services is running in TLS protocol
             Params: None
             Returns: None
         """    
     sysdef = 'system-definition-service.cpsd.dell'
     hostname = socket.gethostname()
-    err = []
-
-    print('HHHHHHHHHH')
-    
     consul_url = 'https://' + sysdef + ':8080/about'
+    print('Console URL : ' + consul_url)
     resp = requests.get(consul_url, cert=(
         '/usr/local/share/ca-certificates/' + hostname + '.crt',
         '/usr/local/share/ca-certificates/' + hostname + '.key'),
