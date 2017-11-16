@@ -2,7 +2,7 @@
 # Author:
 # Revision: 1.2
 # Code Reviewed by:
-# Description: Testing the ESS on VCluster.
+# Description: Testing the ESS on vCenter Cluster.
 
 #
 # Copyright (c) 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
@@ -25,44 +25,141 @@ import uuid
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_handle_validateVcenterCluster_message():
-    print("\n======================= Handle validateVcenterCluster Request message =======================\n")
+def test_handle_validateVcenterCluster_message_1():
+    '''
+    Input: 2 valid, 2 invalid clusters
+    Expect: 2 clusters & 2 warnings
 
+    :return:
+    '''
     cleanupQ('test.ess.service.response')
     bindQueue('exchange.dell.cpsd.service.ess.response', 'test.ess.service.response')
 
+    filePath = os.environ[
+                   'AF_TEST_SUITE_PATH'] + '/continuous-integration-deploy-suite/node-expansion-ci-cd/fixtures/ess_vCenterClusters/ess_clusterInfo_1.json'
+
+    with open(filePath) as fixture:
+        my_payload = fixture.read()
+
     print("Send validate vcenter cluster request message ...\n")
-    simulate_validateVcenterClusterRequest_message();
+    simulate_validateVcenterClusterRequest_message(my_payload);
 
     print("Consume validate vcenter cluster response message ...\n")
-    listingsMsg = consumeResponse('queue.dell.cpsd.ess.service.response')
+    responseMsg = consumeResponse()
+
+    print(responseMsg)
+
+    error_list = []
+
+    if responseMsg['clusters'][0] != 'test_cluster_1host':
+        error_list.append('Error :wrong cluster identified')
+    if responseMsg['clusters'][1] != 'test_cluster_63hosts':
+        error_list.append('Error :wrong cluster identified')
+
+
+    if responseMsg['failedCluster'][0] != 'REQUIRED:  No more than 64 nodes per cluster -- Cluster test_cluster_64hosts with 64 nodes failed rule checking.':
+        error_list.append('Error :Warning returned')
+
+    if responseMsg['failedCluster'][1] != 'REQUIRED:  No more than 64 nodes per cluster -- Cluster test_cluster_65hosts with 65 nodes failed rule checking.':
+        error_list.append('Error :Warning returned')
+
+    assert not error_list
+
     cleanupQ('test.ess.service.response')
 
-    assert len(listingsMsg['clusters']) == 2, "Error - should have 2 valid clusters"
-    assert len(listingsMsg['failedCluster']) == 2, "Error - should have 2 failed clusters"
+
+@pytest.mark.daily_status
+@pytest.mark.dne_paqx_parent_mvp
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_handle_validateVcenterCluster_message_2():
+    '''
+    Input: 1 invalid clusters
+    Expect: 1 warnings
+
+    :return:
+    '''
+    cleanupQ('test.ess.service.response')
+    bindQueue('exchange.dell.cpsd.service.ess.response', 'test.ess.service.response')
+
+    filePath = os.environ[
+                   'AF_TEST_SUITE_PATH'] + '/continuous-integration-deploy-suite/node-expansion-ci-cd/fixtures/ess_vCenterClusters/ess_clusterInfo_2.json'
+
+    with open(filePath) as fixture:
+        my_payload = fixture.read()
+
+    print("Send validate vcenter cluster request message ...\n")
+    simulate_validateVcenterClusterRequest_message(my_payload);
+
+    print("Consume validate vcenter cluster response message ...\n")
+    responseMsg = consumeResponse()
+
+    print(responseMsg)
+
+    error_list = []
+
+    if responseMsg['failedCluster'][0] != 'REQUIRED:  No more than 64 nodes per cluster -- Cluster test_cluster_100host with 100 nodes failed rule checking.':
+        error_list.append('Error :Warning returned')
+
+    assert not error_list
+
+    cleanupQ('test.ess.service.response')
+
+
+@pytest.mark.daily_status
+@pytest.mark.dne_paqx_parent_mvp
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_handle_validateVcenterCluster_message_3():
+    '''
+    Input: 0 clusters
+    Expect: 2 clusters & 2 warnings
+
+    :return:
+    '''
+    cleanupQ('test.ess.service.response')
+    bindQueue('exchange.dell.cpsd.service.ess.response', 'test.ess.service.response')
+
+    filePath = os.environ[
+                   'AF_TEST_SUITE_PATH'] + '/continuous-integration-deploy-suite/node-expansion-ci-cd/fixtures/ess_vCenterClusters/ess_clusterInfo_3.json'
+
+    with open(filePath) as fixture:
+        my_payload = fixture.read()
+
+    print("Send validate vcenter cluster request message ...\n")
+    simulate_validateVcenterClusterRequest_message(my_payload);
+
+    print("Consume validate vcenter cluster response message ...\n")
+    responseMsg = consumeResponse()
+
+    print(responseMsg)
+
+    error_list = []
+
+    if len(responseMsg['failedCluster']) != 0:
+        error_list.append('Error :Warning returned')
+
+    if len(responseMsg['failedCluster']) != 0:
+        error_list.append('Error :Warning returned')
+
+    assert not error_list
+
+    cleanupQ('test.ess.service.response')
 
 #######################################################################################################################
 
-def simulate_validateVcenterClusterRequest_message():
+def simulate_validateVcenterClusterRequest_message(my_payload):
 
     print(" Publishing a vcenterCluster request message .. ")
-    my_routing_key = 'ess.service.request.' + str(uuid.uuid4())
 
-    filePath = os.environ['AF_TEST_SUITE_PATH'] + '/continuous-integration-deploy-suite/node-expansion-ci-cd/fixtures/ess_clusterInfo.json'
+    af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
+                                         exchange='exchange.dell.cpsd.service.ess.request',
+                                         routing_key='ess.service.request',
+                                         headers={
+                                             '__TypeId__': 'com.dell.cpsd.vcenter.validateClusterRequest'},
+                                         payload=my_payload,
+                                         payload_type='json')
 
-    with open(filePath) as fixture:
 
-        my_payload = fixture.read()
-        af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
-                                             exchange='exchange.dell.cpsd.service.ess.request',
-                                             routing_key=my_routing_key,
-                                             headers={
-                                                 '__TypeId__': 'com.dell.cpsd.vcenter.validateClusterRequest'},
-                                             payload=my_payload,
-                                             payload_type='json')
-
-####################################################################################################
-def consumeResponse(testqueue):
+def consumeResponse():
     """ Consume the next message received on the testqueue and return the message in json format"""
 
     waitForMsg('test.ess.service.response')
@@ -71,11 +168,7 @@ def consumeResponse(testqueue):
                                                           queue='test.ess.service.response')
 
     return_message = json.loads(return_message, encoding='utf-8')
-
-    print ( json.dumps(return_message))
     return return_message
-
-####################################################################################################
 
 
 def cleanupQ(testqueue):
@@ -98,16 +191,9 @@ def waitForMsg(queue):
     # if a message never arrives. Once a message appears in the queue the function is complete and main continues.
 
     print ('Waiting for message')
-    # The length of the queue, it will start at 0 but as soon as we get a response it will increase
     q_len = 0
-
-    # Represents the number of seconds that have gone by since the method started
     timeout = 0
-
-    # Max number of seconds to wait
     max_timeout = 15
-
-    # Amount of time in seconds that the loop is going to wait on each iteration
     sleeptime = 10
 
     while q_len < 1:
