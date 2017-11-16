@@ -919,6 +919,7 @@ def retrieveScaleIOStoragePool(scaleIoToken):
 #####################################################################
 # These are Negative Tests tests.
 #####################################################################
+@pytest.mark.skip(reason='Need to update with move to Multinode')
 @pytest.mark.parametrize('endpoint', [('/dne/preprocess/')])
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -988,7 +989,7 @@ def test_GETjobid_using_invalid_jobid(endpoint):
 
     print('\n======================= invalid jobId Test End=======================\n')
 
-
+@pytest.mark.skip(reason='Need to update with move to Multinode')
 @pytest.mark.parametrize('endpoint', [('/dne/preprocess/')])
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -1059,7 +1060,7 @@ def test_GETjobid_using_valid_but_incorrect_jobid(endpoint):
 
     print('\n======================= valid jobId but incorrect Test End=======================\n')
 
-
+@pytest.mark.skip(reason='Need to update with move to Multinode')
 @pytest.mark.parametrize('endpoint', [('/dne/preprocess/step/')])
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
