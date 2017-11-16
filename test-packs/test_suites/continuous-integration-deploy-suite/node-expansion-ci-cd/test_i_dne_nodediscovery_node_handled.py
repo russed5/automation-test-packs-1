@@ -19,41 +19,21 @@ import os
 
 ##############################################################################################
 
-@pytest.fixture(scope="module", autouse=True)
-def load_test_data():
-    import cpsd
-    global cpsd
-
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
-
-    # Set config ini file name
-    global env_file
+@pytest.fixture()
+def setup():
+    parameters = {}
     env_file = 'env.ini'
 
-    # Test VM Details
-    global ipaddress
     ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-
-    global cli_username
-    cli_username = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                             property='username')
-    global cli_password
+    cli_user = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='username')
     cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                              property='password')
 
-    # RMQ Details
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                     property='ssl_port')
+    parameters['IP'] = ipaddress
+    parameters['cli_user'] = cli_user
+    parameters['cli_password'] = cli_password
+
+    return parameters
 
 
 #####################################################################
@@ -61,8 +41,8 @@ def load_test_data():
 #####################################################################
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
-#@pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_discovered_node_handled():
+# @pytest.mark.dne_paqx_parent_mvp_extended
+def test_dne_discovered_node_handled(setup):
     """
     Title           :       Verify that dne/nodes API has disocvered Dell nodes
     Description     :       A dummy node discovered message is published to trigger the node discovery process
@@ -74,7 +54,7 @@ def test_dne_discovered_node_handled():
     Returns         :       None
     """
 
-    print('\nRunning Test on system: ', ipaddress)
+    print('\nRunning Test on system: ', setup['IP'])
 
     cleanup('test.rackhd.node.discovered.event')
     cleanup('test.eids.identity.request')
@@ -85,17 +65,14 @@ def test_dne_discovered_node_handled():
 
     time.sleep(2)
 
-
     # Step 1: Publish a message to dummy a node discovery. Values used here are all dummy values.
     the_payload = '{"data":{"ipMacAddresses":[{"ipAddress":"172.31.128.12","macAddress":"fb-43-62-54-d4-3a"},{"macAddress":"b9-ce-c4-73-10-35"},{"macAddress":"4d-63-c5-48-9f-5c"},{"macAddress":"1d-97-c3-a0-42-1a"},{"macAddress":"ce-1d-b5-a6-65-ad"},{"macAddress":"30-e5-72-6f-78-79"}],"nodeId":"123456789012345678909777","nodeType":"compute"},"messageProperties":{"timestamp":"2017-06-27T08:58:32.437+0000"},"action":"discovered","createdAt":"2017-06-27T08:58:31.871Z","nodeId":"123456789012345678909777","severity":"information","type":"node","typeId":"123456789012345678909777","version":"1.0"}'
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.adapter.rackhd.node.discovered.event',
                                          routing_key='',
-                                         headers={
-                                             '__TypeId__': 'com.dell.cpsd.component.events.Alert'},
-                                         payload=the_payload, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         headers={'__TypeId__': 'com.dell.cpsd.component.events.Alert'},
+                                         payload=the_payload)
 
     # Keeping this here for reference as type has changed. '__TypeId__': 'com.dell.cpsd.NodeEventDiscovered'},
 
@@ -107,11 +84,10 @@ def test_dne_discovered_node_handled():
 
     # Step 4: Verify the Node is in Postgres
 
-    currentNodes = readEntryInNodeComputeTable()
-    print (currentNodes)
+    currentNodes = readEntryInNodeComputeTable(setup)
+    print(currentNodes)
 
     error_list = []
-
 
     if (nodeID not in currentNodes):
         error_list.append(nodeID)
@@ -134,10 +110,7 @@ def rmqNodeDiscover():
     # Return the newly discovered nodeID value
 
     assert waitForMsg('test.rackhd.node.discovered.event'), 'Error: No Node Discovered Msg Recieved'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.rackhd.node.discovered.event')
 
     return_json = json.loads(return_message, encoding='utf-8')
@@ -153,18 +126,12 @@ def verifyEidsMessage():
     # Return the EIDS UUID generated value
 
     assert waitForMsg('test.eids.identity.request'), 'Error: No request sent to EIDS'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.eids.identity.request')
 
     # Check the EIDS response message
     assert waitForMsg('test.eids.identity.response'), 'Error: Mor response for EIDS'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.eids.identity.response')
 
     return_json = json.loads(return_message, encoding='utf-8')
@@ -174,7 +141,7 @@ def verifyEidsMessage():
     return uuid
 
 
-def readEntryInNodeComputeTable():
+def readEntryInNodeComputeTable(setup):
     """ A Function to get all entries form the postgres table 'compute_node'.
 
     :parameter: none
@@ -183,23 +150,29 @@ def readEntryInNodeComputeTable():
 
     readFromCommand = 'select * FROM compute_node'
     writeToFileCommand = "echo \"" + readFromCommand + "\" > /tmp/sqlRead.txt"
+    writeToDockerFileCommand = 'docker cp /tmp/sqlRead.txt postgres:/tmp/sqlRead.txt'
+    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-paqx options=--search_path=public\\\" -f /tmp/sqlRead.txt\"\'"
 
     try:
 
-        result = af_support_tools.send_ssh_command(
-            host=ipaddress,
-            username=cli_username,
-            password=cli_password,
+        af_support_tools.send_ssh_command(
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
             command=writeToFileCommand,
-            return_output=True)
+            return_output=False)
 
-        execSQLCommand = "sudo  -u postgres -H sh -c \"psql \\\"dbname=symphony options=--search_path=ndpx\\\" \
-                            -f /tmp/sqlRead.txt\""
+        af_support_tools.send_ssh_command(
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
+            command=writeToDockerFileCommand,
+            return_output=False)
 
         result = af_support_tools.send_ssh_command(
-            host=ipaddress,
-            username=cli_username,
-            password=cli_password,
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
             command=execSQLCommand,
             return_output=True)
 
@@ -209,23 +182,18 @@ def readEntryInNodeComputeTable():
         # Return code error
         print(err, '\n')
         raise Exception(err)
+
+
 #####################################################################
 # These are small functions called throughout the test.
 
 def bindQueues(exchange, queue):
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username,
-                                    rmq_password=cpsd.props.rmq_password,
-                                    queue=queue,
-                                    exchange=exchange,
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671, ssl_enabled=True, routing_key='#', queue=queue,
+                                    exchange=exchange)
 
 
 def cleanup(queue):
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username,
-                                      rmq_password=cpsd.props.rmq_password,
-                                      queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671, ssl_enabled=True, queue=queue)
 
 
 def waitForMsg(queue):
@@ -248,11 +216,7 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                   rmq_username=cpsd.props.rmq_username,
-                                                   rmq_password=cpsd.props.rmq_password,
-                                                   ssl_enabled=cpsd.props.rmq_ssl_enabled,
-                                                   queue=queue)
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671, ssl_enabled=True, queue=queue)
 
         if timeout > max_timeout:
             print('ERROR: Message took too long to return. Something is wrong')

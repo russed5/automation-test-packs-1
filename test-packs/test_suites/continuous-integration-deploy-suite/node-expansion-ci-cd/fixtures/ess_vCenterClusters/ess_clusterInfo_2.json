@@ -1,0 +1,15 @@
+{
+  "messageProperties": {
+    "timestamp": "2010-01-01T12:00:00Z",
+    "correlationId": "90015098-3cd2-3fb0-9696-3f7d28e17f72",
+    "replyTo": "test"
+  },
+  "discoverClusterResponseInfo": {
+    "clusters": [
+      {
+        "name": "test_cluster_100host",
+        "numberOfHosts": "100"
+      }
+    ]
+  }
+}
