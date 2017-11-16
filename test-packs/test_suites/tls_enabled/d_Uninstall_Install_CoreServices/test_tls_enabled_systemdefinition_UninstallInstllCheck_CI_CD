@@ -28,7 +28,7 @@ def test_sysdef_uninstall(setup):
                                                              command=sendcommand, return_output=False)
 
     
-    assert my_return_status == 0, "endpoint is not uninstalled"
+    assert my_return_status == 0, "System definition Service did not uninstalled"
 
 @pytest.mark.tls_enabled_stop_start
 def test_sysdef_install(setup):
@@ -60,7 +60,7 @@ def test_sysdef_install(setup):
     my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
                                                              password=setup['password'],
                                                              command=sendcommand, return_output=False)
-    assert my_return_status == 0, "endpoint did not install"
+    assert my_return_status == 0, "System definition Service did not install"
 
 
 @pytest.mark.tls_enabled_stop_start
