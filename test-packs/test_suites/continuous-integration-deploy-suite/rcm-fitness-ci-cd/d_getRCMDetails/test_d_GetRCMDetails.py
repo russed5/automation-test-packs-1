@@ -45,11 +45,15 @@ def load_test_data():
     global env_file
     env_file = 'env.ini'
 
+    global hostTLS
+    hostTLS = "amqp"
+    # host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='tls_hostname')
     global host
     host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
-    port = int(port)
+    global portTLS
+    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
+    # port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
+    portTLS = int(portTLS)
     global rmq_username
     rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
                                                              property='username')
@@ -97,10 +101,10 @@ def load_test_data():
     payload_dataVxRack1 = 'datavxrack1'
     global payload_dataVxRack2
     payload_dataVxRack2 = 'datavxrack2'
-    global payload_dataVxRack3
-    payload_dataVxRack3 = 'datavxrack3'
-    global payload_dataVxRack4
-    payload_dataVxRack4 = 'datavxrack4'
+    # global payload_dataVxRack3
+    # payload_dataVxRack3 = 'datavxrack3'
+    # global payload_dataVxRack4
+    # payload_dataVxRack4 = 'datavxrack4'
 
     ensurePathExists(path)
     purgeOldOutput(path, "getRCMsRe")
@@ -108,7 +112,7 @@ def load_test_data():
     deleteTestQueues('testGetRCMDetailsRequest', 'testGetRCMDetailsResponse')
 
     getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
-    # with open(path + "getRcmDetailsInputs.json", 'rt', encoding='utf-8') as dataFileIN:
+    # with open(path + "getRcmDetailsInputs.json", 'rt') as dataFileIN:
     #     data = json.load(dataFileIN)
 
     message = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
@@ -140,10 +144,10 @@ def load_test_data():
                                                               property=payload_dataVxRack1)
     messageVxrack2 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                               property=payload_dataVxRack2)
-    messageVxrack3 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
-                                                             property=payload_dataVxRack3)
-    messageVxrack4 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
-                                                             property=payload_dataVxRack4)
+    # messageVxrack3 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
+    #                                                          property=payload_dataVxRack3)
+    # messageVxrack4 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
+    #                                                          property=payload_dataVxRack4)
 
     updatedMessageInvalidCorrID = convertStrToDict(messageInvalidCorrID)
     updatedMessageIP = convertStrToDict(messageIP)
@@ -153,8 +157,8 @@ def load_test_data():
     updatedMessageNoKey = convertStrToDict(messageNoKey)
     updatedMessageVxrack1 = convertStrToDict(messageVxrack1)
     updatedMessageVxrack2 = convertStrToDict(messageVxrack2)
-    updatedMessageVxrack3 = convertStrToDict(messageVxrack3)
-    updatedMessageVxrack4 = convertStrToDict(messageVxrack4)
+    # updatedMessageVxrack3 = convertStrToDict(messageVxrack3)
+    # updatedMessageVxrack4 = convertStrToDict(messageVxrack4)
 
     updatedMessageInvalidCorrID['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
     updatedMessageIP['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
@@ -163,12 +167,12 @@ def load_test_data():
     updatedMessageNoHostname['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
     updatedMessageNoKey['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
     updatedMessageVxrack1['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
-    getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1")
+    # getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1")
     updatedMessageVxrack2['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1")
-    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.2")
-    updatedMessageVxrack3['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.2")
-    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.3")
-    updatedMessageVxrack4['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.3")
+    # getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.2")
+    # updatedMessageVxrack3['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.2")
+    # getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.3")
+    # updatedMessageVxrack4['uuid'] = getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.3")
 
     strMessageInvalidCorrID = str(updatedMessageInvalidCorrID)
     strMessageInvalidCorrID = restoreStr(strMessageInvalidCorrID)
@@ -186,10 +190,10 @@ def load_test_data():
     strMessageVxrack1 = restoreStr(strMessageVxrack1)
     strMessageVxrack2 = str(updatedMessageVxrack2)
     strMessageVxrack2 = restoreStr(strMessageVxrack2)
-    strMessageVxrack3 = str(updatedMessageVxrack3)
-    strMessageVxrack3 = restoreStr(strMessageVxrack3)
-    strMessageVxrack4 = str(updatedMessageVxrack4)
-    strMessageVxrack4 = restoreStr(strMessageVxrack4)
+    # strMessageVxrack3 = str(updatedMessageVxrack3)
+    # strMessageVxrack3 = restoreStr(strMessageVxrack3)
+    # strMessageVxrack4 = str(updatedMessageVxrack4)
+    # strMessageVxrack4 = restoreStr(strMessageVxrack4)
 
     getRCMRequest(message, 'getRCMsRequest1.json', 'getRCMsResponse1.json')
     getRCMRequest(strMessageInvalidCorrID, 'getRCMsRequest2.json', 'getRCMsResponse2.json')
@@ -204,8 +208,8 @@ def load_test_data():
     getRCMRequest(messageSpaces, 'getRCMsRequest11.json', 'getRCMsResponse11.json')
     getRCMRequest(strMessageVxrack1, 'getRCMsRequest12.json', 'getRCMsResponse12.json')
     getRCMRequest(strMessageVxrack2, 'getRCMsRequest13.json', 'getRCMsResponse13.json')
-    getRCMRequest(strMessageVxrack3, 'getRCMsRequest14.json', 'getRCMsResponse14.json')
-    getRCMRequest(strMessageVxrack4, 'getRCMsRequest15.json', 'getRCMsResponse15.json')
+    # getRCMRequest(strMessageVxrack3, 'getRCMsRequest14.json', 'getRCMsResponse14.json')
+    # getRCMRequest(strMessageVxrack4, 'getRCMsRequest15.json', 'getRCMsResponse15.json')
 
     deleteTestQueues('testGetRCMDetailsRequest', 'testGetRCMDetailsResponse')
 
@@ -213,8 +217,6 @@ def load_test_data():
 def convertStrToDict(string):
     s = string.replace("{", "");
     finalStr = s.replace("}", "");
-    print("Final string: %s" % finalStr)
-
     list = finalStr.split(",")
     dict = {}
     for i in list:
@@ -233,81 +235,103 @@ def restoreStr(string):
 
 def getAvailableRCMs(family, model, train, version):
     numRCMs = 0
-    rcmIndex = 0
     option = "ORIGINAL"
-    optionAdd = "ADDENDUM"
-    optionManu = "MANUFACTURING"
 
-    exception = "No RCM definition systems for system family"
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
-    print(url)
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
+    # urlSec = 'https://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
+    # resp = requests.get(url)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+    resp = requests.get(urlSec, verify=False)
+
     data = json.loads(resp.text)
-
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-    print("Requesting a list of available RCMs for the specific version: %s" % version)
 
     while numRCMs < len(data["rcmInventoryItems"]):
         if (data["rcmInventoryItems"][numRCMs]["viewOption"]) == option:
-            #global rcmUUID
+            global rcmUUID
             rcmUUID = (data["rcmInventoryItems"][numRCMs]["uuid"])
             print(rcmUUID)
         numRCMs += 1
         return rcmUUID
 
 def deleteTestQueues(testRequest, testResponse):
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
+    # credentials = pika.PlainCredentials(rmq_username, rmq_password)
+    # parameters = pika.ConnectionParameters(host, port, '/', credentials)
 
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.rfds.rcm.definition.service.get.rcm.details'}
-    propsRequest = pika.BasicProperties(headers=messageReqHeader, content_type='application/json',
-                                        content_encoding='UTF-8')
+    # propsRequest = pika.BasicProperties(headers=messageReqHeader, content_type='application/json',
+    #                                     content_encoding='UTF-8')
 
     messageResHeader = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.api.RcmDefinitionsDetailsMessage'}
-    propsResponse = pika.BasicProperties(headers=messageResHeader, content_type='application/json',
-                                         content_encoding='UTF-8')
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                     queue=testRequest)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                     queue=testResponse)
-    channel.queue_delete(queue=testRequest)
-    channel.queue_delete(queue=testResponse)
+    # propsResponse = pika.BasicProperties(headers=messageResHeader, content_type='application/json',
+    #                                      content_encoding='UTF-8')
+    # connection = pika.BlockingConnection(parameters)
+    # channel = connection.channel()
+
+    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    #                                  queue=testRequest)
+    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    #                                  queue=testResponse)
+
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testRequest)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse)
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testRequest)
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse)
+    # channel.queue_delete(queue=testRequest)
+    # channel.queue_delete(queue=testResponse)
     time.sleep(2)
 
 def getRCMRequest(payLoad, requestFile, responseFile):
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
+    # credentials = pika.PlainCredentials(rmq_username, rmq_password)
+    # parameters = pika.ConnectionParameters(host, port, '/', credentials)
 
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.rfds.rcm.definition.service.get.rcm.details'}
-    propsRequest = pika.BasicProperties(headers=messageReqHeader, content_type='application/json',
-                                        content_encoding='UTF-8')
+    # propsRequest = pika.BasicProperties(headers=messageReqHeader, content_type='application/json',
+    #                                     content_encoding='UTF-8')
 
     messageResHeader = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.api.RcmDefinitionsDetailsMessage'}
-    propsResponse = pika.BasicProperties(headers=messageResHeader, content_type='application/json',
-                                         content_encoding='UTF-8')
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    deleteTestQueues('testGetRCMDetailsRequest', 'testGetRCMDetailsResponse')
+    # propsResponse = pika.BasicProperties(headers=messageResHeader, content_type='application/json',
+    #                                      content_encoding='UTF-8')
+    # connection = pika.BlockingConnection(parameters)
+    # channel = connection.channel()
+    # deleteTestQueues('testGetRCMDetailsRequest', 'testGetRCMDetailsResponse')
 
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    #                                 queue='testGetRCMDetailsRequest',
+    #                                 exchange='exchange.dell.cpsd.rfds.rcm.definition.request',
+    #                                 routing_key='#')
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    #                                 queue='testGetRCMDetailsResponse',
+    #                                 exchange='exchange.dell.cpsd.rfds.rcm.definition.response',
+    #                                 routing_key='#')
+    # af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    #                                      exchange="exchange.dell.cpsd.rfds.rcm.definition.request",
+    #                                      routing_key="dell.cpsd.rfds.rcm.definition.request",
+    #                                      headers=messageReqHeader, payload=payLoad, payload_type='json')
+    # time.sleep(2)
+    # my_request_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
+    #                                                        rmq_password=rmq_password, queue='testGetRCMDetailsRequest')
+    # my_response_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
+    #                                                         rmq_password=rmq_password,
+    #                                                         queue='testGetRCMDetailsResponse')
+
+
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testGetRCMDetailsRequest',
                                     exchange='exchange.dell.cpsd.rfds.rcm.definition.request',
                                     routing_key='#')
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testGetRCMDetailsResponse',
                                     exchange='exchange.dell.cpsd.rfds.rcm.definition.response',
                                     routing_key='#')
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.rfds.rcm.definition.request",
                                          routing_key="dell.cpsd.rfds.rcm.definition.request",
                                          headers=messageReqHeader, payload=payLoad, payload_type='json')
     time.sleep(2)
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
-                                                           rmq_password=rmq_password, queue='testGetRCMDetailsRequest')
-    my_response_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
-                                                            rmq_password=rmq_password,
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testGetRCMDetailsRequest')
+    my_response_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                                             queue='testGetRCMDetailsResponse')
 
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
@@ -318,12 +342,8 @@ def getRCMRequest(payLoad, requestFile, responseFile):
     deleteTestQueues('testGetRCMDetailsRequest', 'testGetRCMDetailsResponse')
 
 def verifyPublishedAttributes(filename):
-    countInstances = 0
-    with open(filename, "rU", encoding='utf-8') as dataFile:
+    with open(filename, "rU") as dataFile:
         dataInput = json.load(dataFile)
-
-    print(dataInput.keys())
-    print ("\nName of file: %s" % dataFile.name)
 
     assert ("correlationId") in dataInput.keys(), "Correlation ID not included in published attributes."
     assert ("hostname") in dataInput.keys(), "Hostname not included in published attributes."
@@ -333,68 +353,55 @@ def verifyPublishedAttributes(filename):
     return dataInput
 
 def verifyConsumedAttributes(requestFile, responseFile, train, version, model, family):
-    numRCMs = 0
-
-    requestData = open(requestFile, "rU", encoding='utf-8')
+    requestData = open(requestFile, "rU")
     dataInput = json.load(requestData)
 
-    dataFile = open(responseFile, "rU", encoding='utf-8')
+    dataFile = open(responseFile, "rU")
     data = json.load(dataFile)
-    print(data.keys())
-    print ("\nName of file: %s" % dataFile.name)
 
-    if ("errorCode") in data.keys():
-        print(data["errorCode"])
-        if ("errorMessage") in data.keys():
-            print(data["errorMessage"])
-            assert (data["errorCode"][:-2]) in (
-            data["errorMessage"]), "Returned Error Code not included in Error Message."
-            assert ('orrelation') or ('uid') in (
-            data["errorMessage"]), "Returned Error Message does not reflect missing correlation ID."
+    if "errorCode" in data.keys():
+        if "errorMessage" in data.keys():
+            assert (data["errorCode"][:-2]) in (data["errorMessage"]), "Returned Error Code not included in Error Message."
+            assert 'orrelation' or 'uid' in (data["errorMessage"]), "Returned Error Message does not reflect missing correlation ID."
+            return
 
-    if ("rcmDetails") in data.keys():
+    if "rcmDetails" in data.keys():
         numRCMs = len(data["rcmDetails"])
-        # print(numRCMs)
-        if numRCMs == 0:
-            print("\nNo RCMs found based on the requested details.")
-            print("\nRCM details shown: %s" % (data["rcmDetails"]))
-
         if numRCMs > 0:
-            print("\nNumber of RCMs returned: %d" % numRCMs)
-            print(data["rcmDetails"][0]["systemModelFamily"])
-            # print(dataInput['uuid'])
-            assert (dataInput['correlationId']) == (
-            data["correlationId"]), "Correlation Ids on request and response do not match."
-
+            assert (dataInput['correlationId']) == (data["correlationId"]), "Correlation Ids on request and response do not match."
             if numRCMs == 1:
                 assert data["rcmDetails"][0]["uuid"] == dataInput['uuid'], "Not the single RCM returned as expected."
                 assert data["rcmDetails"][0]["rcmTrain"] == train, "Train does not match."
                 assert data["rcmDetails"][0]["rcmVersion"] == version, "Version does not match."
                 assert data["rcmDetails"][0]["systemModelFamily"] == model, "Model does not match."
                 assert data["rcmDetails"][0]["systemProductFamily"] == family, "Product does not match."
+                return
+        else:
+            assert dataInput['correlationId'] == data["correlationId"], "Correlation Ids on request and response do not match."
+            assert len(data["rcmDetails"]) == 0, "Expected empty list not included in response."
+            return
 
-        print("Response attributes match those defined in request.")
+    assert False, "Response attributes don't match those defined in request."
 
 def verifyCorrectCorrelationID(requestFile, responseFile):
-    requestData = {}
-    responseData = {}
-    # print("\nStarting to verify reply returns the correct correlation ID in message body.")
-
-    data_request = open(requestFile, 'r', encoding='utf-8')
+    data_request = open(requestFile, 'r')
     requestData = json.load(data_request)
 
-    data_response = open(responseFile, 'r', encoding='utf-8')
+    data_response = open(responseFile, 'r')
     responseData = json.load(data_response)
-
-    print("Input: %s" % requestData["correlationId"])
-    print("Output: %s" % responseData["correlationId"])
 
     if requestData["correlationId"] != "":
         if responseData["correlationId"] != "":
             assert requestData["correlationId"] == responseData[
                 "correlationId"], "Correlation ID on response message does not match."
+            return
+    else:
+        assert responseData["correlationId"] == "", "No Corr ID expected on request and response."
+        return
 
-    print("All verification steps executed successfully.....")
+    assert False, "Corr IDs not matching."
+
+# print("Verifying each of the published message attributes.")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -449,13 +456,13 @@ def test_verifyPublishedAttributes12():
 def test_verifyPublishedAttributes13():
     verifyPublishedAttributes(path + 'getRCMsRequest13.json')
 
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyPublishedAttributes14():
-    verifyPublishedAttributes(path + 'getRCMsRequest14.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyPublishedAttributes15():
-    verifyPublishedAttributes(path + 'getRCMsRequest15.json')
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyPublishedAttributes14():
+#     verifyPublishedAttributes(path + 'getRCMsRequest14.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyPublishedAttributes15():
+#     verifyPublishedAttributes(path + 'getRCMsRequest15.json')
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyConsumedAttributes1():
@@ -522,15 +529,15 @@ def test_verifyConsumedAttributes13():
     verifyConsumedAttributes(path + 'getRCMsRequest13.json', path + 'getRCMsResponse13.json', "9.2", "9.2.1", "1000 FLEX",
                              "VxRack")
 
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyConsumedAttributes14():
-    verifyConsumedAttributes(path + 'getRCMsRequest14.json', path + 'getRCMsResponse14.json', "3.2", "3.2.2", "1000 FLEX",
-                             "VxRack")
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyConsumedAttributes15():
-    verifyConsumedAttributes(path + 'getRCMsRequest15.json', path + 'getRCMsResponse15.json', "3.2", "3.2.3", "1000 FLEX",
-                             "VxRack")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyConsumedAttributes14():
+#     verifyConsumedAttributes(path + 'getRCMsRequest14.json', path + 'getRCMsResponse14.json', "3.2", "3.2.2", "1000 FLEX",
+#                              "VxRack")
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyConsumedAttributes15():
+#     verifyConsumedAttributes(path + 'getRCMsRequest15.json', path + 'getRCMsResponse15.json', "3.2", "3.2.3", "1000 FLEX",
+#                              "VxRack")
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyCorrectCorrelationID1():
@@ -584,10 +591,10 @@ def test_verifyCorrectCorrelationID12():
 def test_verifyCorrectCorrelationID13():
     verifyCorrectCorrelationID(path + 'getRCMsRequest13.json', path + 'getRCMsResponse13.json')
 
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyCorrectCorrelationID14():
-    verifyCorrectCorrelationID(path + 'getRCMsRequest14.json', path + 'getRCMsResponse14.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyCorrectCorrelationID15():
-    verifyCorrectCorrelationID(path + 'getRCMsRequest15.json', path + 'getRCMsResponse15.json')
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyCorrectCorrelationID14():
+#     verifyCorrectCorrelationID(path + 'getRCMsRequest14.json', path + 'getRCMsResponse14.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyCorrectCorrelationID15():
+#     verifyCorrectCorrelationID(path + 'getRCMsRequest15.json', path + 'getRCMsResponse15.json')

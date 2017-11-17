@@ -28,11 +28,11 @@ def load_test_data():
     global env_file
     env_file = 'env.ini'
 
-    global host
-    host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
-    port = int(port)
+    global hostTLS
+    hostTLS = "amqp"
+    global portTLS
+    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
+    portTLS = int(portTLS)
     global rmq_username
     rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
                                                              property='username')
@@ -175,58 +175,36 @@ def resetTestQueues(testRequest, testResponse):
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.rfds.rcm.definition.service.list.rcm.definitions'}
     messageResHeader = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.rcm.definitions.summary'}
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    channel.queue_declare(queue=testRequest, durable=True)
-    channel.queue_declare(queue=testResponse, durable=True)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                     queue=testRequest, ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                     queue=testResponse, ssl_enabled=False)
-    channel.queue_delete(queue=testRequest)
-    channel.queue_delete(queue=testResponse)
-    time.sleep(2)
-    channel.queue_declare(queue='testListRCMDefinitionsRequest', durable=True, auto_delete=False)
-    channel.queue_declare(queue='testListRCMDefinitionsResponse', durable=True, auto_delete=False)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testRequest)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse)
 
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testListRCMDefinitionsRequest',
-                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.request', routing_key='#',
-                                    ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.request', routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testListRCMDefinitionsResponse',
-                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.response', routing_key='#',
-                                    ssl_enabled=False)
-
-# print("Publishing listRCM request....")
+                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.response', routing_key='#')
 
 
 def insertListRequest(payLoad, requestFile, responseFile):
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.rfds.rcm.definition.service.list.rcm.definitions'}
     messageResHeader = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.rcm.definitions.summary'}
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
     resetTestQueues('testListRCMDefinitionsRequest', 'testListRCMDefinitionsResponse')
     time.sleep(2)
     global PAYLoad
     PAYLoad = payLoad
     print("Payload A: %s" % payLoad)
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.rfds.rcm.definition.request",
                                          routing_key="dell.cpsd.rfds.rcm.definition.request", headers=messageReqHeader,
-                                         payload=payLoad, payload_type='json', ssl_enabled=False)
+                                         payload=payLoad, payload_type='json')
     time.sleep(2)
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
-                                                           rmq_password=rmq_password,
-                                                           queue='testListRCMDefinitionsRequest', ssl_enabled=False)
-    my_response_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
-                                                            rmq_password=rmq_password,
-                                                            queue='testListRCMDefinitionsResponse', ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testListRCMDefinitionsRequest')
+    my_response_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                            queue='testListRCMDefinitionsResponse')
 
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
     af_support_tools.rmq_payload_to_file(my_response_body, path + responseFile)

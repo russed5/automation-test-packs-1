@@ -33,11 +33,15 @@ def load_test_data():
     global env_file
     env_file = 'env.ini'
 
+    global hostTLS
+    hostTLS = "amqp"
     global host
+    # host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='tls_hostname')
     host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
-    port = int(port)
+    global portTLS
+    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
+    # port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
+    portTLS = int(portTLS)
     global rmq_username
     rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
                                                              property='username')
@@ -105,6 +109,10 @@ def load_test_data():
     payload_nexus3k_kick_2 = 'nexus_3k_kick_2'
     global payload_nxos_2
     payload_nxos_2 = 'nxos_2'
+    global payload_nxos_3
+    payload_nxos_3 = 'nxos_3'
+    global payload_nxos_4
+    payload_nxos_4 = 'nxos_4'
 
     global ipaddress
     ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
@@ -116,10 +124,8 @@ def load_test_data():
                                                              property='password')
 
     ensurePathExists(path)
-    purgeOldOutput(path, "loadFW")
-    purgeOldOutput(path, "downloadAll")
-    purgeOldOutput(path, "invalid")
-    purgeOldOutput(path, "no")
+    purgeOldOutput(path, "FWCredential")
+    purgeOldOutput(path, "FWRe")
 
     global message
     message = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header, property=payload_message)
@@ -198,7 +204,13 @@ def load_test_data():
                                                                property=payload_nxos_1)
     global messageNxos_2
     messageNxos_2 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
-                                                               property=payload_nxos_1)
+                                                               property=payload_nxos_2)
+    global messageNxos_3
+    messageNxos_3 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
+                                                               property=payload_nxos_3)
+    global messageNxos_4
+    messageNxos_4 = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
+                                                               property=payload_nxos_4)
 
 
 def ensurePathExists(dir):
@@ -207,7 +219,7 @@ def ensurePathExists(dir):
 
 def purgeOldOutput(dir, pattern):
     for f in os.listdir(dir):
-        if re.search(pattern, f) and f.endswith(".json"):
+        if pattern in f and f.endswith(".json"):
             os.remove(os.path.join(dir, f))
             print("Old output files successfully deleted.")
         elif f.endswith(".txt"):
@@ -220,60 +232,40 @@ def resetTestQueues():
     # messageResHeaderComplete = {'__TypeId__': 'com.dell.cpsd.prepositioning.downloader.file.download.completed'}
     # messageResHeaderProgress = {'__TypeId__': 'com.dell.cpsd.prepositioning.downloader.file.download.progress'}
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
+    # credentials = pika.PlainCredentials(rmq_username, rmq_password)
+    # parameters = pika.ConnectionParameters(host, port, '/', credentials)
+    # connection = pika.BlockingConnection(parameters)
+    # channel = connection.channel()
 
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username, queue='testDownloadFWRequest',
-                                     ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testDownloadFWResponse', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testCredentialsRequest', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testCredentialsResponse', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testESRSRequest', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testESRSResponse', ssl_enabled=False)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testDownloadFWRequest')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testDownloadFWResponse')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testCredentialsRequest')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testCredentialsResponse')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testESRSRequest')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testESRSResponse')
 
     time.sleep(0.5)
     print("Old test queues successfully purged.")
 
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testESRSRequest', exchange='exchange.dell.cpsd.esrs.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testESRSResponse', exchange='exchange.dell.cpsd.esrs.response',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testDownloadFWRequest', exchange='exchange.dell.cpsd.prepositioning.downloader.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testDownloadFWResponse', exchange='exchange.dell.cpsd.prepositioning.downloader.response',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testCredentialsRequest', exchange='exchange.dell.cpsd.cms.credentials.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testCredentialsResponse', exchange='exchange.dell.cpsd.cms.credentials.response',
-                                    routing_key='#', ssl_enabled=False)
+                                    routing_key='#')
 
-
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue='testDownloadFWRequest', exchange='exchange.dell.cpsd.prepositioning.downloader.request',
-    #                                 routing_key='#', ssl_enabled=False)
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue='testDownloadFWResponse',
-    #                                 exchange='exchange.dell.cpsd.prepositioning.downloader.response',
-    #                                 routing_key='#', ssl_enabled=False)
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue='testCredentialsRequest', exchange='exchange.dell.cpsd.esrs.request',
-    #                                 routing_key='#', ssl_enabled=False)
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue='testCredentialsResponse', exchange='exchange.dell.cpsd.esrs.response',
-    #                                 routing_key='#', ssl_enabled=False)
     print("New test queues successfully initialized.")
 
 def convertStrToDict(string):
@@ -284,8 +276,6 @@ def convertStrToDict(string):
     list = finalStr.split(",")
     d = {}
     for i in list:
-        print(i)
-        # if any(i.startswith('\"fileName\"')):
         keyvalue = i.split(":")
         m = keyvalue[0].strip('\'')
         n = keyvalue[1]
@@ -348,7 +338,6 @@ def convertResponseToDownloadFormatInput(downloadPayLoad):
 
 
     if len(dataInput) == 1:
-        print("Preparing to map 1....")
         prep_message = prep_message.replace('sn_value', dataInput[0]["header"]["serialNumber"])
         prep_message = prep_message.replace('family_value', dataInput[0]["header"]["productFamily"])
         prep_message = prep_message.replace('date_value', dataInput[0]["header"]["date"])
@@ -362,63 +351,36 @@ def convertResponseToDownloadFormatInput(downloadPayLoad):
         return prep_message
 
     if len(dataInput) == 3:
-        print("Preparing to map 3....")
-        # prep_message_multi = dict()
         global multi_download
         multi_download = []
         while prepCount < len(dataInput):
-            print(dataInput[prepCount]["header"]["serialNumber"])
             prep_message_multi = prep_message_multi.replace('sn_value', dataInput[prepCount]["header"]["serialNumber"])
-
-            #prep_message_multi_[prepCount] = prep_message_multi_[prepCount].replace('sn_value', dataInput[prepCount]["header"]["serialNumber"])
             prep_message_multi = prep_message_multi.replace('family_value', dataInput[prepCount]["header"]["productFamily"])
             prep_message_multi = prep_message_multi.replace('date_value', dataInput[prepCount]["header"]["date"])
             prep_message_multi = prep_message_multi.replace('auth_value', dataInput[prepCount]["header"]["authorization"])
             prep_message_multi = prep_message_multi.replace('url_value', dataInput[prepCount]["url"])
-            print(dataInput[prepCount]["fileName"])
             prep_message_multi = prep_message_multi.replace('file_name', dataInput[prepCount]["fileName"])
             prep_message_multi = prep_message_multi.replace('file_uuid', dataInput[prepCount]["fileUUID"])
             prep_message_multi = prep_message_multi.replace('size_val', str(dataInput[prepCount]["size"]))
             prep_message_multi = prep_message_multi.replace('hash_val', dataInput[prepCount]["hashVal"])
             prep_message_multi = prep_message_multi.replace('hash_type', dataInput[prepCount]["hashType"])
             multi_download.append(prep_message_multi)
-            print(prep_message_multi)
             prep_message_multi = af_support_tools.get_config_file_property(config_file=preposition_payload_file, heading=prep_payload_header, property=multi_prep_payload_message)
             prepCount += 1
             # return prep_message_multi
-        print("\n")
-        print(multi_download)
-        print("\n")
-        print(multi_download[0])
-        print(multi_download[1])
-        print(multi_download[2])
+
         return multi_download
 
-def downloadNonRCMfiles(payLoad, downloadRequestFile, downloadResponseComplete, requestCredentials, returnedCredentials, filename, expectedDiskSize):
+def downloadNonRCMfiles(payLoad, downloadRequestFile, downloadResponseComplete, requestCredentials, returnedCredentials):
     messageReqHeaderESRS = {'__TypeId__': 'com.dell.cpsd.esrs.service.download.credentials.requested'}
     messageReqHeaderDownload = {'__TypeId__': 'com.dell.cpsd.service.prepositioning.downloader.api.FileDownloadRequest'}
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-
     resetTestQueues()
-    print("Queues reset.")
 
-    time.sleep(2)
-    # deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
-    #                           "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    # print("Previous downloads deleted.")
-    time.sleep(2)
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
                                          routing_key="dell.cpsd.esrs.download.request",
-                                         headers=messageReqHeaderESRS, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
-
-    print("Download request published.")
+                                         headers=messageReqHeaderESRS, payload=payLoad, payload_type='json')
 
     time.sleep(2)
     q_len = 0
@@ -428,43 +390,30 @@ def downloadNonRCMfiles(payLoad, downloadRequestFile, downloadResponseComplete, 
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSResponse', ssl_enabled=False)
 
-        # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSResponse')
+
         if timeout > 60:
             assert False, "ERROR: ESRS Credential response took too long to return."
 
-
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSRequest',
-                                                           ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestCredentials)
     time.sleep(2)
-    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port, rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testESRSResponse',
-                                                                        ssl_enabled=False)
-    af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + returnedCredentials)
 
-    print("ESRS request and credential response(s) consumed.")
+    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testESRSResponse')
+    af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + returnedCredentials)
 
     convertResponseToDownloadFormatInput(path + returnedCredentials)
 
-    time.sleep(1)
-
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
-                                         headers=messageReqHeaderDownload, payload=prep_message, payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeaderDownload, payload=prep_message, payload_type='json')
 
-    print("Download request published.")
-
-    time.sleep(2)
+    time.sleep(30)
     q_len = 0
     timeout = 0
 
@@ -472,49 +421,26 @@ def downloadNonRCMfiles(payLoad, downloadRequestFile, downloadResponseComplete, 
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testDownloadFWResponse', ssl_enabled=False)
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testDownloadFWResponse')
 
-        # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
         if timeout > 200:
             assert False, "ERROR: Download ACK response took too long to return."
 
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testDownloadFWRequest',
-                                                           ssl_enabled=False)
+
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testDownloadFWRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + downloadRequestFile)
-    time.sleep(100)
-    print("Download request and response(s) consumed.")
+    time.sleep(10)
 
-    checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    print(checkDisk)
-    # assert False
-    while checkDisk < expectedDiskSize:
-        timeout += 1
-        time.sleep(1)
-        checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-        print(checkDisk)
-        if timeout > 1000:
-            assert False, "Download failed to complete in a timely manner"
-
-
-    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                          rmq_username=rmq_username,
-                                                                          rmq_password=rmq_username,
-                                                                          queue='testDownloadFWResponse',
-                                                                          ssl_enabled=False)
+    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                          queue='testDownloadFWResponse')
     af_support_tools.rmq_payload_to_file(my_response_download_body, path + downloadResponseComplete)
 
-
-    print("Download response consumed.")
+    time.sleep(60)
 
 
 def downloadFWFileRequest(train, version, compName, type, payLoad, downloadRequestFile, downloadResponseComplete, requestCredentials, returnedCredentials, filename, expectedDiskSize):
-
-    # global strMessage
-    # message = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header, property=payload_message)
     updatedMessage = convertStrToDict(payLoad)
     updatedMessage['fileName'] = getRequiredFilename(train, version, compName, type, filename)
     strPayload = str(updatedMessage)
@@ -523,27 +449,16 @@ def downloadFWFileRequest(train, version, compName, type, payLoad, downloadReque
     messageReqHeaderESRS = {'__TypeId__': 'com.dell.cpsd.esrs.service.download.credentials.requested'}
     messageReqHeaderDownload = {'__TypeId__': 'com.dell.cpsd.service.prepositioning.downloader.api.FileDownloadRequest'}
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-
     resetTestQueues()
-    print("Queues reset.")
-
     time.sleep(2)
     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
-                              "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    print("Previous downloads deleted.")
-    time.sleep(2)
+                              "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
                                          routing_key="dell.cpsd.esrs.download.request",
-                                         headers=messageReqHeaderESRS, payload=strPayload, payload_type='json',
-                                         ssl_enabled=False)
-
-    print("Download request published.")
+                                         headers=messageReqHeaderESRS, payload=strPayload, payload_type='json')
 
     time.sleep(2)
     q_len = 0
@@ -553,41 +468,27 @@ def downloadFWFileRequest(train, version, compName, type, payLoad, downloadReque
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSResponse', ssl_enabled=False)
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSResponse')
 
-        # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
         if timeout > 60:
             assert False, "ERROR: ESRS Credential response took too long to return."
 
 
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSRequest',
-                                                           ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestCredentials)
     time.sleep(2)
-    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port, rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testESRSResponse',
-                                                                        ssl_enabled=False)
+    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testESRSResponse')
     af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + returnedCredentials)
-
-    print("ESRS request and credential response(s) consumed.")
 
     convertResponseToDownloadFormatInput(path + returnedCredentials)
 
-    time.sleep(1)
-
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
-                                         headers=messageReqHeaderDownload, payload=prep_message, payload_type='json',
-                                         ssl_enabled=False)
-
-    print("Download request published.")
+                                         headers=messageReqHeaderDownload, payload=prep_message, payload_type='json')
 
     time.sleep(2)
     q_len = 0
@@ -597,46 +498,30 @@ def downloadFWFileRequest(train, version, compName, type, payLoad, downloadReque
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testDownloadFWResponse', ssl_enabled=False)
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testDownloadFWResponse')
 
-        # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
         if timeout > 200:
             assert False, "ERROR: Download ACK response took too long to return."
 
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testDownloadFWRequest',
-                                                           ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testDownloadFWRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + downloadRequestFile)
     time.sleep(2)
-    print("Download request and response(s) consumed.")
 
-    checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    print(checkDisk)
-    # assert False
+    checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
     while checkDisk < expectedDiskSize:
         timeout += 1
         time.sleep(1)
-        checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-        print(checkDisk)
+        checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
         if timeout > 1000:
             assert False, "Download failed to complete in a timely manner"
 
+    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                          queue='testDownloadFWResponse')
 
-    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                          rmq_username=rmq_username,
-                                                                          rmq_password=rmq_username,
-                                                                          queue='testDownloadFWResponse',
-                                                                          ssl_enabled=False)
     af_support_tools.rmq_payload_to_file(my_response_download_body, path + downloadResponseComplete)
 
-
-    print("Download response consumed.")
-
-    # time.sleep(1)
-    # assert False
 
 def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersion, secCompName, secType, secFile, thirdTrain, thirdVersion, thirdCompName, thirdType, thirdFile, payLoad, secPayLoad, thirdPayLoad, requestFile, requestCredentials, responseFileComplete, filename, expectedDiskSize, filename2, expectedDiskSize2):
     q_len = 0
@@ -671,25 +556,22 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print("Queues reset.")
 
     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
-                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+                                "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
     print("Previous downloads deleted.")
 
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
                                          routing_key="dell.cpsd.esrs.download.request",
-                                         headers=messageReqHeaderESRS, payload=strPayload, payload_type='json',
-                                         ssl_enabled=False)
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                         headers=messageReqHeaderESRS, payload=strPayload, payload_type='json')
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
                                          routing_key="dell.cpsd.esrs.download.request",
-                                         headers=messageReqHeaderESRS, payload=secStrPayload, payload_type='json',
-                                         ssl_enabled=False)
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                         headers=messageReqHeaderESRS, payload=secStrPayload, payload_type='json')
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
                                          routing_key="dell.cpsd.esrs.download.request",
-                                         headers=messageReqHeaderESRS, payload=thirdStrPayload, payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeaderESRS, payload=thirdStrPayload, payload_type='json')
 
     print("Three file download requests published.")
 
@@ -699,49 +581,38 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSResponse', ssl_enabled=False)
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSResponse')
 
         if timeout > 200:
             assert False, "ERROR: ESRS Credential response took too long to return."
 
-    my_request_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSRequest',
-                                                           ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
-    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port, rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testESRSResponse',
-                                                                        ssl_enabled=False)
+    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testESRSResponse')
     af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + requestCredentials)
 
     convertResponseToDownloadFormatInput(path + requestCredentials)
 
-    # assert False, "Leaving......"
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
-                                         headers=messageReqHeaderDownload, payload=multi_download[0], payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeaderDownload, payload=multi_download[0], payload_type='json')
 
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
-                                         headers=messageReqHeaderDownload, payload=multi_download[1], payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeaderDownload, payload=multi_download[1], payload_type='json')
 
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
-                                         headers=messageReqHeaderDownload, payload=multi_download[2], payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeaderDownload, payload=multi_download[2], payload_type='json')
 
     print("Download request published.")
 
-    # assert False, "Leaving......"
 
     time.sleep(2)
 
@@ -752,74 +623,43 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                   rmq_username=rmq_username, rmq_password=rmq_username,
-                                                   queue='testDownloadFWResponse', ssl_enabled=False)
+
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                   queue='testDownloadFWResponse')
 
         # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
         if timeout > 200:
             assert False, "ERROR: Download ACK response took too long to return."
 
 
-    checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+    checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
     while checkDisk < expectedDiskSize:
         timeout += 1
         time.sleep(5)
         print("File 1")
-        checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+        checkDisk = checkWritesComplete(filename, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
         if timeout > 200:
             assert False, "ERROR: Download attempt doesn't appear to have completed in a timely manner."
 
-    checkDisk2 = checkWritesComplete(filename2, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+    checkDisk2 = checkWritesComplete(filename2, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
     timeout = 0
     while checkDisk2 < expectedDiskSize2:
         timeout += 1
         time.sleep(5)
         print("File 2")
-        checkDisk2 = checkWritesComplete(filename2, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+        checkDisk2 = checkWritesComplete(filename2, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
         if timeout > 200:
             assert False, "ERROR: Download attempt doesn't appear to have completed in a timely manner."
 
-    #
-    # my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-    #                                                        rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                                        queue='testDownloadFWRequest',
-    #                                                        ssl_enabled=False)
-    # af_support_tools.rmq_payload_to_file(my_request_body, path + downloadRequestFile)
-    # time.sleep(2)
-
-    # while q_len < 3:
-    #     time.sleep(1)
-    #     timeout += 1
-    #
-    #     q_len = af_support_tools.rmq_message_count(host=host, port=port,
-    #                                                        rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                                        queue='testESRSResponse', ssl_enabled=False)
-    #
-    #     if timeout > 60:
-    #         assert False, "ERROR: ESRS Credential response took too long to return."
-    #
-    # my_request_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-    #                                                        rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                                        queue='testESRSRequest',
-    #                                                        ssl_enabled=False)
-    # af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
-    # my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port, rmq_username=rmq_username,
-    #                                                                     rmq_password=rmq_username,
-    #                                                                     queue='testESRSResponse',
-    #                                                                     ssl_enabled=False)
-    # af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + requestCredentials)
 
     print("Download request and credential response(s) consumed.")
-    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                          rmq_username=rmq_username,
-                                                                          rmq_password=rmq_username,
-                                                                          queue='testDownloadFWResponse',
-                                                                          ssl_enabled=False)
+
+    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                          queue='testDownloadFWResponse')
     af_support_tools.rmq_payload_to_file(my_response_download_body, path + responseFileComplete)
 
     print("Download response consumed.")
@@ -831,20 +671,14 @@ def downloadFWFileRequestInvalid(payLoad, requestFile, requestCredentials):
     print("Queues reset.")
     time.sleep(2)
     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
-                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+                                "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
     print("Previous downloads deleted.")
 
-    # af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=uname, rmq_password=password,
-    #                                      exchange="exchange.dell.cpsd.esrs.request",
-    #                                      routing_key="dell.cpsd.esrs.download.request",
-    #                                      headers=messageReqHeader, payload=payLoad, ssl_enabled=False)
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
                                          routing_key="dell.cpsd.esrs.download.request",
-                                         headers=messageReqHeader, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeader, payload=payLoad, payload_type='json')
     print("Download request with invalid properties published.")
     time.sleep(2)
     q_len = 0
@@ -854,26 +688,24 @@ def downloadFWFileRequestInvalid(payLoad, requestFile, requestCredentials):
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSResponse', ssl_enabled=False)
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSResponse')
 
         # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
         if timeout > 60:
             assert False, "ERROR: ESRS Credential response took too long to return."
 
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testESRSRequest', ssl_enabled=False)
+
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testESRSRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
 
     print("Download request and credential response consumed.")
 
     time.sleep(2)
-    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                     rmq_username=rmq_username,
-                                                                     rmq_password=rmq_username,
-                                                                     queue='testESRSResponse', ssl_enabled=False)
+
+    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                     queue='testESRSResponse')
     af_support_tools.rmq_payload_to_file(my_response_download_body, path + requestCredentials)
     print("All download responses consumed.")
     time.sleep(1)
@@ -884,20 +716,14 @@ def downloadFWFileRequestNone(payLoad, requestFile, responseFileComplete):
     print("Queues reset.")
     time.sleep(2)
     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
-                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+                                "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
     print("Previous downloads deleted.")
 
-    # af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=uname, rmq_password=password,
-    #                                      exchange="exchange.dell.cpsd.esrs.request",
-    #                                      routing_key="dell.cpsd.esrs.download.request",
-    #                                      headers=messageReqHeader, payload=payLoad, ssl_enabled=False)
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
-                                         headers=messageReqHeader, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeader, payload=payLoad, payload_type='json')
     print("Download request with no filename published.")
     time.sleep(2)
     q_len = 0
@@ -907,33 +733,22 @@ def downloadFWFileRequestNone(payLoad, requestFile, responseFileComplete):
         time.sleep(1)
         timeout += 1
 
-        q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testDownloadFWResponse', ssl_enabled=False)
+        q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testDownloadFWResponse')
 
         # If the test queue doesn't get a message them something is wrong. Time out needs to be high as msg can take 3+ minutes
         if timeout > 60:
             assert False, "ERROR: Download response took too long to return."
 
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testDownloadFWRequest', ssl_enabled=False)
+
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testDownloadFWRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
 
-
-    # my_response_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
-    #                                                                     rmq_username=rmq_username,
-    #                                                                     rmq_password=rmq_username,
-    #                                                                     queue='testCredentialsResponse',
-    #                                                                     ssl_enabled=False)
-    # af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + requestCredentials)
-    # print("Download request and credential response consumed.")
-
     time.sleep(2)
-    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                     rmq_username=rmq_username,
-                                                                     rmq_password=rmq_username,
-                                                                     queue='testDownloadFWResponse', ssl_enabled=False)
+
+    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                     queue='testDownloadFWResponse')
     af_support_tools.rmq_payload_to_file(my_response_download_body, path + responseFileComplete)
     print("All download responses consumed.")
     time.sleep(1)
@@ -985,7 +800,7 @@ def verifyConsumedAttributes(filename, requestFile, credentialsFile, responseFil
     credCount = 0
     hashVal = []
     listDataInput = []
-    filepath = "file:///opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads"
+    filepath = "file:///opt/dell/cpsd/prepositioning-downloader-service/repository/downloads"
     requestData = open(requestFile, "rU")
     dataInput = json.load(requestData)
     listDataInput.append(dataInput)
@@ -998,11 +813,10 @@ def verifyConsumedAttributes(filename, requestFile, credentialsFile, responseFil
 
     dataFile = open(responseFile, "rU")
     data = json.load(dataFile)
-    # print(data)
     print("\nName of file: %s" % dataFile.name)
 
-    size = checkFileSize(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    hash = checkFileHash(filename, "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+    size = checkFileSize(filename, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
+    hash = checkFileHash(filename, "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
     maxCount = len(data)
     maxCreds = len(dataCredentials)
@@ -1032,10 +846,6 @@ def verifyConsumedAttributes(filename, requestFile, credentialsFile, responseFil
                 assert "fileName" in data[i].keys(), "Swid not included in consumed attributes."
                 assert "size" in data[i].keys(), "Size not included in consumed attributes."
                 assert "fileUUID" in data[i].keys(), "File UUID not included in consumed attributes."
-                #assert filepath in data[i]["url"], "Download complete does not include expected URL."
-
-                # assert data["swid"] == dataCredentials["swid"], "Swids don't match in consumed messages."
-                # assert data[maxCount-1]["size"] == sizeNIC or sizeBIOS or sizeRAID, "Size not consistent with expected value."
                 assert data[i]["size"] == size, "Size not consistent with expected value."
                 print("Message count: %d" % maxInput)
                 print(listDataInput)
@@ -1127,7 +937,7 @@ def verifyConsumedAttributes(filename, requestFile, credentialsFile, responseFil
 def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, hashType, family, esrsURL):
     count = 0
 
-    filepath = "file:///opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads"
+    filepath = "file:///opt/dell/cpsd/prepositioning-downloader-service/repository/downloads"
     requestData = open(requestFile, "rU")
     dataInput = json.load(requestData)
 
@@ -1136,15 +946,6 @@ def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, ha
 
     dataFile = open(responseFile, "rU")
     data = json.load(dataFile)
-    print(data)
-    print("\nName of file: %s" % dataFile.name)
-    print("Request count: %d" % len(dataInput))
-    print("Credential count: %d" % len(dataCredentials))
-    print("Response count: %d" % len(data))
-
-    print("Total messages consumed: %d" % len(data))
-    # assert False, "Exiting...."
-    # assert False, "Exiting...."
     while count < len(data):
         if "errorCode" in data[count].keys():
             print(data[count]["errorCode"])
@@ -1165,7 +966,6 @@ def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, ha
             assert "replyTo" in data[count]["messageProperties"], "Reply To not included in consumed attributes."
             assert "hashType" in data[count].keys(), "Hash Type not included in consumed attributes."
             assert "hashVal" in data[count].keys(), "Hash not included in consumed attributes."
-            #assert "swid" in data[count].keys(), "Swid not included in consumed attributes."
             assert "size" in data[count].keys(), "Size not included in consumed attributes."
             assert "fileUUID" in data[count].keys(), "File UUID not included in consumed attributes."
             assert filepath in data[count]["url"], "Download complete does not include expected URL."
@@ -1173,7 +973,6 @@ def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, ha
             print("1.%d" % count)
 
             credCount = 0
-            # assert data["fileName"] == dataInput["fileName"], "File names are not consistent."
 
             for respCount in range(len(data)):
                 print("resp count: %d" % respCount)
@@ -1200,7 +999,6 @@ def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, ha
                                     assert data[respCount]["hashVal"] == dataCredentials[credCount]["hashVal"], "Hash values for file not consistent."
                                     print("Final Corr ID: %s" % data[respCount]["messageProperties"]["correlationId"])
                                     print("Cred Resp Corr ID: %s" % dataCredentials[credCount]["messageProperties"]["correlationId"])
-                                    #assert data[respCount]["swid"] == family, "Unexpected swid returned in consumed messages."
                                     print(data[respCount]["messageProperties"]["correlationId"])
                                     print(dataCredentials[credCount]["messageProperties"]["correlationId"])
                                     assert data[respCount]["messageProperties"]["correlationId"] == dataCredentials[credCount]["messageProperties"]["correlationId"], "Corr Ids don't match in consumed messages."
@@ -1244,9 +1042,6 @@ def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, ha
                             continue
                         if dataCredentials[credCount]["fileName"] in data[respC]["url"]:
                             print("3.2.1")
-                            #if dataCredentials[credCount]["messageProperties"]["correlationId"] == data[respC]["messageProperties"]["correlationId"]:
-                                #print("3.2.2")
-                                # assert dataCredentials[credCount]["fileName"] == data[respC]["fileName"], "File names are not consistent."
                             assert dataCredentials[credCount]["url"] != data[respC]["url"], "URLs don't match in consumed messages."
                             assert dataCredentials[credCount]["size"] == data[respC]["size"] or sizeMD5, "File sizes don't match in consumed messages."
                             assert dataCredentials[credCount]["hashType"] == hashType, "Incorrect hashType detailed."
@@ -1263,7 +1058,7 @@ def verifyMultiConsumedAttributes(requestFile, credentialsFile, responseFile, ha
 
 def verifyConsumedAttributesInvalid(requestFile, credentialsFile, hashType, family):
     numRCMs = 0
-    path = "file:///opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads"
+    path = "file:///opt/dell/cpsd/prepositioning-downloader-service/repository/downloads"
     requestData = open(requestFile, "rU")
     dataInput = json.load(requestData)
 
@@ -1272,7 +1067,6 @@ def verifyConsumedAttributesInvalid(requestFile, credentialsFile, hashType, fami
     # print(data.keys())
     print("\nName of file: %s" % dataFile.name)
 
-    # checkFileSize("BIOS_PFWCY_WN64_2.2.5.EXE", "/rootfs/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
     maxCount = len(data)
 
     for count in range(maxCount):
@@ -1306,7 +1100,7 @@ def verifyConsumedAttributesInvalid(requestFile, credentialsFile, hashType, fami
 
 def verifyConsumedAttributesNone(requestFile, responseFile, hashType, family):
     count = 0
-    path = "file:///opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads"
+    path = "file:///opt/dell/cpsd/prepositioning-downloader-service/repository/downloads"
     requestData = open(requestFile, "rU")
     dataInput = json.load(requestData)
 
@@ -1342,7 +1136,7 @@ def verifyProgressMessage(requestFile, credentialsFile, responseFile):
     numRCMs = 0
     count = 0
 
-    filepath = "file:///opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads"
+    filepath = "file:///opt/dell/cpsd/prepositioning-downloader-service/repository/downloads"
     requestData = open(requestFile, "rU")
     dataInput = json.load(requestData)
 
@@ -1351,24 +1145,7 @@ def verifyProgressMessage(requestFile, credentialsFile, responseFile):
 
     dataFile = open(responseFile, "rU")
     data = json.load(dataFile)
-    print(data)
-    print("\nName of file: %s" % dataFile.name)
-    print("Request count: %d" % len(dataInput))
-    print("Credential count: %d" % len(dataCredentials))
-    print("Response count: %d" % len(data))
 
-    # sizeBIOS = checkFileSize("BIOS_PFWCY_WN64_2.2.5.EXE",
-    #                          "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    # sizePNG = checkFileSize("shai.png",
-    #                         "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    # sizeESX = checkFileSize("VMW-ESX-6.0.0-lsi_mr3-6.903.85.00_MR-3818071.zip",
-    #                          "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    # sizeMD5 = checkFileSize("VMW-ESX-6.0.0-lsi_mr3-6.903.85.00_MR-3818071.zip.md5",
-    #                          "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-    # sizeDAS = checkFileSize("DAS_Cache_Linux_1.zip",
-    #                          "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-
-    #print(sizeDAS)
 
     credCount = len(dataCredentials)
     maxCount = len(data)
@@ -1405,14 +1182,14 @@ def verifyProgressMessage(requestFile, credentialsFile, responseFile):
     assert False, ("Progress message is not complete.")
 
 def deletePreviousDownloadFiles(filename, filepath):
-    sendCommand = "find /opt/dell/cpsd -name downloads"
+    sendCommand = "find /opt/dell/cpsd -name RCM"
     dirStatus = af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
                                                   command=sendCommand, return_output=True)
 
     print("Directory status A: %s" % dirStatus)
     if dirStatus is not "":
         dirStatus = dirStatus.rstrip() + "/"
-        # dirStatus = (dirStatus + "/").rstrip()
+
     else:
         print("Downloads directory is missing.")
     print("Directory status B: %s" % dirStatus)
@@ -1431,7 +1208,6 @@ def deletePreviousDownloadFiles(filename, filepath):
         print(filename + "not found in the repo directory.")
 
 def checkFileSize(filename, filepath):
-    #sendCommand = "find / -print0 | grep -FzZ " + filename + " | awk '{printf '%s\n', $0}' "
     sendCommand = "find / -print0 | grep -FzZ " + filename
     print(sendCommand)
     fileStatus = af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
@@ -1446,7 +1222,6 @@ def checkFileSize(filename, filepath):
     print(fileStatus)
 
     if fileStatus is not "":
-        #assert False, ("Getting in here at least.....")
         fileStatus = fileStatus.rstrip()
         if filepath in fileStatus:
             sendCommand = "du -b " + fileStatus + " | cut -f 1-1"
@@ -1458,13 +1233,10 @@ def checkFileSize(filename, filepath):
             fileSize = int(fileSize.split("/", 1)[0])
             print("Size: %s" % fileSize)
             return fileSize
-    # else:
-    #     pass
     assert False, ("Attempt to check File Size is unsuccessful.")
 
 def checkWritesComplete(filename, filepath):
 
-    # sendCommand = "find / -print0 | grep -FzZ " + filename + "| awk '{printf '%s\n', $0}'"
     sendCommand = "find / -print0 | grep -FzZ " + filename
     fileStatus = af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
                                                    command=sendCommand, return_output=True)
@@ -1477,28 +1249,25 @@ def checkWritesComplete(filename, filepath):
                                                        command=sendCommand, return_output=True)
 
     print(fileStatus)
-    #assert False, "Exiting"
 
     if fileStatus is not "":
-        #assert False, ("Getting in here at least.....")
+        print("Getting in here at least.....")
         fileStatus = fileStatus.rstrip()
         if filepath in fileStatus:
+            print("About to check file size....")
             sendCommand = "du -b " + fileStatus + " | cut -f 1-1"
             global totalRepoSize
             totalRepoSize = af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
                                                          command=sendCommand, return_output=True)
-            #print("Size: %s" % totalRepoSize)
+            print("Size: %s" % totalRepoSize)
             totalRepoSize = "".join(totalRepoSize.split())
             totalRepoSize = int(totalRepoSize.split("/", 1)[0])
             #print("Size: %d" % totalRepoSize)
             print("File status: %s" % fileStatus)
             return totalRepoSize
-    # else:
-    #     pass
     assert False, ("Attempt to check Repo Disk Usage is unsuccessful.")
 
 def checkFileHash(filename, filepath):
-    # sendCommand = "find / -print0 | grep -FzZ " + filename + "| awk '{printf '%s\n', $0}'"
     sendCommand = "find / -print0 | grep -FzZ " + filename
     fileStatus = af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
                                                    command=sendCommand, return_output=True)
@@ -1511,7 +1280,6 @@ def checkFileHash(filename, filepath):
 
     print(fileStatus)
     if fileStatus is not "":
-        #assert False, ("Getting in here at least.....")
         fileStatus = fileStatus.rstrip()
         if filepath in fileStatus:
             # sendCommand = "ls -ltr " + fileStatus + " | awk \'FNR == 1 {print$5}\'"
@@ -1526,81 +1294,79 @@ def checkFileHash(filename, filepath):
             print("File status: %s" % fileStatus)
             return fileHash
 
-    # else:
-    #     pass
     assert False, "Attempt to check File Hash is unsuccessful."
 
-def profileESRSResponseTimes(payLoad):
-    messageReqHeader = {'__TypeId__': 'com.dell.cpsd.prepositioning.downloader.file.download.request'}
-    resetTestQueues()
-    print("Queues reset.")
-    time.sleep(0.1)
-    deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
-                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
-
-    print("Previous downloads deleted.")
-    count = 0
-    t1 = 0
-    t2 = 0
-    timeDelta = 0
-    averageDelta = 0
-    sortedDelta = []
-    listDelta = []
-
-    while count < 200:
-        af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                             exchange="exchange.dell.cpsd.prepositioning.downloader.request",
-                                             routing_key="dell.cpsd.prepositioning.downloader.request",
-                                             headers=messageReqHeader, payload=payLoad, payload_type='json',
-                                             ssl_enabled=False)
-        print("\nCount: %d" % count)
-        print("Download request published.")
-        print(datetime.datetime.utcnow())
-        t1 = datetime.datetime.utcnow()
-        # time.sleep(0.1)
-        q_len = 0
-        timeout = 0
-
-        while q_len < 1:
-
-            q_len = af_support_tools.rmq_message_count(host=host, port=port,
-                                                       rmq_username=rmq_username, rmq_password=rmq_username,
-                                                       queue='testCredentialsResponse', ssl_enabled=False)
-            timeout += 1
-            time.sleep(0.1)
-            if timeout > 500:
-                assert False, "ERROR: ESRS Credential response took too long to return."
-
-        print (datetime.datetime.utcnow())
-        t2 = datetime.datetime.utcnow()
-
-        timeDelta = (t2 - t1).total_seconds()
-        print(timeDelta)
-        write_to_file = []
-        write_to_file = [count, timeDelta]
-        file = open('esrsProfile.txt', 'a')
-        file.write("Loop: {} \tDelta: {}\n".format(*write_to_file))
-        file.close
-
-        assert timeDelta < 5, "Significant delay in response from ESRS."
-
-        listDelta.append(timeDelta)
-        averageDelta = sum(listDelta[0:(len(listDelta)-1)])/(len(listDelta))
-        count += 1
-
-        if len(listDelta) > 5 and timeDelta > 5:
-            print(listDelta)
-            sortedDelta = sorted(listDelta)
-            sortedDelta = sortedDelta[-5:]
-            print("Five longest response times: ")
-            print(sortedDelta)
-            print("Average delta: %0.3f" % averageDelta)
-        else:
-            continue
-
-    time.sleep(1)
-    resetTestQueues()
-    assert count == 200, "Failed to complete 200 requests to profile."
+# def profileESRSResponseTimes(payLoad):
+#     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.prepositioning.downloader.file.download.request'}
+#     resetTestQueues()
+#     print("Queues reset.")
+#     time.sleep(0.1)
+#     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
+#                                 "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
+#
+#     print("Previous downloads deleted.")
+#     count = 0
+#     t1 = 0
+#     t2 = 0
+#     timeDelta = 0
+#     averageDelta = 0
+#     sortedDelta = []
+#     listDelta = []
+#
+#     while count < 200:
+#         af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+#                                              exchange="exchange.dell.cpsd.prepositioning.downloader.request",
+#                                              routing_key="dell.cpsd.prepositioning.downloader.request",
+#                                              headers=messageReqHeader, payload=payLoad, payload_type='json',
+#                                              ssl_enabled=False)
+#         print("\nCount: %d" % count)
+#         print("Download request published.")
+#         print(datetime.datetime.utcnow())
+#         t1 = datetime.datetime.utcnow()
+#         # time.sleep(0.1)
+#         q_len = 0
+#         timeout = 0
+#
+#         while q_len < 1:
+#
+#             q_len = af_support_tools.rmq_message_count(host=host, port=port,
+#                                                        rmq_username=rmq_username, rmq_password=rmq_username,
+#                                                        queue='testCredentialsResponse', ssl_enabled=False)
+#             timeout += 1
+#             time.sleep(0.1)
+#             if timeout > 500:
+#                 assert False, "ERROR: ESRS Credential response took too long to return."
+#
+#         print (datetime.datetime.utcnow())
+#         t2 = datetime.datetime.utcnow()
+#
+#         timeDelta = (t2 - t1).total_seconds()
+#         print(timeDelta)
+#         write_to_file = []
+#         write_to_file = [count, timeDelta]
+#         file = open('esrsProfile.txt', 'a')
+#         file.write("Loop: {} \tDelta: {}\n".format(*write_to_file))
+#         file.close
+#
+#         assert timeDelta < 5, "Significant delay in response from ESRS."
+#
+#         listDelta.append(timeDelta)
+#         averageDelta = sum(listDelta[0:(len(listDelta)-1)])/(len(listDelta))
+#         count += 1
+#
+#         if len(listDelta) > 5 and timeDelta > 5:
+#             print(listDelta)
+#             sortedDelta = sorted(listDelta)
+#             sortedDelta = sortedDelta[-5:]
+#             print("Five longest response times: ")
+#             print(sortedDelta)
+#             print("Average delta: %0.3f" % averageDelta)
+#         else:
+#             continue
+#
+#     time.sleep(1)
+#     resetTestQueues()
+#     assert count == 200, "Failed to complete 200 requests to profile."
 
 def getRequiredFilename(train, version, compName, type, fileName):
     numRCMs = 0
@@ -1610,18 +1376,19 @@ def getRequiredFilename(train, version, compName, type, fileName):
     optionAdd = "ADDENDUM"
     optionManu = "MANUFACTURING"
 
-    urlInventory = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
-
-    # print(url)
-    respInventory = requests.get(urlInventory)
+    urlInventorySec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
+    respInventory = requests.get(urlInventorySec, verify=False)
+    # respInventory = requests.get(urlInventorySec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     dataInventory = json.loads(respInventory.text)
     rcmUUID = dataInventory["rcmInventoryItems"][0]["uuid"]
 
     global tempRCMuuid
     tempRCMuuid = rcmUUID
 
-    compInventory = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + rcmUUID + '/'
-    respComp = requests.get(compInventory)
+    compInventorySec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/definition/' + rcmUUID + '/'
+    respComp = requests.get(compInventorySec, verify=False)
+    # respComp = requests.get(compInventorySec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+
     dataComp = json.loads(respComp.text)
 
     if dataComp != "":
@@ -1629,8 +1396,6 @@ def getRequiredFilename(train, version, compName, type, fileName):
         print(dataComp["rcmDefinition"]["viewOption"])
         while contentIndex < len(dataComp["rcmDefinition"]["rcmContents"]):
             print("Loop: %d" % contentIndex)
-            # print("File Index: %d" % fileIndex)
-            # print(dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"][fileIndex]["cdnPath"])
             if len(dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"]) == 0:
                 contentIndex += 1
                 continue
@@ -1666,9 +1431,27 @@ def getRequiredFilename(train, version, compName, type, fileName):
 #
 # def test_downloadNonRCMfiles5():
 #     downloadNonRCMfiles(messageNxos_1, 'nxos_1.json', 'nxos_1_resp.json', 'nxos_1_req.json', 'nxos_1_creds.json', "RCM/3.2.1/VxRack_1000_FLEX/Component/Cisco/Nexus3k/3164Q/nxos.7.0.3.I4.3.bin", 697200640)
-
+#
 # def test_downloadNonRCMfiles6():
-#     downloadNonRCMfiles(messageNxos_2, 'nxos_2.json', 'nxos_2_resp.json', 'nxos_2_req.json', 'nxos_2_creds.json', "RCM/3.2.2/VxRack_1000_FLEX/Component/Cisco/Nexus3k/3164Q/")
+#     downloadNonRCMfiles(messageNxos_2, 'nxos_2.json', 'nxos_2_resp.json', 'nxos_2_req.json', 'nxos_2_creds.json', "RCM/3.2.2/VxRack_1000_FLEX/Component/Cisco/Nexus3k/3164Q/nxos.7.0.3.I4.6.bin", 697200640)
+#
+# def test_downloadNonRCMfiles7():
+#     downloadNonRCMfiles(messageNxos_3, 'nxos_3.json', 'nxos_3_resp.json', 'nxos_3_req.json', 'nxos_3_creds.json', "RCM/3.2.1/VxRack_1000_FLEX/Component/Cisco/Nexus9k/9332PQ/nxos.7.0.3.I4.3.bin", 697200640)
+#
+# def test_downloadNonRCMfiles8():
+#     downloadNonRCMfiles(messageNxos_3, 'nxos_4.json', 'nxos_4_resp.json', 'nxos_4_req.json', 'nxos_4_creds.json', "RCM/3.2.2/VxRack_1000_FLEX/Component/Cisco/Nexus9k/9332PQ/nxos.7.0.3.I4.6.bin", 697200640)
+
+# def test_downloadNonRCMfiles5():
+#     downloadNonRCMfiles(messageNxos_1, 'nxos_1.json', 'nxos_1_resp.json', 'nxos_1_req.json', 'nxos_1_creds.json')
+#
+# def test_downloadNonRCMfiles6():
+#     downloadNonRCMfiles(messageNxos_2, 'nxos_2.json', 'nxos_2_resp.json', 'nxos_2_req.json', 'nxos_2_creds.json')
+#
+# def test_downloadNonRCMfiles7():
+#     downloadNonRCMfiles(messageNxos_3, 'nxos_3.json', 'nxos_3_resp.json', 'nxos_3_req.json', 'nxos_3_creds.json')
+#
+# def test_downloadNonRCMfiles8():
+#     downloadNonRCMfiles(messageNxos_4, 'nxos_4.json', 'nxos_4_resp.json', 'nxos_4_req.json', 'nxos_4_creds.json')
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_downloadFWFileRequestInvalid():
@@ -1706,7 +1489,7 @@ def test_verifyConsumedNoneAttributes8():
     verifyConsumedAttributesNone(path + 'noAllFWRequest.json', path + 'noAllFWResponse.json', "SHA-256",
                                  "VCEVision")
 
-#
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_downloadFWFileRequest9():
@@ -1774,20 +1557,20 @@ def test_verifyMultiConsumedAttributes12():
                                   path + 'multiDownloadFWResponse.json', "SHA-256", "BETA2ENG218",
                                   "https://10.234.100.5:9443/")
 
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_downloadFWFileMulti13():
-#     downloadFWFileMulti(message, messageSec, messageBios2, 'secMultiDownloadFWRequest.json',
-#                         'secMultiDownloadFWCredentials.json', 'secMultiDownloadFWResponse.json', "BIOS_PFWCY_WN64_2.2.5.EXE", 24992920, "DAS_Cache_Linux_1.zip", 109300)
-#
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyMultiPublishedAttributes13():
-#     verifyMultiPublishedAttributes(path + 'secMultiDownloadFWRequest.json')
-#
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyMultiConsumedAttributes13():
-#     verifyMultiConsumedAttributes(path + 'secMultiDownloadFWRequest.json', path + 'secMultiDownloadFWCredentials.json',
-#                                   path + 'secMultiDownloadFWResponse.json', "SHA-256", "BETA2ENG218", "https://10.234.100.5:9443/")
-# # # #
+# # @pytest.mark.rcm_fitness_mvp_extended
+# # def test_downloadFWFileMulti13():
+# #     downloadFWFileMulti(message, messageSec, messageBios2, 'secMultiDownloadFWRequest.json',
+# #                         'secMultiDownloadFWCredentials.json', 'secMultiDownloadFWResponse.json', "BIOS_PFWCY_WN64_2.2.5.EXE", 24992920, "DAS_Cache_Linux_1.zip", 109300)
+# #
+# # @pytest.mark.rcm_fitness_mvp_extended
+# # def test_verifyMultiPublishedAttributes13():
+# #     verifyMultiPublishedAttributes(path + 'secMultiDownloadFWRequest.json')
+# #
+# # @pytest.mark.rcm_fitness_mvp_extended
+# # def test_verifyMultiConsumedAttributes13():
+# #     verifyMultiConsumedAttributes(path + 'secMultiDownloadFWRequest.json', path + 'secMultiDownloadFWCredentials.json',
+# #                                   path + 'secMultiDownloadFWResponse.json', "SHA-256", "BETA2ENG218", "https://10.234.100.5:9443/")
+# # # # #
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_downloadFWFileRequest14():
@@ -1846,7 +1629,7 @@ def test_verifyConsumedAttributes16():
                              path + 'esxiIndDownloadFWResponse.json', "SHA-256", "BETA2ENG218",
                              "https://10.234.100.5:9443/")
 
-#
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_downloadFWFileRequest17():

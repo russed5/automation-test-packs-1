@@ -12,6 +12,7 @@ from pprint import pprint
 import os
 import re
 
+
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
     global bodyList    
@@ -38,17 +39,13 @@ def load_test_data():
     global env_file
     env_file = 'env.ini'
 
+    global hostTLS
+    hostTLS = "amqp"
     global host
     host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
-    port = int(port)
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
+    global portTLS
+    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
+    portTLS = int(portTLS)
 
     global ipaddress
     ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
@@ -174,64 +171,36 @@ def purgeOldOutput(dir, pattern):
 
 
 def deleteTestQueues(testRequest, testResponse):
-    credentials = pika.PlainCredentials('guest', 'guest')
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    print("Connecting...")
-
     messageHeaderResponse = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.rcm.definition.inserted'}
     messageHeaderRequest = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.insert.rcm.definition'}
 
-    logging.getLogger('pika').setLevel(logging.DEBUG)
-
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                     queue=testRequest, ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-                                     queue=testResponse, ssl_enabled=False)
-    channel.queue_delete(queue=testRequest)
-    channel.queue_delete(queue=testResponse)
-    time.sleep(2)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testRequest)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse)
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testRequest)
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse)
 
 
 def insertDummyRCMRequest(payLoad, requestFile, responseFile):
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    print("Connecting...")
-
     messageHeaderResponse = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.rcm.definition.inserted'}
     messageHeaderRequest = {'__TypeId__': 'com.dell.cpsd.rcm.definition.service.insert.rcm.definition'}
 
-    logging.getLogger('pika').setLevel(logging.DEBUG)
-
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-
-    channel.queue_declare(queue='testInsertRCMDefinitionsRequest', durable=True, auto_delete=False)
-    channel.queue_declare(queue='testInsertRCMDefinitionsResponse', durable=True, auto_delete=False)
-
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testInsertRCMDefinitionsRequest',
-                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.request', routing_key='#',
-                                    ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.request', routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testInsertRCMDefinitionsResponse',
-                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.response', routing_key='#',
-                                    ssl_enabled=False)
+                                    exchange='exchange.dell.cpsd.rfds.rcm.definition.response', routing_key='#')
 
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_password,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.rfds.rcm.definition.request",
                                          routing_key="dell.cpsd.rfds.rcm.definition.request",
-                                         headers=messageHeaderRequest, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageHeaderRequest, payload=payLoad, payload_type='json')
 
     time.sleep(2)
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
-                                                           rmq_password=rmq_password,
-                                                           queue='testInsertRCMDefinitionsRequest', ssl_enabled=False)
-    my_response_body = af_support_tools.rmq_consume_message(host=host, port=port, rmq_username=rmq_username,
-                                                            rmq_password=rmq_password,
-                                                            queue='testInsertRCMDefinitionsResponse', ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testInsertRCMDefinitionsRequest')
+    my_response_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                            queue='testInsertRCMDefinitionsResponse')
 
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
     af_support_tools.rmq_payload_to_file(my_response_body, path + responseFile)
@@ -542,12 +511,11 @@ def test_verifyConsumedAttributes7():
 def test_verifyConsumedAttributes8():
     verifyConsumedAttributes(path + 'insertRCMResponse8.json', True, "1.2", "1.2.33", "VxBlock", "340", "ORIGINAL")
 
-
+@pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyConsumedAttributes9():
     verifyConsumedAttributes(path + 'insertRCMResponse9.json', True, "9.2", "9.2.1", "VxRack", "1000 FLEX", "ORIGINAL")
-
 
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
@@ -555,23 +523,23 @@ def test_verifyConsumedAttributes10():
     verifyConsumedAttributes(path + 'insertRCMResponse10.json', True, "9.2", "9.2.1", "VxRack", "1000 FLEX",
                              "MANUFACTURING")
 
-
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyConsumedAttributes11():
     verifyConsumedAttributes(path + 'insertRCMResponse11.json', True, "9.2", "9.2.1.1", "VxRack", "1000 FLEX", "ADDENDUM")
-
 
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyConsumedAttributes12():
     verifyConsumedAttributes(path + 'insertRCMResponse12.json', True, "9.2", "9.2.1.2", "VxRack", "1000 FLEX", "ADDENDUM")
 
+@pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyConsumedAttributes13():
     verifyConsumedAttributes(path + 'insertRCMResponse13.json', True, "9.2", "9.2.2", "VxRack", "1000 FLEX", "ORIGINAL")
 
+@pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyConsumedAttributes14():
