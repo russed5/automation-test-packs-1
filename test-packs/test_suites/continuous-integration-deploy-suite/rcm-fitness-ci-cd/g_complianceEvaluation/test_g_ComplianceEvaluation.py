@@ -22,8 +22,10 @@ def load_test_data():
 
 @pytest.fixture()
 def sys():
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
-    response = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
+    # response = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/'
+    response = requests.get(urlSec, verify=False)
     assert response.status_code == 200, "Request has not been acknowledged as expected."
     data = response.json()
 
@@ -78,6 +80,7 @@ def sys():
     ("3.2", "3.2.1", "BIOS", "630", "BIOS"),
     ("3.2", "3.2.1", "BIOS", "730", "BIOS"),
     ("3.2", "3.2.1", "ESXI", "VCENTER", "lab.vce.com"),
+    ("3.2", "3.2.1", "SUB_ESXI", "VCENTER", "ixgbe"),
     ("3.2", "3.2.1", "VCENTER", "VCENTER-APPLIANCE", "VCENTER-APPLIANCE"),
     ("3.2", "3.2.1", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
     ("3.2", "3.2.1", "RAID", "730", "PERC H730 Mini"),
@@ -85,52 +88,50 @@ def sys():
     ("3.2", "3.2.2", "BIOS", "630", "BIOS"),
     ("3.2", "3.2.2", "BIOS", "730", "BIOS"),
     ("3.2", "3.2.2", "ESXI", "VCENTER", "lab.vce.com"),
-#    ("3.2", "3.2.2", "VCENTER", "VCENTER-APPLIANCE", "lab.vce.com"),
-#    ("3.2", "3.2.2", "VCENTER", "VCENTER-WINDOWS", "lab.vce.com"),
+    ("3.2", "3.2.2", "SUB_ESXI", "VCENTER", "ixgbe"),
+    ("3.2", "3.2.2", "VCENTER", "VCENTER-APPLIANCE", "VCENTER-APPLIANCE"),
+    ("3.2", "3.2.2", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
     ("3.2", "3.2.2", "RAID", "730", "PERC H730 Mini"),
-    ("3.2", "3.2.1", "NonRAID", "630", "Dell HBA330 Mini"),
+    ("3.2", "3.2.2", "NonRAID", "630", "Dell HBA330 Mini"),
     ("3.2", "3.2.3", "BIOS", "630", "BIOS"),
     ("3.2", "3.2.3", "BIOS", "730", "BIOS"),
     ("3.2", "3.2.3", "ESXI", "VCENTER", "lab.vce.com"),
-#    ("3.2", "3.2.3", "VCENTER", "VCENTER-APPLIANCE", "lab.vce.com"),
-#    ("3.2", "3.2.3", "VCENTER", "VCENTER-WINDOWS", "lab.vce.com"),
-    ("3.2", "3.2.1", "NonRAID", "630", "Dell HBA330 Mini"),
+    ("3.2", "3.2.3", "SUB_ESXI", "VCENTER", "ixgbe"),
+    ("3.2", "3.2.3", "VCENTER", "VCENTER-APPLIANCE", "VCENTER-APPLIANCE"),
+    ("3.2", "3.2.3", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
+    ("3.2", "3.2.3", "NonRAID", "630", "Dell HBA330 Mini"),
     ("3.2", "3.2.3", "RAID", "730", "PERC H730 Mini")])
 def test_post_eval(sys, train, version, type, model, identifier):
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/VxRack/1000 FLEX/' + train + '/' + version + '/'
-    response = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/VxRack/1000 FLEX/' + train + '/' + version + '/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/VxRack/1000 FLEX/' + train + '/' + version + '/'
+    response = requests.get(urlSec, verify=False)
+    # response = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+
     assert response.status_code == 200, "Request has not been acknowledged as expected."
     data = response.json()
     rcmid = data["rcmInventoryItems"][0]["uuid"]
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/evaluation/'
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/evaluation/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/evaluation/'
     body = {'systemUuid': sys[0], 'rcmUuid': rcmid}
     data_json = json.dumps(body)
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    response = requests.post(url, data_json, headers=headers)
+    response = requests.post(urlSec, data_json, headers=headers, verify=False)
     data = response.json()
-    print(data)
-    assert response.status_code == 200, "Request has not been acknowledged as expected."
 
+    assert response.status_code == 200, "Request has not been acknowledged as expected."
     evals = len(data['rcmEvaluationResults'])
     assert evals != 0, "Unexpected number of evaluation results found, has Collectcomponentversion been executed??"
     results = 0
-    deviceIDlist = []
     instances = 0
-    print("Train: %s" % train)
-    print("Version: %s" % version)
 
     while results < evals:
-        print(1)
         if model in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['model'] and identifier in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity']['identifier']:
-            print(2)
             assert model in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition'][
                 'model'], "Model"
             assert identifier in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity'][
                 'identifier'], "Identifier"
-            print(3)
             if type in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity']['elementType']:
-                print(4)
                 assert data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity'][
                            'elementType'] == type, "Type"
                 assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['rcmUuid'] == rcmid
@@ -139,7 +140,6 @@ def test_post_eval(sys, train, version, type, model, identifier):
                 assert data['rcmEvaluationResults'][results]['elementUuid'] == \
                        data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['componentUuid']
                 if 'serialNumber' in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity']:
-                    print(5)
                     assert type in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity']['serialNumber']
                 assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['productFamily'] == \
                        data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['productFamily']
@@ -157,43 +157,21 @@ def test_post_eval(sys, train, version, type, model, identifier):
                        data['rcmEvaluationResults'][results]['expectedValues'][0]
                 actual = data['rcmEvaluationResults'][results]['actualValue']
                 expected = data['rcmEvaluationResults'][results]['expectedValues'][0]
-                print('Actual value:', data['rcmEvaluationResults'][results]['actualValue'])
-                print('Expected value:', data['rcmEvaluationResults'][results]['expectedValues'][0])
-                print('Message:', data['rcmEvaluationResults'][results]['evaluationMessage'])
-                if actual == expected:
-                    print(6)
+                if expected in actual:
                     assert (data['rcmEvaluationResults'][results]['evaluationResult']) == "match", "Expect a match"
-                    print("Returned result: %s" % data['rcmEvaluationResults'][results]['evaluationResult'])
+
                 else:
-                    print(6)
                     assert (
                            data['rcmEvaluationResults'][results]['evaluationResult']) == "mismatch", "Expect a mismatch"
-                    print("Returned result: %s" % data['rcmEvaluationResults'][results]['evaluationResult'])
 
-                print("Stripping both expected and actual version strings......")
                 stripActual = actual.strip("0")
                 stripExpected = expected.strip("0")
-                if stripActual == stripExpected:
-                    print(7)
-                    print("Returned result: %s" % data['rcmEvaluationResults'][results]['evaluationResult'])
-                    print('Actual stripped:', stripActual)
-                    print('Expected stripped:', stripExpected)
+                if stripExpected in stripActual:
                     assert (data['rcmEvaluationResults'][results]['evaluationResult']) == "match", "Expect a match"
                 else:
-                    print(7)
-                    print("Returned result: %s" % data['rcmEvaluationResults'][results]['evaluationResult'])
-                    print('Actual stripped:', stripActual)
-                    print('Expected stripped:', stripExpected)
                     assert (
                            data['rcmEvaluationResults'][results]['evaluationResult']) == "mismatch", "Expect a mismatch"
 
-                # if "versionFileName" in data['rcmEvaluationResults'][results]['evaluatedRcmDatum']:
-                #     assert fileName in data['rcmEvaluationResults'][results]['evaluatedRcmDatum']["versionFileName"], "Unexpected fileName returned."
-                #     assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']["versionFileHash"] != "", "Unexpected fileHash returned."
-                # if "versionFileHash" in data['rcmEvaluationResults'][results]['evaluatedRcmDatum']:
-                #     if data['rcmEvaluationResults'][results]['evaluatedRcmDatum']["versionFileHash"] != "unknown":
-                #         assert len(data['rcmEvaluationResults'][results]['evaluatedRcmDatum']["versionFileHash"]) >  24, "Unexpected fileHash rturned."
-                print("Here....")
                 return
             instances += 1
             results += 1
@@ -203,4 +181,3 @@ def test_post_eval(sys, train, version, type, model, identifier):
 
 
     assert False, "No Evaluation for this component"
-    print('Specified type not found:', type)

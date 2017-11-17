@@ -49,7 +49,6 @@ def purgeOldOutput(dir, pattern):
             print('Unable to locate output files to remove.')
 
 def getRCMDefinition(family, model, train, version):
-        # print(data)
     contentIndex = 0
     fileIndex = 0
     fileList = []
@@ -57,38 +56,32 @@ def getRCMDefinition(family, model, train, version):
     option = "ORIGINAL"
     optionAdd = "ADDENDUM"
     optionManu = "MANUFACTURING"
-    #model = "340"
-    exception = "No rcm definitions for system family"
-    urlInventory = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
-
-    #print(url)
-    respInventory = requests.get(urlInventory)
+    # urlInventory = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
+    urlInventorySec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
+    # respInventory = requests.get(urlInventory)
+    # respInventory = requests.get(urlInventorySec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+    respInventory = requests.get(urlInventorySec, verify=False)
     dataInventory = json.loads(respInventory.text)
     UUID = dataInventory["rcmInventoryItems"][0]["uuid"]
-    print("UUID: %s" % UUID)
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + UUID
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + UUID
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/definition/' + UUID
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
+
     rcm = data["rcmDefinition"]
     rcmContent = data["rcmDefinition"]["rcmContents"]
+
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
     if data != "":
         if data["message"] == None:
-            #print(data)
-# #            if
             with open(path + 'rcmDefinitionByUUID.json', 'a', encoding='utf-8') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
-#
-            print("\nStarting to verify a sample of the returned data....")
-            #print(url)
 
             assert data["message"] == None
             assert len(rcm) > 0
-            lastRCM = len(rcm)
-            midRCM = (len(rcm))/2
-            print("Option: %s" % rcm["viewOption"])
             assert rcm["systemModelFamily"] == model
             assert rcm["systemProductFamily"] == family
             assert rcm["rcmTrain"] == train
@@ -102,39 +95,26 @@ def getRCMDefinition(family, model, train, version):
             train = rcm["rcmTrain"]
             version = rcm["rcmVersion"]
             combo = prod + '/' + mod + '/' + train + '/' + version
-            print("RCM returned for: %s" % combo)
 
             while contentIndex < len(data["rcmDefinition"]["rcmContents"]):
-                print("Loop: %d" % contentIndex)
                 assert "uuid" in rcmContent[contentIndex] and rcmContent[contentIndex]["uuid"] != "", "No UUID returned in rcmContents."
                 assert "category" in rcmContent[contentIndex] and rcmContent[contentIndex]["category"] != "", "No category returned in rcmContents."
                 assert "component" in rcmContent[contentIndex] and rcmContent[contentIndex]["component"] != "", "No component returned in rcmContents."
-                #assert "option" in rcmContent[contentIndex] and rcmContent[contentIndex]["option"] != "", "No option returned in rcmContents."
                 assert "option" in rcmContent[contentIndex], "No option returned in rcmContents."
                 assert "priorVersion" in rcmContent[contentIndex], "No priorVersion returned in rcmContents."
                 assert "priorComponent" in rcmContent[contentIndex], "No priorComponent returned in rcmContents."
                 assert "subType" in rcmContent[contentIndex], "No subType returned in rcmContents."
                 assert "type" in rcmContent[contentIndex] and rcmContent[contentIndex]["type"] != "", "No type returned in rcmContents."
-                # assert "version" in rcmContent[contentIndex] and rcmContent[contentIndex]["version"] != "", "No version returned in rcmContents."
                 assert "remediationFiles" in rcmContent[contentIndex] and rcmContent[contentIndex]["remediationFiles"] != "", "No remediationFiles returned in rcmContents."
 
                 if "Compute" in rcmContent[contentIndex]["type"]:
-                    print("Compute")
                     assert rcmContent[contentIndex]["type"] == "Compute" or "Compute - Dell (R630/R730)"
 
                 if "Management" in rcmContent[contentIndex]["type"]:
-                    print("Mgt")
                     assert rcmContent[contentIndex]["type"] == "Management" or "Management - Dell (R630)"
 
-
-                print(len(rcmContent[contentIndex]["remediationFiles"]))
-                print("Component level checks complete.")
-
                 if len(rcmContent[contentIndex]["remediationFiles"]) > 0:
-                    print("Deep")
                     while fileIndex < len(rcmContent[contentIndex]["remediationFiles"]):
-                        print("Deeper still")
-                        print("File Loop: %d" % fileIndex)
                         assert "uuid" in rcmContent[contentIndex]["remediationFiles"][fileIndex], "No file UUID returned in remediationFiles."
                         assert rcmContent[contentIndex]["remediationFiles"][fileIndex]["uuid"] != "", "Unexpected file UUID returned in remediationFiles."
                         assert "filename" in rcmContent[contentIndex]["remediationFiles"][fileIndex], "No file name returned in remediationFiles."
@@ -152,19 +132,11 @@ def getRCMDefinition(family, model, train, version):
                         versFileHash = rcmContent[contentIndex]["remediationFiles"][fileIndex]["fileHash"]
                         fileList.append(versFileName)
                         fileHash.append(versFileHash)
-                        print("File level checks complete.")
+
                         fileIndex += 1
-                    #contentIndex += 1
                 fileIndex = 0
                 contentIndex += 1
 
-
-            print("List of filenames:", fileList)
-            print("List of filehashes:", fileHash)
-
-
-
-            print("\nReturned data has completed all defined checks successfully......")
             return
 
 
@@ -172,37 +144,33 @@ def getRCMDefinition(family, model, train, version):
 
 
 def getRCMDefinition_Invalid(UUID, family, model):
-        # print(data)
-
-    option = "ORIGINAL"
-    optionAdd = "ADDENDUM"
-    optionManu = "MANUFACTURING"
-
-    exception = "No rcm definitions for system family"
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + UUID
-    print("Requested UUID: %s" % UUID, "\n")
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + UUID
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/definition/' + UUID
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
     rcm = data["rcmDefinition"]
-    print(data, "\n")
-    print(data["message"])
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
     if ("message") in data.keys():
         assert ('RFCA101') in (data["message"]), "Returned Error Message does not reflect missing correlation ID."
+        return
 
-    print("\nReturned data has completed all defined checks successfully......")
+    assert False, "No message text returned."
 
 
 def getRCMDefinition_Null(rcmUUID):
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + rcmUUID + '/'
-    print(url, "\n")
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + rcmUUID + '/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/' + rcmUUID + '/'
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
 
-    print("Requesting a NULL rcmUUID ....")
-    print(resp.status_code)
-    assert resp.status_code == 404, "Request has not been acknowledged as expected."
+    if resp.status_code == 404:
+        assert True, "Request has not been acknowledged as expected."
+        return
+
+    assert False, "Response code not as expected."
 
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended

@@ -36,11 +36,14 @@ def load_test_data():
     global env_file
     env_file = 'env.ini'
 
+    global hostTLS
+    hostTLS = "amqp"
     global host
     host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
-    port = int(port)
+    global portTLS
+    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
+    # port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
+    portTLS = int(portTLS)
 
     global rmq_username
     rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
@@ -81,12 +84,6 @@ def load_test_data():
     global message_update
     message_update = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                         property=payload_message)
-    # global message_dup_update
-    # message_dup_update = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
-    #                                                     property=dup_payload_message)
-    # global message_dup2_update
-    # message_dup2_update = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
-    #                                                     property=dup2_payload_message)
     global message_rackHD
     message_rackHD = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                         property=payload_rackHD)
@@ -95,11 +92,7 @@ def load_test_data():
                                                         property=payload_vcenter)
 
     getSystemDefinition()
-    registerRackHD(message_rackHD, "out_registerRackHDResp.json")
-    time.sleep(2)
-    registerVcenter(message_vcenter, "out_registerVcenterResp.json")
 
-    time.sleep(200)
 
 def ensurePathExists(dir):
     if not os.path.exists(dir):
@@ -115,244 +108,171 @@ def purgeOldOutput(dir, pattern):
 
 def resetTestQueues(testRequest, testResponse, testCredsReq, testCredsResp, testSysList, testSysFound):
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
+    # credentials = pika.PlainCredentials(rmq_username, rmq_password)
+    # parameters = pika.ConnectionParameters(host, port, '/', credentials)
+    # connection = pika.BlockingConnection(parameters)
+    # channel = connection.channel()
 
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username, queue=testRequest,
-                                     ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue=testResponse, ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue=testCredsReq, ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue=testCredsResp, ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue=testSysList, ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue=testSysFound, ssl_enabled=False)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testRequest)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testCredsReq)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testCredsResp)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testSysList)
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testSysFound)
+
+    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username, queue=testRequest,
+    #                                  ssl_enabled=False)
     # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                  queue=testCompReq, ssl_enabled=False)
+    #                                  queue=testResponse, ssl_enabled=False)
     # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                  queue=testCompFound, ssl_enabled=False)
+    #                                  queue=testCredsReq, ssl_enabled=False)
+    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                  queue=testCredsResp, ssl_enabled=False)
+    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                  queue=testSysList, ssl_enabled=False)
+    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                  queue=testSysFound, ssl_enabled=False)
 
     time.sleep(2)
     print("Old test queues successfully purged.")
 
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                 queue=testRequest, exchange='exchange.dell.cpsd.controlplane.rackhd.request',
+    #                                 routing_key='#', ssl_enabled=False)
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                 queue=testResponse,
+    #                                 exchange='exchange.dell.cpsd.controlplane.rackhd.response',
+    #                                 routing_key='#', ssl_enabled=False)
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                 queue=testCredsReq, exchange='exchange.dell.cpsd.cms.credentials.request',
+    #                                 routing_key='#', ssl_enabled=False)
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                 queue=testCredsResp, exchange='exchange.dell.cpsd.cms.credentials.response',
+    #                                 routing_key='#', ssl_enabled=False)
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                 queue=testSysList, exchange='exchange.dell.cpsd.syds.system.definition.request',
+    #                                 routing_key='#', ssl_enabled=False)
+    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                 queue=testSysFound, exchange='exchange.dell.cpsd.syds.system.definition.response',
+    #                                 routing_key='#', ssl_enabled=False)
+
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue=testRequest, exchange='exchange.dell.cpsd.controlplane.rackhd.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                    queue=testResponse,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue=testResponse,
                                     exchange='exchange.dell.cpsd.controlplane.rackhd.response',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue=testCredsReq, exchange='exchange.dell.cpsd.cms.credentials.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue=testCredsResp, exchange='exchange.dell.cpsd.cms.credentials.response',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue=testSysList, exchange='exchange.dell.cpsd.syds.system.definition.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+                                    routing_key='#')
+    af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue=testSysFound, exchange='exchange.dell.cpsd.syds.system.definition.response',
-                                    routing_key='#', ssl_enabled=False)
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue=testCompReq, exchange='exchange.dell.cpsd.cms.credentials.response',
-    #                                 routing_key='#', ssl_enabled=False)
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue=testCompFound, exchange='exchange.dell.cpsd.cms.credentials.response',
-    #                                 routing_key='#', ssl_enabled=False)
+                                    routing_key='#')
+
 
     print("New test queues successfully initialized.")
 
-def registerRackHD(payLoad, responseRegRackHD):
-    messageHeaderRequest = {'__TypeId__': 'com.dell.cpsd.rackhd.registration.info.request'}
-
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterRackHDRequest', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterRackHDResponse', ssl_enabled=False)
-
-    time.sleep(2)
-
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                    queue='testRegisterRackHDRequest', exchange='exchange.dell.cpsd.controlplane.rackhd.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                    queue='testRegisterRackHDResponse', exchange='exchange.dell.cpsd.controlplane.rackhd.response',
-                                    routing_key='#', ssl_enabled=False)
-
-    print(payLoad)
-    print(messageHeaderRequest)
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                         exchange="exchange.dell.cpsd.controlplane.rackhd.request",
-                                         routing_key="controlplane.rackhd.endpoint.register",
-                                         headers=messageHeaderRequest, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
-
-    print("RackHD register request published.")
-    time.sleep(5)
-
-    my_response_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                                        rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testRegisterRackHDResponse',
-                                                                        ssl_enabled=False)
-    af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + responseRegRackHD)
-    print("\nRegister response consumed.")
-    data_RackHD = open(path + responseRegRackHD, 'rU')
-    dataRackHD = json.load(data_RackHD)
-
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterRackHDRequest', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterRackHDResponse', ssl_enabled=False)
-
-    if dataRackHD is not None:
-
-        assert "timestamp" in dataRackHD["messageProperties"], "No timestamp included in consumed response."
-        assert "message" in dataRackHD["responseInfo"], "No message included in consumed response."
-        assert dataRackHD["responseInfo"]["message"] == "SUCCESS", "Registration attempt not returned as success."
-        print("\nAll verification steps executed successfully.....")
-        print("\nRackHD successfully registered....")
-        return
-
-    assert False, "Consumed message not as expected."
-
-def registerVcenter(payLoad, responseRegVcenter):
-    messageReqHeader = {'__TypeId__': 'com.dell.cpsd.vcenter.registration.info.request'}
-
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterVcenterRequest', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterVcenterResponse', ssl_enabled=False)
-
-    time.sleep(2)
-
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                    queue='testRegisterVcenterRequest', exchange='exchange.dell.cpsd.controlplane.vcenter.request',
-                                    routing_key='#', ssl_enabled=False)
-    af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                    queue='testRegisterVcenterResponse', exchange='exchange.dell.cpsd.controlplane.vcenter.response',
-                                    routing_key='#', ssl_enabled=False)
-
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                         exchange="exchange.dell.cpsd.controlplane.vcenter.request",
-                                         routing_key="controlplane.hypervisor.vcenter.endpoint.register",
-                                         headers=messageReqHeader, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
-
-    print("\nVcenter register request published.")
-    time.sleep(5)
-
-    my_response_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                                        rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testRegisterVcenterResponse',
-                                                                        ssl_enabled=False)
-    af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + responseRegVcenter)
-    print("\nRegister response consumed.")
-    data_Vcenter = open(path + responseRegVcenter, 'rU')
-    dataVcenter = json.load(data_Vcenter)
-
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterVcenterRequest', ssl_enabled=False)
-    af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-                                     queue='testRegisterVcenterResponse', ssl_enabled=False)
-
-    if dataVcenter is not None:
-
-        assert "timestamp" in dataVcenter["messageProperties"], "No timestamp included in consumed response."
-        assert "message" in dataVcenter["responseInfo"], "No message included in consumed response."
-        assert dataVcenter["responseInfo"]["message"] == "SUCCESS", "Registration attempt not returned as success."
-        print("\nAll verification steps executed successfully.....")
-        print("\nVcenter successfully registered....")
-        return
-
-    assert False, "Consumed message not as expected."
-
 def updateFWRequest(payLoad, requestFile, requestCredentials, responseCredentials, responseFile, systemList, systemFound):
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.service.rcm.capability.update.firmware.requested'}
-    print("Host: %s" % host)
-    print("Port: %d" % port)
 
-    credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
+    # credentials = pika.PlainCredentials(rmq_username, rmq_password)
+    # parameters = pika.ConnectionParameters(host, port, '/', credentials)
+    # connection = pika.BlockingConnection(parameters)
+    # channel = connection.channel()
 
     resetTestQueues('testUpdateFWRequest', 'testUpdateFWResponse', 'testUpdateFWCredsRequest', 'testUpdateFWCredsResp', 'testSystemList', 'testSystemFound')
     print("Queues reset.")
 
-    af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
+    af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.controlplane.rackhd.request",
                                          routing_key="dell.cpsd.service.rcm.capability.update.firmware.requested",
-                                         headers=messageReqHeader, payload=payLoad, payload_type='json',
-                                         ssl_enabled=False)
+                                         headers=messageReqHeader, payload=payLoad, payload_type='json')
 
     print("\nUpdate request published.")
     time.sleep(20)
 
-    my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                           rmq_username=rmq_username, rmq_password=rmq_username,
-                                                           queue='testUpdateFWRequest',
-                                                           ssl_enabled=False)
+    my_request_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                           queue='testUpdateFWRequest')
     af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
 
-    my_request_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                       rmq_username=rmq_username,
-                                                                       rmq_password=rmq_username,
-                                                                        queue='testSystemList',
-                                                                        ssl_enabled=False)
+    my_request_credentials_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testSystemList')
     af_support_tools.rmq_payload_to_file(my_request_credentials_body, path + systemList)
 
-    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                        rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testSystemFound',
-                                                                        ssl_enabled=False)
+    my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testSystemFound')
+
+    # my_request_body = af_support_tools.rmq_consume_message(host=host, port=port,
+    #                                                        rmq_username=rmq_username, rmq_password=rmq_username,
+    #                                                        queue='testUpdateFWRequest',
+    #                                                        ssl_enabled=False)
+    # af_support_tools.rmq_payload_to_file(my_request_body, path + requestFile)
+    #
+    # my_request_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
+    #                                                                    rmq_username=rmq_username,
+    #                                                                    rmq_password=rmq_username,
+    #                                                                     queue='testSystemList',
+    #                                                                     ssl_enabled=False)
+    # af_support_tools.rmq_payload_to_file(my_request_credentials_body, path + systemList)
+    #
+    # my_response_credentials_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
+    #                                                                     rmq_username=rmq_username,
+    #                                                                     rmq_password=rmq_username,
+    #                                                                     queue='testSystemFound',
+    #                                                                     ssl_enabled=False)
+
+
     af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + systemFound)
 
     print("\nSystem list and config request/response consumed.")
 
-    my_request_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                                       rmq_username=rmq_username,
-                                                                       rmq_password=rmq_username,
-                                                                        queue='testUpdateFWCredsRequest',
-                                                                        ssl_enabled=False)
+    my_request_credentials_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testUpdateFWCredsRequest')
     af_support_tools.rmq_payload_to_file(my_request_credentials_body, path + requestCredentials)
 
-    my_response_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
-                                                                        rmq_username=rmq_username,
-                                                                        rmq_password=rmq_username,
-                                                                        queue='testUpdateFWCredsResp',
-                                                                        ssl_enabled=False)
+    my_response_credentials_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                        queue='testUpdateFWCredsResp')
     af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + responseCredentials)
 
     print("\nUpdate request and credential request/response consumed.")
 
     time.sleep(180)
 
-    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
-                                                                          rmq_username=rmq_username,
-                                                                          rmq_password=rmq_username,
-                                                                          queue='testUpdateFWResponse',
-                                                                          ssl_enabled=False)
+    my_response_download_body = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                                                          queue='testUpdateFWResponse')
     af_support_tools.rmq_payload_to_file(my_response_download_body, path + responseFile)
+
+
+    # my_request_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
+    #                                                                    rmq_username=rmq_username,
+    #                                                                    rmq_password=rmq_username,
+    #                                                                     queue='testUpdateFWCredsRequest',
+    #                                                                     ssl_enabled=False)
+    # af_support_tools.rmq_payload_to_file(my_request_credentials_body, path + requestCredentials)
+    #
+    # my_response_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
+    #                                                                     rmq_username=rmq_username,
+    #                                                                     rmq_password=rmq_username,
+    #                                                                     queue='testUpdateFWCredsResp',
+    #                                                                     ssl_enabled=False)
+    # af_support_tools.rmq_payload_to_file(my_response_credentials_body, path + responseCredentials)
+    #
+    # print("\nUpdate request and credential request/response consumed.")
+    #
+    # time.sleep(180)
+    #
+    # my_response_download_body = af_support_tools.rmq_consume_all_messages(host=host, port=port,
+    #                                                                       rmq_username=rmq_username,
+    #                                                                       rmq_password=rmq_username,
+    #                                                                       queue='testUpdateFWResponse',
+    #                                                                       ssl_enabled=False)
+    # af_support_tools.rmq_payload_to_file(my_response_download_body, path + responseFile)
 
     print("\nUpdate progress messages consumed, and expected result.")
 
@@ -360,6 +280,7 @@ def updateFWRequest(payLoad, requestFile, requestCredentials, responseCredential
 def restResponse(input):
     assert "19080/rcm-fitness-api/api/install/firmware" in input["link"][
         "href"], "No URL included in response to query subsequent progress."
+    # assert "https://" in input["link"]["href"], "No URL included in response to query subsequent progress."
     assert input["link"]["method"] == "GET", "Unexpected method returned in response."
     assert len(input["uuid"]) > 16, "Unexpected correlation ID returned"
 
@@ -372,8 +293,8 @@ def restResponse(input):
     print("Total CorrIDs: %d" % len(restCorrID))
 
 def getSystemDefinition():
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
-    resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/'
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
 
     if data != "":
@@ -686,7 +607,7 @@ def verifyCredentialResponse(filename, credRequest, credResponse, component):
                 assert "timestamp" in dataCredResponse["messageProperties"], "No timestamp included in credential response message."
                 listCorrID.append(dataCredResponse["messageProperties"]["correlationId"])
                 assert dataCredRequest["messageProperties"]["correlationId"] == dataCredResponse["messageProperties"]["correlationId"], "Correlation ID not matching original request."
-                assert "credentials-service" in dataCredResponse["messageProperties"]["replyTo"], "Unexpected replyTo value detailed in response."
+                assert "credential-service" in dataCredResponse["messageProperties"]["replyTo"], "Unexpected replyTo value detailed in response."
                 assert dataCredResponse["componentCredentialElements"][index]["name"] == component, "Unexpected component name detailed in response."
                 assert len(dataCredResponse["componentCredentialElements"][index]["credentialElement"]["username"]) > 100, "Unexpected encrypted username detailed."
                 assert len(dataCredResponse["componentCredentialElements"][index]["credentialElement"]["password"]) > 100, "Unexpected encrypted username detailed."
@@ -808,10 +729,11 @@ def verifyRESTupdateRequest(filename):
     print("subCompUUID: %s" % subCompUUID)
     mode = 'on'
     # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/install/firmware/'
-    url = 'http://' + host + ':19080/rcm-fitness-api/api/install/firmware/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/install/firmware/'
     payload = {'filePath': updatePath, 'subComponentType': subComp, 'deviceId': subCompUUID, 'emulationMode': mode}
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    resp = requests.post(url, data=json.dumps(payload), headers=headers)
+    # resp = requests.post(url, data=json.dumps(payload), headers=headers)
+    resp = requests.post(urlSec, data=json.dumps(payload), headers=headers, verify=False)
     # data = json.dumps(payload)
 
 
@@ -824,19 +746,19 @@ def verifyRESTupdateRequest(filename):
 
     print(data)
     if data != "":
-        if data["state"] == "ACKNOWLEDGED":
+        if "REQUESTED" in data["state"]:
             print("In here....")
             statusURL = data["link"]["href"]
-            # statusResp = requests.get(statusURL)
-            statusData = requests.get(statusURL)
+            statusData = requests.get(statusURL, verify=False)
+            # statusData = requests.get(statusURL, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
             statusResp = json.loads(statusData.text)
-            if data["state"] != "IN_PROGRESS":
+            if data["state"] != "IN_PROGRESS" or "RUNNING":
                 print("In here still....")
                 statusURL = data["link"]["href"]
-                # statusResp = requests.get(statusURL)
-                statusData = requests.get(statusURL)
+                statusData = requests.get(statusURL, verify=False)
+                # statusData = requests.get(statusURL, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
                 statusResp = json.loads(statusData.text)
-            if statusResp["state"] == "IN_PROGRESS":
+            if statusResp["state"] == "IN_PROGRESS" or "RUNNING":
                 print("Now here....")
                 restResponse(statusResp)
                 global origRestCorrID
@@ -854,11 +776,13 @@ def verifyInvalidRESTUpdateRequest(filename, invalidPath, invalidSubComp, invali
 
     mode = 'on'
     # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/install/firmware/'
-    url = 'http://' + host + ':19080/rcm-fitness-api/api/install/firmware/'
+    # url = 'http://' + host + ':19080/rcm-fitness-api/api/install/firmware/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/install/firmware/'
 
     payload = {'filePath': invalidPath, 'subComponentType': invalidSubComp, 'deviceId': invalidSubCompUUID}
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    resp = requests.post(url, data=json.dumps(payload), headers=headers)
+    # resp = requests.post(url, data=json.dumps(payload), headers=headers)
+    resp = requests.post(urlSec, data=json.dumps(payload), headers=headers, verify=False)
     # data = json.dumps(payload)
 
     print("Returned status code: %d" % resp.status_code)
@@ -870,28 +794,32 @@ def verifyInvalidRESTUpdateRequest(filename, invalidPath, invalidSubComp, invali
 
     print(data)
     if data != "":
-        # if data["state"] == "ACKNOWLEDGED":
-        #     print("In here....")
-        #     statusURL = data["link"]["href"]
-        #     statusData = requests.get(statusURL)
-        #     statusResp = json.loads(statusData.text)
         if data["state"] != "ERROR":
             print("In here still....")
             statusURL = data["link"]["href"]
-            statusData = requests.get(statusURL)
+            statusData = requests.get(statusURL, verify=False)
+            # statusData = requests.get(statusURL, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
             data = json.loads(statusData.text)
         if data["state"] == "ERROR":
             print("Now here....")
             restResponse(data)
-            if "RHDA1007E" in data["error"]:
-                assert "RHDA1007E" in data["errorList"][0], "Expected Error Code not included in error list."
-                assert "RHDA1007E" in data["error"], "Expected Error Code not included in response."
-            if "RHDA1001E" in data["error"]:
-                assert "RHDA1001E" in data["errorList"][0], "Expected Error Code not included in error list."
-                assert "RHDA1001E" in data["error"], "Expected Error Code not included in response."
-                assert "CRHD1002E:  HTTP Status error response from RackHd with Message: Status Code: 404" in data["errorList"][1], "Expected Error Code not included in error list."
+            if "RFCA1032E" in data["jobMessage"]:
+                assert "taskErrors" in data, "No task errors returned."
+                assert "taskMessages" in data, "No task messages returned."
+
+
+
+            # if "RHDA1007E" in data["error"]:
+            #     assert "RHDA1007E" in data["errorList"][0], "Expected Error Code not included in error list."
+            #     assert "RHDA1007E" in data["error"], "Expected Error Code not included in response."
+            # if "RHDA1001E" in data["error"]:
+            #     assert "RHDA1001E" in data["errorList"][0], "Expected Error Code not included in error list."
+            #     assert "RHDA1001E" in data["error"], "Expected Error Code not included in response."
+            #     assert "CRHD1002E:  HTTP Status error response from RackHd with Message: Status Code: 404" in data["errorList"][1], "Expected Error Code not included in error list."
+
             statusURL = data["link"]["href"]
-            statusData = requests.get(statusURL)
+            statusData = requests.get(statusURL, verify=False)
+            # statusData = requests.get(statusURL, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
             statusRespRepeat = json.loads(statusData.text)
             if statusRespRepeat["state"] == "ERROR":
                 restResponse(statusRespRepeat)
@@ -904,7 +832,8 @@ def verifyRESTupdateResponse(filename):
     url = progURL
     print(restCorrID)
     print("\n")
-    resp = requests.get(url)
+    resp = requests.get(url, verify=False)
+    # resp = requests.get(url, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
     with open(filename, 'a') as outfile:
@@ -916,7 +845,8 @@ def verifyRESTupdateResponse(filename):
             print("First progress update verified.")
 
     time.sleep(100)
-    resp = requests.get(url)
+    resp = requests.get(url, verify=False)
+    # resp = requests.get(url, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
 
     with open(filename, 'a') as outfile:
@@ -928,7 +858,8 @@ def verifyRESTupdateResponse(filename):
             print("Second progress update verified.")
 
     time.sleep(100)
-    resp = requests.get(url)
+    resp = requests.get(url, verify=False)
+    # resp = requests.get(url, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
 
     with open(filename, 'a') as outfile:
@@ -940,7 +871,8 @@ def verifyRESTupdateResponse(filename):
             print("Progress response marked COMPLETE verified.")
 
     time.sleep(5)
-    resp = requests.get(url)
+    resp = requests.get(url, verify=False)
+    # resp = requests.get(url, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
 
     with open(filename, 'a') as outfile:
@@ -949,16 +881,10 @@ def verifyRESTupdateResponse(filename):
     if data != "":
         if data["state"] == "COMPLETE":
             restResponse(data)
-            print("Progress response on repeated query marked COMPLETE verified.")
 
         for item in restCorrID:
-            print("Total CorrIDs: %d" % len(restCorrID))
-            print(item)
-            print(origRestCorrID)
-            assert len(restCorrID) == 5, "Unexpected number of total Correlation IDs in list."
+            assert len(restCorrID) > 1, "Unexpected number of total Correlation IDs in list."
             assert origRestCorrID in item, "Unexpected Correlation ID detailed."
-
-            print("All associated REST corrIDs verified to include original request's corrID.")
 
         return
     assert False, ("At least one of REST update response not complete.")
@@ -1013,29 +939,29 @@ def test_verifyRESTupdateRequest():
 def test_verifyRESTupdateResponse():
     verifyRESTupdateResponse("out_restResponse.json")
 
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyInvalidRESTUpdateRequest1():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_1.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5.EXE", "BIOS", subCompUUID[:8])
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyInvalidRESTUpdateRequest2():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_2.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
-                                   "BIOS", subCompUUID)
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyInvalidRESTUpdateRequest3():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_3.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
-                                   "BIOS", subCompUUID[:8])
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyInvalidRESTUpdateRequest4():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_4.json", "////", "BIOS", subCompUUID[8:])
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyInvalidRESTUpdateRequest5():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyInvalidRESTUpdateRequest1():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_1.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5.EXE", "BIOS", subCompUUID[:8])
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyInvalidRESTUpdateRequest2():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_2.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
+#                                    "BIOS", subCompUUID)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyInvalidRESTUpdateRequest3():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_3.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
+#                                    "BIOS", subCompUUID[:8])
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyInvalidRESTUpdateRequest4():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_4.json", "////", "BIOS", subCompUUID[8:])
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyInvalidRESTUpdateRequest5():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
 
 #@pytest.mark.rcm_fitness_mvp_extended
 #@pytest.mark.rcm_fitness_mvp

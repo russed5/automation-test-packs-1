@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# Copyright © 2017 Dell Inc. or its subsidiaries.  All Rights Reserved
 import json
 import pika
 import sys
@@ -56,9 +55,10 @@ def getAvailableRCMs(family, model, train, version):
     optionManu = "MANUFACTURING"
 
     exception = "No rcm definitions for system family"
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version + "/"
-    print(url)
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version + "/"
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version + "/"
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
     rcm = data["rcmInventoryItems"]
 
@@ -66,20 +66,13 @@ def getAvailableRCMs(family, model, train, version):
 
     if data != "":
         if data["message"] == None:
-            #print(data)
-#            if
             with open(path + 'rcmInventoryVersion.json', 'w') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
-            print("\nStarting to verify a sample of the returned data....")
             assert len(rcm) > 0
-            print("\nRequesting all RCMs for: %s" % combo)
-            print("Number of RCMs found: %d" % len(rcm))
-
             lastRCM = len(rcm)
             midRCM = (len(rcm))/2
             midRCM = int(midRCM)
-            # print(data["rcms"][0]["viewOption"])
             assert rcm[0]["rcmVersion"] == version
             assert rcm[(lastRCM-1)]["rcmVersion"] == version
             assert rcm[0]["rcmTrain"] == train
@@ -106,24 +99,15 @@ def getAvailableRCMs(family, model, train, version):
             assert len(href) == len(set(href)), "Href links failed uniqueness check."
             assert len(method) != len(set(method)), "Method links failed uniqueness check."
             assert len(rel) == len(set(rel)), "Rel links failed uniqueness check."
-            print("\nReturned data has completed all defined checks successfully......")
             return
-
-
 
     assert False, "No rcm details returned: %s" % combo
 
 def getAvailableRCMs_Invalid(family, model, train, version):
-        # print(data)
-
-    option = "ORIGINAL"
-    optionAdd = "ADDENDUM"
-    optionManu = "MANUFACTURING"
-
-    exception = "No rcm definitions for system family"
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version + "/"
-    print(url, "\n")
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version + "/"
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version + "/"
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
     rcm = data["rcmInventoryItems"]
 
@@ -131,42 +115,35 @@ def getAvailableRCMs_Invalid(family, model, train, version):
 
     if not rcm:
         if ("message") in data.keys():
-            print(data["message"])
             assert ('RFCA1021I') in (data["message"]), "Returned Error Message does not reflect expected Error Code."
             assert (family) in (data["message"]), "Returned Error Message does not include expected Family."
             assert (model) in (data["message"]), "Returned Error Message does not include expected Model."
             assert (train) in (data["message"]), "Returned Error Message does not include expected Train."
             assert (version) in (data["message"]), "Returned Error Message does not include expected Version."
 
-    print("\nReturned data has completed all defined checks successfully......")
 
 def getAvailableRCMs_Null(family, model, train, version):
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + '/' + version + '/'
-    print(url, "\n")
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + '/' + version + '/'
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + '/' + version
+    resp = requests.get(urlSec, verify=False)
 
-    #print("Requesting a NULL train ....")
-    print(resp.status_code)
     if family == "" and model == "" and train == "" and version == "":
         assert resp.status_code == 404, "Request has not been acknowledged as expected."
     elif family == "" and version != "":
         assert resp.status_code == 200, "Request has not been acknowledged as expected."
         data = json.loads(resp.text)
-        print(data)
         assert "RFCA1019I No RCM definitions for system family" in data["message"], "Unexpected error response returned."
     elif family != "" and version == "":
         assert resp.status_code == 200, "Request has not been acknowledged as expected."
         data = json.loads(resp.text)
-        print(data)
         assert len(data["rcmInventoryItems"]) >= 1, "Returned RCM items should be one or more."
         assert data["message"] is None, "Unexpected error response returned."
     else:
         assert resp.status_code == 200, "Request has not been acknowledged as expected."
         data = json.loads(resp.text)
-        print(data)
         assert data["rcmInventoryItems"] is None, "Returned RCM items should be null."
         assert "RFCA1019I No RCM definitions for system family" in data["message"], "Unexpected error response returned."
-
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -180,7 +157,7 @@ def test_getRCM2():
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_getRCM3():
-    getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.2")
+    getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.3")
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCM4():
     getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1.1")
@@ -196,18 +173,18 @@ def test_getRCM7():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCM8():
     getAvailableRCMs_Null("VxRack", "1000 FLEX", "9.2", "")
-@pytest.mark.rcm_fitness_mvp_extended
-def test_getRCM9():
-    getAvailableRCMs_Null("VxRack", "1000 FLEX", "", "9.2.1")
-@pytest.mark.rcm_fitness_mvp_extended
-def test_getRCM10():
-    getAvailableRCMs_Null("VxRack", "", "9.2", "9.2.1")
-@pytest.mark.rcm_fitness_mvp_extended
-def test_getRCM11():
-    getAvailableRCMs_Null("", "1000 FLEX", "9.2", "9.2.1")
-@pytest.mark.rcm_fitness_mvp_extended
-def test_getRCM12():
-    getAvailableRCMs_Null("", "", "", "")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_getRCM9():
+#     getAvailableRCMs_Null("VxRack", "1000 FLEX", "", "9.2.1")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_getRCM10():
+#     getAvailableRCMs_Null("VxRack", "", "9.2", "9.2.1")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_getRCM11():
+#     getAvailableRCMs_Null("", "1000 FLEX", "9.2", "9.2.1")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_getRCM12():
+#     getAvailableRCMs_Null("", "", "", "")
 #@pytest.mark.TC546560_Empty
 #def test_getRCM7():
 #    getAvailableRCMs_Invalid("", "", "")

@@ -42,7 +42,6 @@ def load_test_data():
     global fileHash
     fileHash = []
 
-# path = '/home/autouser/PycharmProjects/auto-framework/test_suites/continuousDeployment/restLevelTests/rcmComplianceScan/'
 
 def ensurePathExists(dir):
     if not os.path.exists(dir):
@@ -59,8 +58,10 @@ def purgeOldOutput(dir, pattern):
 
 
 def getSystemDefinition():
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/'
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
 
     print("Requesting UUID from System Definition....")
@@ -71,7 +72,6 @@ def getSystemDefinition():
             with open(path + 'rcmSystemDefinition-VxRack.json', 'w') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
-            # print("\nExtracting UUID from response....\n")
             global systemUUID
             global secondSystemUUID
             systemUUID = data["systems"][0]["uuid"]
@@ -87,15 +87,14 @@ def getSystemDefinition():
 
 
 def getListCompUUIDs(sysUUID):
-    subIndex = 0
     compIndex = 0
-    versionIndex = 0
     compList = []
-    # getSystemDefinition()
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
 
-    resp = requests.get(url)
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
@@ -106,19 +105,16 @@ def getListCompUUIDs(sysUUID):
         if data != "" and totalComponents > 0:
             while compIndex < totalComponents:
                 global compUUID
-                # fb422b4b-d372-49fa-8b11-4e04ee37a2f9
                 compUUID = data["components"][compIndex]["uuid"]
                 compList.append(compUUID)
                 compIndex += 1
 
-        print("\nList of Component UUIDs:")
         for i in compList:
             print(i)
         return compList
 
     except Exception as e:
         print("Unexpected error: " + str(e))
-        # print(response)
         traceback.print_exc()
         raise Exception(e)
 
@@ -127,29 +123,28 @@ def getComplianceData(model, type, filename, sysUUID):
     subIndex = 0
     compIndex = 0
     versionIndex = 0
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
 
-    resp = requests.get(url)
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-    print("Requesting latest discovered f/w version from Compliance Data service...")
-
     totalComponents = len(data["components"])
-
     assert data["message"] == None, "Error response returned unexpectedly."
 
     if data != "":
         while compIndex < totalComponents:
             if "modelFamily" in data["components"][compIndex]["definition"] and \
                             data["components"][compIndex]["definition"]["modelFamily"] == model:
-                print(data["components"][compIndex]["definition"]["modelFamily"])
                 global compUUID
                 compUUID = data["components"][compIndex]["uuid"]
-                print("Component UUID: %s" % compUUID)
-                compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/device/' + compUUID
+                # compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/device/' + compUUID
+                compURLsec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/device/' + compUUID
 
-                compResp = requests.get(compURL)
+                # compResp = requests.get(compURL)
+                compResp = requests.get(compURLsec, verify=False)
                 compData = json.loads(compResp.text)
 
                 assert compResp.status_code == 200, "Request has not been acknowledged as expected."
@@ -167,9 +162,6 @@ def getComplianceData(model, type, filename, sysUUID):
                                     global raidFWversionComponent
                                     raidFWversionComponent = (
                                     compData["subComponents"][subIndex]["versionDatas"][versionIndex]["version"])
-                                    print(
-                                    "\nRAID Component requested: %s" % compData["subComponents"][subIndex]["uuid"])
-                                    print("Discovered firmware version: %s" % raidFWversionComponent)
                                 versionIndex += 1
                             versionIndex = 0
                         if model in (compData["subComponents"][subIndex]["elementData"]["model"]) and (
@@ -180,9 +172,6 @@ def getComplianceData(model, type, filename, sysUUID):
                                     global biosFWversionComponent
                                     biosFWversionComponent = (
                                     compData["subComponents"][subIndex]["versionDatas"][versionIndex]["version"])
-                                    print(
-                                    "\nBIOS Component requested: %s" % compData["subComponents"][subIndex]["uuid"])
-                                    print("Discovered firmware version: %s" % biosFWversionComponent)
                                 versionIndex += 1
                             versionIndex = 0
                         if model in (compData["subComponents"][subIndex]["elementData"]["model"]) and (
@@ -193,8 +182,6 @@ def getComplianceData(model, type, filename, sysUUID):
                                     global nicFWversionComponent
                                     nicFWversionComponent = (
                                     compData["subComponents"][subIndex]["versionDatas"][versionIndex]["version"])
-                                    print("\nNIC Component requested: %s" % compData["subComponents"][subIndex]["uuid"])
-                                    print("Discovered firmware version: %s" % nicFWversionComponent)
                                 versionIndex += 1
                             versionIndex = 0
                     subIndex += 1
@@ -207,14 +194,14 @@ def getComplianceDataSystem(model, filename, sysUUID):
     subIndex = 0
     compIndex = 0
     versionIndex = 0
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
 
-    resp = requests.get(url)
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-    print("Requesting latest discovered f/w version from Compliance Data service...")
-
     totalComponents = len(data["components"])
 
     if data != "":
@@ -224,9 +211,11 @@ def getComplianceDataSystem(model, filename, sysUUID):
                     global compUUID
                     compUUID = data["components"][compIndex]["uuid"]
 
-                    systemURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+                    # systemURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+                    systemURLsec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system/' + sysUUID
 
-                    systemResp = requests.get(systemURL)
+                    # systemResp = requests.get(systemURL)
+                    systemResp = requests.get(systemURLsec, verify=False)
                     systemData = json.loads(systemResp.text)
 
                     assert systemResp.status_code == 200, "Request has not been acknowledged as expected."
@@ -244,11 +233,6 @@ def getComplianceDataSystem(model, filename, sysUUID):
                                         global fwVersionSystem
                                         fwVersionSystem = (
                                         systemData["subComponents"][subIndex]["versionDatas"][versionIndex]["version"])
-                                        # assert nexusFWversionSystem == nexusFWversionComponent
-                                        print("\n\nComponent requested: %s" % compUUID)
-                                        print("Element Type: %s" % systemData["subComponents"][subIndex]["elementData"][
-                                            "elementType"])
-                                        print("\nDiscovered firmware version: %s\n\n" % fwVersionSystem)
                                     versionIndex += 1
                                 versionIndex = 0
                         subIndex += 1
@@ -262,76 +246,68 @@ def getAvailableRCMs(family, model, train, version, option, filename):
     rcmIndex = 0
 
     exception = "No RCM definition systems for system family"
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
-    print(url)
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/' + family + "/" + model + "/" + train + "/" + version
+
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-    print("Requesting a list of available RCMs for the specific version: %s" % version)
+
     if data != "":
         if data["message"] == None:
             with open(filename, 'a') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
-            print("\nStarting to verify a sample of the returned data....\n")
             assert len(data["rcmInventoryItems"]) > 0
             assert data["rcmInventoryItems"][0]["systemModelFamily"] == model
             assert data["rcmInventoryItems"][0]["systemProductFamily"] == family
             assert data["rcmInventoryItems"][0]["rcmTrain"] == train
             assert data["rcmInventoryItems"][0]["rcmVersion"] == version
-
             while numRCMs < len(data["rcmInventoryItems"]):
                 if data["rcmInventoryItems"][numRCMs]["viewOption"] == option:
                     global rcmUUID
                     rcmUUID = (data["rcmInventoryItems"][numRCMs]["uuid"])
-                    print("Requested rcmUUID: %s" % rcmUUID)
-                    print("Requested version: %s" % data["rcmInventoryItems"][numRCMs]["rcmVersion"])
                     return
                 numRCMs += 1
             numRCMs = 0
 
         else:
-            combo = str(family + "/" + model + "/" + train + "/" + version)
-            print("\nNo RCMs found for product/train/model combination: %s" % combo)
-            print(data["message"])
             assert exception in data["message"], "No RCMs not returned for train:" + train
 
     assert False, "No RCMs returned for Train and Version specified."
 
-
-#    getRCMDefinition("Dell BIOS Firmware", path + "rcmRCMDefinitionDetails-VxRack.json")
 def getRCMDefinition(component, filename, option):
     contentIndex = 0
     fileIndex = 0
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + rcmUUID
-    print(url)
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/definition/' + rcmUUID
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/definition/' + rcmUUID
+    # resp = requests.get(url)
+    resp = requests.get(urlSec, verify=False)
     data = json.loads(resp.text)
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
+
     rcmContents = data["rcmDefinition"]["rcmContents"]
     global versionRCM
     versionRCM = data["rcmDefinition"]["rcmVersion"]
     global optionRCM
     optionRCM = data["rcmDefinition"]["viewOption"]
-    print("\nStarting to verify a sample of the returned data....")
+
     if data != "":
         if data["message"] == None:
             with open(filename, 'a') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
             if data["rcmDefinition"]["viewOption"] == option:
-                print("Total rcmContents: %d" % len(rcmContents))
                 while contentIndex < len(rcmContents):
                     if (rcmContents[contentIndex]["component"]) == component:
-                        print("ContentIndex: %d" % contentIndex)
                         assert "version" in data["rcmDefinition"]["rcmContents"][
                             contentIndex], "No version attribute returned for specified component."
                         firmwareVersion = (rcmContents[contentIndex]["version"])
                         if len(rcmContents[contentIndex]["remediationFiles"]) > 0:
                             if rcmContents[contentIndex]["remediationFiles"][fileIndex]:
                                 if "cdnPath" in rcmContents[contentIndex]["remediationFiles"][fileIndex]:
-                                    # data["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"][0]:
                                     assert "fileHash" in rcmContents[contentIndex]["remediationFiles"][fileIndex]
                                     assert rcmContents[contentIndex]["remediationFiles"][fileIndex][
                                                "filename"] != "", "No filename specified in definition."
@@ -341,31 +317,21 @@ def getRCMDefinition(component, filename, option):
                                     versFileHash = rcmContents[contentIndex]["remediationFiles"][fileIndex]["fileHash"]
                                     fileList.append(versFileName)
                                     fileHash.append(versFileHash)
-                                    print("List of filenames:", fileList)
-                                    print("List of filehashes:", fileHash)
-
-                                    print("\nComponent: %s" % rcmContents[contentIndex]["component"])
                                     print("Expected version: %s" % firmwareVersion)
-
                                     return
                         return
-
                     contentIndex += 1
 
     assert False, "No RCM definition returned."
 
-# ("Dell PERC H730P Firmware", "PERC H730 Mini", "VxRack", "1000 FLEX", "DELL", "POWEREDGE", "R630", path + "rcmEvaluationDetails-VxRack.json", systemUUID)
 def getRCMEvaluation(component, identifier, productFamily, modelFamily, vendor, product, model, filename, sysUUID):
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/evaluation/'
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/evaluation/'
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/evaluation/'
     payload = {'systemUuid': sysUUID, 'rcmUuid': rcmUUID}
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    resp = requests.post(url, data=json.dumps(payload), headers=headers)
-    data = json.dumps(payload)
+    # resp = requests.post(url, data=json.dumps(payload), headers=headers)
+    resp = requests.post(urlSec, data=json.dumps(payload), headers=headers, verify=False)
 
-    print("Returned status code: %d" % resp.status_code)
-    print("SystemUUID:" + sysUUID)
-    print("rcmUUID:" + rcmUUID)
-    print("\nRCM Version: %s" % versionRCM)
     response = json.loads(resp.text)
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
@@ -376,23 +342,10 @@ def getRCMEvaluation(component, identifier, productFamily, modelFamily, vendor, 
         json.dump(response, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
     while numResults < len(response["rcmEvaluationResults"]):
-        print(1)
         if identifier in response["rcmEvaluationResults"][numResults]["evaluatedVersionDatum"]["identity"]["identifier"] and response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]["component"] == component:
-            print(2)
             if response["rcmEvaluationResults"][numResults]["evaluatedVersionDatum"]["definition"]["model"] == model:
-                print(3)
                 versionFound = (response["rcmEvaluationResults"][numResults]["actualValue"])
                 versionExpected = (response["rcmEvaluationResults"][numResults]["expectedValues"][0])
-                print("Product Family: %s" % response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
-                    "systemProductFamily"])
-                print("Model Family: %s" % response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
-                    "systemModelFamily"])
-                print("Vendor: %s" % response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]["vendor"])
-                print("Component: %s" % response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]["component"])
-                print(
-                "Identifier: %s" % response["rcmEvaluationResults"][numResults]["evaluatedVersionDatum"]["identity"][
-                    "identifier"])
-                print("Returned result: %s" % response["rcmEvaluationResults"][numResults]["evaluationResult"])
                 assert productFamily in response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
                     "systemProductFamily"]
                 assert modelFamily in response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
@@ -401,7 +354,6 @@ def getRCMEvaluation(component, identifier, productFamily, modelFamily, vendor, 
                 assert response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]["product"] == product
 
                 if versionFound == versionExpected:
-                    print(4)
                     assert (response["rcmEvaluationResults"][numResults][
                                 "evaluationResult"]) == "match", "Expected a match to be returned, not the case."
                     assert response["rcmEvaluationResults"][numResults]["expectedValues"][0] == \
@@ -412,57 +364,43 @@ def getRCMEvaluation(component, identifier, productFamily, modelFamily, vendor, 
                                 "evaluationResult"]) == "mismatch", "Expected a mismatch to be returned, not the case."
                     assert response["rcmEvaluationResults"][numResults]["expectedValues"][0] not in \
                            response["rcmEvaluationResults"][numResults]["actualValue"]
-                print("Version found: %s" % versionFound)
-                print("Version expected: %s" % versionExpected)
 
                 assert response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
                            "component"] == component, "Unexpected component value returned."
                 if "versionFileName" in response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]:
-                    print(5)
                     assert "versionFileHash" in response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]
                     assert response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
                                "versionFileName"] in fileList, "No filename specified in definition."
                     assert response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"][
                                "versionFileHash"] in fileHash, "No filename specified in definition."
-                    print(response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]["versionFileName"])
-                    print(response["rcmEvaluationResults"][numResults]["evaluatedRcmDatum"]["versionFileHash"])
-
                 return
 
         numResults += 1
     assert False, "No Evaluation for this component"
-    print("Either product or identifier returned are not as expected.")
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDef1():
     getSystemDefinition()
 
-
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getListCompUUIDs2():
     getListCompUUIDs(systemUUID)
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceData3():
     getComplianceData("730", "RAID", path + "rcmComplianceData-VxRack.json", systemUUID)
 
-
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataSystem4():
     getComplianceDataSystem("730", path + "rcmComplianceDataSystem-VxRack.json", systemUUID)
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getAvailableRCM5():
     getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1", "ORIGINAL", path + "rcmAvailableRCMs-VxRack.json")
 
-
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition6():
     getRCMDefinition("Dell BIOS Firmware", path + "rcmRCMDefinitionDetails-VxRack.json", "ORIGINAL")
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMEval7():

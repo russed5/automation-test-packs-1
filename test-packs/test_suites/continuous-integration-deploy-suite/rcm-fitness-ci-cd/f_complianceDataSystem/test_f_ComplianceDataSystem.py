@@ -46,11 +46,15 @@ def purgeOldOutput(dir, pattern):
 
 
 def getSystemDefinition():
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
-    resp = requests.get(url)
-    data = json.loads(resp.text)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/'
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/'
+    print("urlSec:")
+    print(urlSec)
+    resp = requests.get(urlSec, verify=False)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
 
-    print("Requesting UUID from System Definition....")
+    data = json.loads(resp.text)
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
     if data != "":
@@ -58,39 +62,34 @@ def getSystemDefinition():
             with open(path + 'rcmSystemDefinition-VxRack.json', 'w') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
-            # print("\nExtracting UUID from response....\n")
             global systemUUID
             global secondSystemUUID
             systemUUID = data["systems"][0]["uuid"]
             if len(data["systems"]) > 1:
                 secondSystemUUID = data["systems"][1]["uuid"]
 
-        else:
-            print("\nNo System UUID returned in REST response")
-            print(data["message"])
-
-    print("\nDefined SystemUUID: %s\n" % systemUUID)
     return systemUUID
 
-
-# ("VXRACK", "FLEX", "VXRACKFLEX", "730", "R730XD", "SERVER", path + "complianceDataSystemPOWEREDGE.json", systemUUID)
-# "VXRACK", "FLEX", "VXRACKFLEX", "VCENTER", "VCENTER-WINDOWS", "VCENTER", "VCENTER-WINDOWS", path + "complianceDataSystemVCENTER.json", systemUUID
-
-def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceModel, deviceType, compDataFilename,
-                            sysUUID):
-    subIndex = 0
+def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceModel, deviceType, compDataFilename,sysUUID):
     compIndex = 0
     groupIndex = 0
     deviceIndex = 0
     i = 0
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID
-    resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID
+    resp = requests.get(urlSec, verify=False)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID
+    # resp = requests.get(url)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID + '/component/'
+    resp = requests.get(urlSec, verify=False)
+
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     deviceData = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
@@ -98,9 +97,14 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
 
     totalComponents = len(deviceData["components"])
 
-    compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    # compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    #
+    # compResp = requests.get(compURL)
+    compURLSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system/' + sysUUID
 
-    compResp = requests.get(compURL)
+    compResp = requests.get(compURLSec, verify=False)
+
+    # compResp = requests.get(compURLsec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     compData = json.loads(compResp.text)
 
     assert compResp.status_code == 200, "Request has not been acknowledged as expected."
@@ -132,7 +136,6 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
             "serialNumber"], "Unexpected Serial No. returned."
         assert len(compData["convergedSystem"]["links"]) > 0, "No link returned for Converged System."
 
-        print("Verifying Converged System....")
         totalGroups = len(compData["groups"])
         assert totalGroups > 0, "response not including a list of Groups."
         totalDevices = len(compData["devices"])
@@ -141,32 +144,19 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
         assert totalSubComponents > 0, "response not including a list of Devices."
 
         while groupIndex < totalGroups:
-            print(compData["groups"][groupIndex]["uuid"])
-            print(data["system"]["groups"][i]["uuid"])
             if compData["groups"][groupIndex]["uuid"] != data["system"]["groups"][i]["uuid"]:
                 i += 1
                 continue
             if compData["groups"][groupIndex]["uuid"] == data["system"]["groups"][i]["uuid"]:
-                print("You are here...")
                 assert compData["groups"][groupIndex]["parentSystemUuids"][0] == systemUUID, "Response not detail parent System UUID."
                 assert compData["groups"][groupIndex]["type"] == "STORAGE" or "NETWORK" or "COMPUTE"
-                print("Done System type: %s" % compData["groups"][groupIndex]["type"])
                 i += 1
                 break
-
-                #return
-            # else:
-            #     assert compData["groups"][groupIndex]["uuid"] == data["system"]["groups"][i]["uuid"], "Group UUIDs not matching....."
-
             groupIndex += 1
-        # assert False, "Group UUIDs not matching....."
-        print("Verifying groups....")
-        index = 0
         while deviceIndex < totalDevices:
             while compIndex < len(deviceData["components"]):
                 if deviceModel in compData["devices"][deviceIndex]["elementData"]["model"]:
                     if compData["devices"][deviceIndex]["uuid"] == deviceData["components"][compIndex]["uuid"]:
-                        # assert compData["devices"][deviceIndex]["uuid"] == deviceData["components"][deviceIndex]["uuid"], "Response detailed an empty group UUID."
                         assert compData["devices"][deviceIndex]["parentGroupUuids"][0] == \
                                deviceData["components"][compIndex]["parentGroupUuids"][
                                    0], "Response not detail parent Group UUID."
@@ -179,23 +169,13 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
                             "elementData"], "Response not detail Identifier."
                         assert "elementType" in compData["devices"][deviceIndex][
                             "elementData"], "Response not detail ElementType."
-                        # assert "ipAddress" in compData["devices"][deviceIndex]["elementData"], "Response not detail IP Address."
-                        # assert "serialNumber" in compData["devices"][deviceIndex]["elementData"], "Response not detail Serial Number."
                         assert compData["devices"][deviceIndex]["auditData"][
                                    "collectedTime"] != "", "Response not detail Collection Time."
                         assert compData["devices"][deviceIndex]["auditData"][
                                    "collectionSentTime"] != "", "Response not detail Collection Sent Time."
                         assert compData["devices"][deviceIndex]["auditData"][
                                    "messageReceivedTime"] != "", "Response not detail Received Time."
-
-                        print("Models......")
-                        print(compData["devices"][deviceIndex]["elementData"]["model"])
-                        print(deviceData["components"][compIndex]["definition"]["model"])
                         if compData["devices"][deviceIndex]["elementData"]["model"] == deviceData["components"][compIndex]["definition"]["model"]:
-                            print(compData["devices"][deviceIndex]["elementData"]["elementType"])
-                            print(deviceType)
-                            print(compData["devices"][deviceIndex]["elementData"]["model"])
-                            print(deviceModel)
                             assert compData["devices"][deviceIndex]["uuid"] == deviceData["components"][compIndex][
                                 "uuid"], "Response detailed an empty group UUID."
                             assert compData["devices"][deviceIndex]["parentGroupUuids"][0] == \
@@ -207,7 +187,6 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
                             assert compData["devices"][deviceIndex]["elementData"]["elementType"] == \
                                    deviceData["components"][compIndex]["identity"][
                                        "elementType"], "Response not detail Element Type."
-                            # assert compData["devices"][deviceIndex]["elementData"]["model"] == deviceModel, "Response not detail Model."
                             assert compData["devices"][deviceIndex]["elementData"]["modelFamily"] == \
                                    deviceData["components"][compIndex]["definition"][
                                        "modelFamily"], "Response not detail Identifier."
@@ -221,14 +200,12 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
                             if ":" in macAddress:
                                 countColon = macAddress.count(":")
                                 assert countColon == 5, "Unexpected MAC address format returned."
-                            # assert compData["devices"][deviceIndex]["elementData"]["serialNumber"] != "", "Response not detail Serial Number."
                             assert compData["devices"][deviceIndex]["auditData"][
                                        "collectedTime"] != "", "Response not detail Collection Time."
                             assert compData["devices"][deviceIndex]["auditData"][
                                        "collectionSentTime"] != "", "Response not detail Collection Sent Time."
                             assert compData["devices"][deviceIndex]["auditData"][
                                        "messageReceivedTime"] != "", "Response not detail Received Time."
-                            print("Done Device: %s\n" % compData["devices"][deviceIndex]["elementData"]["model"])
                             return
                         else:
                             compIndex += 1
@@ -241,31 +218,31 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
                     deviceIndex += 1
                     continue
             deviceIndex += 1
-
-        deviceIndex = 0
-        print("Verifying Devices completed....\n")
     assert False, "No devices returned."
-
-
-# ("ESXi", "lab.vce.com", path + "rcmSystemDefinition-VxRack.json", path + "complianceDataSystemVCENTER.json", systemUUID)
 
 def getComplianceDataSystemSubComps(model, elementType, identifier, sysDefFilename, compDataFilename, sysUUID):
     getSystemDefinition()
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID
-
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID
+    #
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID
+    resp = requests.get(urlSec, verify=False)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-    print("Requesting system details from Compliance Data Service.\n")
 
     with open(sysDefFilename, 'w') as outfile:
         json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
-    compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    # compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    # compResp = requests.get(compURL)
 
-    compResp = requests.get(compURL)
+    compURLSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    compResp = requests.get(compURLSec, verify=False)
+
+    # compResp = requests.get(compURLsec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     compData = json.loads(compResp.text)
 
     assert compResp.status_code == 200, "Request has not been acknowledged as expected."
@@ -274,8 +251,6 @@ def getComplianceDataSystemSubComps(model, elementType, identifier, sysDefFilena
         json.dump(compData, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
     index = 0
-    print("Device count: %d" % len(compData["devices"]))
-    print("Subcomp count: %d" % len(compData["subComponents"]))
     assert len(compData["devices"]) != "", "No devices discovered......"
 
     if len(compData["devices"]) != "":
@@ -283,17 +258,9 @@ def getComplianceDataSystemSubComps(model, elementType, identifier, sysDefFilena
         assert len(compData["subComponents"]) != "", "No subcomponents discovered ...."
         subIndex = 0
         while subIndex < totalSubComponents:
-            print("Extreme......")
-            print(subIndex)
-            print(identifier)
             if identifier in compData["subComponents"][subIndex]["elementData"]["identifier"] and model in compData["subComponents"][subIndex]["elementData"]["model"]:
-                print("Outside......")
                 while index < len(compData["devices"]):
-                    print("Middle......")
-                    print(compData["subComponents"][subIndex]["parentDeviceUuid"])
-                    print(compData["devices"][index]["uuid"])
                     if compData["subComponents"][subIndex]["parentDeviceUuid"] == compData["devices"][index]["uuid"]:
-                        print("Inside......")
                         assert "uuid" in compData["subComponents"][subIndex], "Response detailed an empty group UUID."
                         assert "parentDeviceUuid" in compData["subComponents"][
                             subIndex], "Response not detail parent Group UUID."
@@ -321,52 +288,35 @@ def getComplianceDataSystemSubComps(model, elementType, identifier, sysDefFilena
                                    "messageReceivedTime"] != "", "No timestamp included."
                         assert compData["subComponents"][subIndex]["versionDatas"][0]["type"] == "FIRMWARE"
                         assert compData["subComponents"][subIndex]["versionDatas"][0]["version"] != ""
-                        print(compData["subComponents"][subIndex]["elementData"]["model"])
-                        print(compData["subComponents"][subIndex]["elementData"]["elementType"])
-                        print(compData["subComponents"][subIndex]["elementData"]["identifier"])
-                        print(compData["subComponents"][subIndex]["elementData"]["modelFamily"])
                         if compData["subComponents"][subIndex]["elementData"]["elementType"] == "NIC":
                             macAddress = compData["subComponents"][subIndex]["elementData"]["identifier"]
                             countColon = macAddress.count(":")
                             assert countColon == 5, "Unexpected MAC address format returned in Identifier value."
-
                         return
 
-                    # else:
-                    #     assert compData["subComponents"][subIndex]["parentDeviceUuid"] == compData["devices"][index]["uuid"], "Unexpected Parent device UUID returned..."
                     index += 1
-                print("Done SubComp: %s\n" % elementType)
-
                 index = 0
-
             subIndex += 1
 
         assert False, "Unexpected Identifier in response."
     assert False, "No devices returned."
 
-
-
 def getComplianceDataSystem_INVALID(sysUUID):
-    subIndex = 0
-    compIndex = 0
-    versionIndex = 0
     getSystemDefinition()
-
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
-
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    #
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system/' + sysUUID
+    resp = requests.get(urlSec, verify=False)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
-
-    # assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
     if not data["convergedSystem"]:
         if "message" in data.keys():
             if ('RFCA1003E') in data["code"]:
                 assert resp.status_code == 500, "Request has not been acknowledged as expected."
-                print("Message: %s" % data["message"])
                 assert ('RCDS1006E Error retrieving system compliance data') in (
                 data["message"]), "Returned Error Message text not as expected."
-                # assert ('RFCA1005I') in (data["code"]), "Returned Error Message does not reflect expected Error Code."
                 assert (sysUUID) in (data["message"]), "Returned Error Message does not include expected compUUID."
 
             if ('RFCA1005I') in (data["code"]):
@@ -374,23 +324,25 @@ def getComplianceDataSystem_INVALID(sysUUID):
                 print("Message: %s" % data["message"])
                 assert ('RFCA1005I No compliance data was found') in (
                 data["message"]), "Returned Error Message text not as expected."
-                # assert ('RFCA1005I') in (data["code"]), "Returned Error Message does not reflect expected Error Code."
                 assert (sysUUID) in (data["message"]), "Returned Error Message does not include expected compUUID."
-
-    print("\nReturned data has completed all defined checks successfully......")
 
 def getComplianceDataSystem_NULL():
     print("Verifying 404 returned if no component UUID provided.")
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/'
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/'
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system/'
+    resp = requests.get(urlSec, verify=False)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     assert resp.status_code == 404, "Request has not been acknowledged as expected."
 
-    url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system//'
-    resp = requests.get(url)
+    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system//'
+    # resp = requests.get(url)
+    urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system//'
+    resp = requests.get(urlSec, verify=False)
+    # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     assert resp.status_code == 404, "Request has not been acknowledged as expected."
 
-    print("\nReturned response codes are as expected.")
 
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
