@@ -21,7 +21,6 @@ testElementId = "44f0d5ac-44a6-48e0-bf98-93eaa7f452d3"
 global testNodeId
 testNodeId = "443819a2dc8f96b33e08569d"
 
-@pytest.mark.skip(reason='The method of inserting a Fake node may no longer be valid')
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_changeNodeStateToFAILED(setup):
@@ -42,15 +41,19 @@ def test_changeNodeStateToFAILED(setup):
     deleteEntryInNodeComputeTable(testElementId, setup)
 
     # there may be multiple nodes in the listing
-    print(nodeListing)
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "FAILED" == node["nodeStatus"], "Error, Status change not persisted"
 
+    error_list = []
+
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("PROVISIONING_FAILED" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+        
+    assert not error_list
 
 ##############################################################################################
 
-@pytest.mark.skip(reason='The method of inserting a Fake node may no longer be valid')
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_changeNodeStateToADDED(setup):
@@ -70,15 +73,18 @@ def test_changeNodeStateToADDED(setup):
     nodeListing = listNodes(setup)
     deleteEntryInNodeComputeTable(testElementId, setup)
 
-    # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "ADDED" == node["nodeStatus"], "Error, Status change not persisted"
+    error_list = []
 
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("ADDED" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+
+    assert not error_list
 
 ##############################################################################################
 
-@pytest.mark.skip(reason='The method of inserting a Fake node may no longer be valid')
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_changeNodeStateToDISCOVERED(setup):
@@ -98,15 +104,19 @@ def test_changeNodeStateToDISCOVERED(setup):
     nodeListing = listNodes(setup)
     deleteEntryInNodeComputeTable(testElementId, setup)
 
-    # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "DISCOVERED" == node["nodeStatus"], "Error, Status change not persisted"
+    error_list = []
+
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("DISCOVERED" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+
+    assert not error_list
 
 
 ##############################################################################################
 
-@pytest.mark.skip(reason='The method of inserting a Fake node may no longer be valid')
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_changeNodeStateToRESERVED(setup):
@@ -127,14 +137,19 @@ def test_changeNodeStateToRESERVED(setup):
     nodeListing = listNodes(setup)
     deleteEntryInNodeComputeTable(testElementId, setup)
 
-    # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "RESERVED" == node["nodeStatus"], "Error, Status change not persisted"
+    error_list = []
+
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("PROVISIONING_IN_PROGRESS" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+
+    assert not error_list
+
 
 ##############################################################################################
 
-@pytest.mark.skip(reason='The method of inserting a Fake node may no longer be valid')
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_lookupNodeState(setup):
@@ -147,6 +162,7 @@ def test_lookupNodeState(setup):
     # Add a testNode  to the node discovery 'compute_node' table in the DISCOVERED state
     insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED', setup)
     symphonyNodeId = testElementId
+    sendNodeAllocationRequestMessage(symphonyNodeId, "DISCOVERED", setup)
 
     # bind a test q to the node discovery exchange so that we can consume a response to our message
     # but first we delete it to ensure it doesn't already exist
@@ -164,6 +180,7 @@ def test_lookupNodeState(setup):
     cleanupQ('test.dne.paqx.node.response')
     deleteEntryInNodeComputeTable(testElementId, setup)
 
+
     if lookupResponse['status'] != "SUCCESS":
         error_list.append("Errror : The lookupResponse message did not have a status of SUCCESS")
     if lookupResponse['nodeAllocationInfo']['elementIdentifier'] != symphonyNodeId :
@@ -179,7 +196,6 @@ def test_lookupNodeState(setup):
 
 ##############################################################################################
 
-@pytest.mark.skip(reason='The method of inserting a Fake node may no longer be valid')
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_getListOfNodes(setup):
     """ Verify that a listing of all Node states can be retrieved."""
@@ -353,25 +369,6 @@ def sendNodeAllocationRequestMessage(node, state, setup):
 
 ##############################################################################################
 
-def listNodes(setup):
-    """ Query the DNE REST API for a list of Nodes. """
-
-    url = 'https://' + setup['IP'] + ':8071/dne/nodes'
-
-    try:
-        response = requests.get(url, verify=False)
-        response.raise_for_status()
-        listing = response.text
-        allNodes = json.loads(listing, encoding='utf-8')
-        return allNodes
-
-    except Exception as err:
-        # Return code error (e.g. 404, 501, ...)
-        print(err,'\n')
-        raise Exception(err)
-
-##############################################################################################
-
 def getFirstValidNodeID() :
     "Get a list of all discovered nodes from the DNE and return the nodeID of the first one."
 
@@ -443,4 +440,31 @@ def cleanupQ(testqueue):
     af_support_tools.rmq_delete_queue(host='amqp', port=5671,
                                       ssl_enabled=True,
                                     queue=testqueue)
+
+
+####################################################################################################
+def listNodes(setup):
+    """ A Function to get all entries form the postgres table 'compute_node'.
+
+    :parameter: none
+    :return: the result of the select * command
+    """
+
+    execSQLCommand = "docker exec -i postgres sh -c \'su postgres sh -c \"psql \\\"dbname=node-discovery-paqx \\\" -c \\\"select * FROM compute_node;\\\"\"\'"
+
+    try:
+
+        result = af_support_tools.send_ssh_command(
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
+            command=execSQLCommand,
+            return_output=True)
+
+        return result
+
+    except Exception as err:
+        # Return code error
+        print(err, '\n')
+        raise Exception(err)
 
