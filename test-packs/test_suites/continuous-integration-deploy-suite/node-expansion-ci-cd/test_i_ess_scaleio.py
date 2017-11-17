@@ -24,35 +24,6 @@ def load_test_data():
     import cpsd
     global cpsd
 
-    # Set config ini file name
-    global env_file
-    env_file = 'env.ini'
-
-    # Test VM Details
-    global ipaddress
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                          property='hostname')
-
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
-
-    global rmq_username
-    rmq_username = cpsd.props.rmq_username
-
-    global rmq_password
-    rmq_password = cpsd.props.rmq_password
-
-    global port
-    port = cpsd.props.rmq_port
-
-    global rmq_cert_path
-    rmq_cert_path = cpsd.props.rmq_cert_path
-
-    global rmq_ssl_enabled
-    rmq_ssl_enabled = cpsd.props.rmq_ssl_enabled
-
     global my_routing_key
     my_routing_key = 'ess.service.request.' + str(uuid.uuid4())
 
@@ -870,14 +841,13 @@ def simulate_validateScaleIORequest_message(my_payload, my_routing_key):
     print(" Publishing a scaleio request message .. ")
 
     print(my_payload)
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.service.ess.request',
                                          routing_key=my_routing_key,
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolRequestMessage'},
                                          payload=my_payload,
-                                         payload_type='json', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         payload_type='json')
 
 
 ####################################################################################################
@@ -886,10 +856,7 @@ def consumeResponse():
 
     waitForMsg('test.ess.service.response')
 
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.ess.service.response')
 
     return_message = json.loads(return_message, encoding='utf-8')
@@ -903,20 +870,13 @@ def consumeResponse():
 def cleanupQ(testqueue):
     """ Delete the passed-in queue."""
 
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username,
-                                      rmq_password=cpsd.props.rmq_password,
-                                      queue=testqueue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671, ssl_enabled=True, queue=testqueue)
 
 
 def bindQueue(exchange, testqueue):
     """ Bind 'testqueue' to 'exchange'."""
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username,
-                                    rmq_password=cpsd.props.rmq_password,
-                                    queue=testqueue,
-                                    exchange=exchange,
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671, ssl_enabled=True,
+                                    queue=testqueue, exchange=exchange, routing_key='#')
 
 
 def waitForMsg(queue):
@@ -940,12 +900,7 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=ipaddress,
-                                                   port=port,
-                                                   rmq_username=rmq_username,
-                                                   rmq_password=rmq_password,
-                                                   ssl_enabled=rmq_ssl_enabled,
-                                                   queue=queue)
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671, ssl_enabled=True, queue=queue)
 
         if timeout > max_timeout:
             print('ERROR: Message took too long to return. Something is wrong')

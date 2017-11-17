@@ -11,6 +11,7 @@ import af_support_tools
 import json
 import pytest
 import requests
+import time
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -72,7 +73,8 @@ def test_enable_rabbitmq_management_plugin():
         command=command,
         return_output=False)
 
-
+### "
+@pytest.mark.skip(reason="The test is moved into test_capbilityRegService_ListCapabilities_CI_CD.py")
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
@@ -98,6 +100,8 @@ def test_capabilityRegistry_servicerunning():
     print('\nDocker Container is:', my_return_status, '\n')
     assert my_return_status == 'Up', (service_name + " not running")
 
+    time.sleep(20)
+
 
 @pytest.mark.daily_status
 @pytest.mark.parametrize('exchange, queue', [
@@ -116,6 +120,9 @@ def test_capabilityRegistry_servicerunning():
     ('exchange.dell.cpsd.hdp.capability.registry.response','queue.dell.cpsd.hdp.capability.registry.response.rackhd-adapter'),
     ('exchange.dell.cpsd.hdp.capability.registry.response','queue.dell.cpsd.hdp.capability.registry.response.vcenter-adapter'),
     ('exchange.dell.cpsd.hdp.capability.registry.response','queue.dell.cpsd.hdp.capability.registry.response.hal-orchestrator-service')])
+
+@pytest.mark.skip(reason="These tests can't run in future asRMQ username/password functionality will be removed, These test  should be running "
+                         "as a part of unit tests")
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
 def test_capability_registry_RMQ_bindings_core(exchange, queue):
@@ -143,6 +150,9 @@ def test_capability_registry_RMQ_bindings_core(exchange, queue):
     ('exchange.dell.cpsd.hdp.capability.registry.event', 'queue.dell.cpsd.hdp.capability.registry.event.dne-paqx'),
     ('exchange.dell.cpsd.hdp.capability.registry.response','queue.dell.cpsd.hdp.capability.registry.response.dne-paqx'),
     ('exchange.dell.cpsd.hdp.capability.registry.response','queue.dell.cpsd.hdp.capability.registry.response.node-discovery-paqx')])
+
+@pytest.mark.skip(reason="These tests can't run in future asRMQ username/password functionality will be removed, These test  should be running "
+                         "as a part of unit tests")
 @pytest.mark.dne_paqx_parent
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_capability_registry_RMQ_bindings_dne(exchange, queue):
@@ -167,6 +177,9 @@ def test_capability_registry_RMQ_bindings_dne(exchange, queue):
 @pytest.mark.parametrize('exchange, queue', [
     ('exchange.dell.cpsd.hdp.capability.registry.event','queue.dell.cpsd.hdp.capability.registry.event.fru-paqx'),
     ('exchange.dell.cpsd.hdp.capability.registry.response','queue.dell.cpsd.hdp.capability.registry.response.fru-paqx'),])
+
+@pytest.mark.skip(reason="These tests can't run in future asRMQ username/password functionality will be removed, These test  should be running "
+                         "as a part of unit tests")
 @pytest.mark.fru_paqx_parent
 @pytest.mark.fru_mvp
 def test_capability_registry_RMQ_bindings_fru(exchange, queue):
@@ -187,89 +200,6 @@ def test_capability_registry_RMQ_bindings_fru(exchange, queue):
     assert queue in queues, 'The queue "' + queue + '" is not bound to the exchange "' + exchange + '"'
     print(exchange, '\nis bound to\n', queue, '\n')
 
-
-@pytest.mark.daily_status
-@pytest.mark.core_services_mvp
-@pytest.mark.core_services_mvp_extended
-def test_capabilityRegistry_log_files_exist():
-    """
-    Title           :       Verify Capability Registry log files exist
-    Description     :       This method tests that the Capability Registry log files exist.
-                            It will fail:
-                                If the the error and/or info log files do not exists
-                                If the error log file contains AuthenticationFailureException, RuntimeException or NullPointerException.
-    Parameters      :       None
-    Returns         :       None
-    """
-
-    filePath = '/opt/dell/cpsd/capability-registry-service/logs/'
-    errorLogFile = 'capability-registry-error.log'
-    infoLogFile = 'capability-registry-info.log'
-
-    # Verify the log files exist
-    sendCommand = 'ls ' + filePath
-    my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
-                                                         command=sendCommand, return_output=True)
-
-    error_list = []
-
-    if (errorLogFile not in my_return_status):
-        error_list.append(errorLogFile)
-
-    if (infoLogFile not in my_return_status):
-        error_list.append(infoLogFile)
-
-    assert not error_list, 'Log file missing'
-
-    print('Valid log files exist')
-
-
-@pytest.mark.daily_status
-@pytest.mark.core_services_mvp
-@pytest.mark.core_services_mvp_extended
-def test_capabilityRegistry_log_files_free_of_exceptions():
-    """
-    Title           :       Verify there are no exceptions in the log files
-    Description     :       This method tests that the Capability Registry log files contain no Exceptions.
-                            It will fail:
-                                If the the error and/or info log files do not exists
-                                If the error log file contains AuthenticationFailureException, RuntimeException or NullPointerException.
-    Parameters      :       None
-    Returns         :       None
-    """
-
-    filePath = '/opt/dell/cpsd/capability-registry-service/logs/'
-    errorLogFile = 'capability-registry-error.log'
-    excep1 = 'AuthenticationFailureException'
-    excep2 = 'RuntimeException'
-    excep3 = 'NullPointerException'
-
-    error_list = []
-
-    # Verify there are no Authentication errors
-    sendCommand = 'cat ' + filePath + errorLogFile + ' | grep \'' + excep1 + '\''
-    my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
-                                                         command=sendCommand, return_output=True)
-    if (excep1 in my_return_status):
-        error_list.append(excep1)
-
-    # Verify there are no RuntimeException errors
-    sendCommand = 'cat ' + filePath + errorLogFile + ' | grep \'' + excep2 + '\''
-    my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
-                                                         command=sendCommand, return_output=True)
-    if (excep2 in my_return_status):
-        error_list.append(excep2)
-
-    # Verify there are no NullPointerException errors
-    sendCommand = 'cat ' + filePath + errorLogFile + ' | grep \'' + excep3 + '\''
-    my_return_status = af_support_tools.send_ssh_command(host=ipaddress, username=cli_username, password=cli_password,
-                                                         command=sendCommand, return_output=True)
-    if (excep3 in my_return_status):
-        error_list.append(excep3)
-
-    assert not error_list, 'Exceptions in log files, Review the ' + errorLogFile + ' file'
-
-    print('No Authentication, RuntimeException or NullPointerException in log files\n')
 
 
 #######################################################################################################################

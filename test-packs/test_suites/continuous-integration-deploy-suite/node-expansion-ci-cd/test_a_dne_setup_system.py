@@ -12,205 +12,203 @@ import os
 import pytest
 import json
 import time
+import requests
+
 
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
     import cpsd
     global cpsd
 
-    # Set config ini file name
-    global env_file
-    env_file = 'env.ini'
-
-    # Set Vars
-    global ip_address
-    ip_address = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-
-    global username
-    username = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='username')
-
-    global password
-    password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='password')
-
     # Update config ini files at runtime
     my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/symphony-sds.properties'
     af_support_tools.set_config_file_property_by_data_file(my_data_file)
-
-    # Set Vars
-    global payload_file
-    payload_file = 'continuous-integration-deploy-suite/symphony-sds.ini'
-
-    global payload_header
-    payload_header = 'payload'
-
-    global payload_property_sys
-    payload_property_sys = 'sys_payload_node_exp'
-
-    global jsonfilepath
-    jsonfilepath = 'IDRAC.json'
-
-    global amqptooljar
-    amqptooljar = str(os.environ.get('AF_RESOURCES_PATH')) + '/system-definition/amqp-post-1.0-SNAPSHOT.jar'
-
 
     # Update setup_config.ini file at runtime
     my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/setup_config.properties'
     af_support_tools.set_config_file_property_by_data_file(my_data_file)
 
-    # RackHD VM IP & Creds details. These will be used to register the RackHD Endpoint
-    global setup_config_file
-    setup_config_file = 'continuous-integration-deploy-suite/setup_config.ini'
 
-    global setup_config_header
+@pytest.fixture()
+def setup():
+
+
+
+    parameters = {}
+    env_file = 'env.ini'
+
+    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
+    cli_user = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='username')
+    cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
+                                                             property='password')
+
+    parameters['IP'] = ipaddress
+    parameters['user'] = cli_user
+    parameters['password'] = cli_password
+
+    # RackHD VM IP & Creds details. These will be used to register the Endpoints
+    setup_config_file = 'continuous-integration-deploy-suite/setup_config.ini'
     setup_config_header = 'config_details'
 
-    global rackHD_IP
-    rackHD_IP = af_support_tools.get_config_file_property(config_file=setup_config_file, heading=setup_config_header,
-                                                          property='rackhd_dne_ipaddress')
+    rackHD_IP = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                          heading=setup_config_header, property='rackhd_dne_ipaddress')
 
-    global rackHD_username
     rackHD_username = af_support_tools.get_config_file_property(config_file=setup_config_file,
-                                                                heading=setup_config_header,
-                                                                property='rackhd_username')
-    global rackHD_password
+                                                                heading=setup_config_header, property='rackhd_username')
+
     rackHD_password = af_support_tools.get_config_file_property(config_file=setup_config_file,
-                                                                heading=setup_config_header,
-                                                                property='rackhd_password')
+                                                                heading=setup_config_header, property='rackhd_password')
 
-    global rackHD_body
-    rackHD_body = ':32080/ui/'
-
-    global vcenter_IP
-    vcenter_IP = af_support_tools.get_config_file_property(config_file=setup_config_file,
-                                                           heading=setup_config_header,
+    # Vcenter VM IP & Creds details.
+    vcenter_IP = af_support_tools.get_config_file_property(config_file=setup_config_file, heading=setup_config_header,
                                                            property='vcenter_dne_ipaddress_customer')
 
-    global vcenter_port
-    vcenter_port = '443'
-
-    global vcenter_username
     vcenter_username = af_support_tools.get_config_file_property(config_file=setup_config_file,
                                                                  heading=setup_config_header,
                                                                  property='vcenter_username')
-    global vcenter_password
+
     vcenter_password = af_support_tools.get_config_file_property(config_file=setup_config_file,
                                                                  heading=setup_config_header,
                                                                  property='vcenter_password_fra')
 
-    global scaleIO_IP
+    # ScaleIO VM IP & Creds details.
     scaleIO_IP = af_support_tools.get_config_file_property(config_file=setup_config_file,
                                                            heading=setup_config_header,
                                                            property='scaleio_integration_ipaddress')
 
-    global scaleIO_username
     scaleIO_username = af_support_tools.get_config_file_property(config_file=setup_config_file,
                                                                  heading=setup_config_header,
                                                                  property='scaleio_username')
-    global scaleIO_password
+
     scaleIO_password = af_support_tools.get_config_file_property(config_file=setup_config_file,
                                                                  heading=setup_config_header,
                                                                  property='scaleio_password')
 
+    parameters['rackHD_IP'] = rackHD_IP
+    parameters['rackHD_username'] = rackHD_username
+    parameters['rackHD_password'] = rackHD_password
+    parameters['rackHD_body'] = ':32080/ui/'
+    parameters['vcenter_IP'] = vcenter_IP
+    parameters['vcenter_username'] = vcenter_username
+    parameters['vcenter_password'] = vcenter_password
+    parameters['vcenter_port'] = '443'
+    parameters['scaleIO_IP'] = scaleIO_IP
+    parameters['scaleIO_username'] = scaleIO_username
+    parameters['scaleIO_password'] = scaleIO_password
+
+    return parameters
+
 
 #####################################################################
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_setup_system():
+def test_dne_setup_system(setup):
     """
     Description:    This script will configure a System with a json file.
-                    It will also register the rackhd & vcenter endpoints
     Parameters:     None
     Returns:        None
     """
+    # Install dell-cpsd-amqp-rest-api
+    time.sleep(2)
+    assert install_amqpapi(setup), 'failed to install amqpapi'
+
+    payload_file = 'continuous-integration-deploy-suite/symphony-sds.ini'
+    payload_header = 'payload'
+    payload_property_sys = 'sys_payload_node_exp'
 
     # Get the payload data from the config symphony-sds.ini file.
-    the_payload = af_support_tools.get_config_file_property(config_file=payload_file,
-                                                            heading=payload_header,
+    the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                             property=payload_property_sys)
 
-    assert update_IDRAC_json(jsonfilepath, ip_address, the_payload), 'test failed: ' + jsonfilepath + 'doesnt exists'
-
-    enable_rabbitmq_management_plugin()
-    time.sleep(3)
-
-    assert run_amqp_tool(amqptooljar, jsonfilepath), 'test failed: unable to execute ' + amqptooljar
+    assert api_addsystem(setup, the_payload), 'error'
 
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_RegisterRackHD():
-    assert registerRackHD(), 'Error: unable to register the RackHD endpoint'
+def test_dne_RegisterRackHD(setup):
+    assert registerRackHD(setup), 'Error: unable to register the RackHD endpoint'
 
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_RegisterVcenter():
-    assert registerVcenter(), 'Error: unable to register the vCenter endpoint'
+def test_dne_RegisterVcenter(setup):
+    assert registerVcenter(setup), 'Error: unable to register the vCenter endpoint'
 
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_dne_RegisterScaleIO():
-    assert registerScaleIO(), 'Error: unable to register the ScaleIO endpoint'
+def test_dne_RegisterScaleIO(setup):
+    assert registerScaleIO(setup), 'Error: unable to register the ScaleIO endpoint'
 
 
 #####################################################################
 
-def update_IDRAC_json(json_file_path, ipaddress, payload):
-    """
-    Description:    This method will update the json file with the host ip address
-    Parameters:     1. json_file_path     - Name of the Json file (STRING)
-                    2. ipaddress          - hostname mentioned in the env.ini file
-                    3. payload            - payload for the json file
-    Returns:        0 or 1 (Boolean)
-    """
-    with open(json_file_path,'w') as outfile:
-        outfile.write(payload)
-    outfile.close()
+def install_amqpapi(setup):
+    err = []
 
-    if (os.path.isfile(json_file_path) == 0):
-        return 0
+    amqpapi = "dell-cpsd-amqp-rest-api"
 
-    with open(json_file_path) as json_file:
-        data = json.load(json_file)
-    data['configuration']['host'] = ipaddress 
+    sendcommand_install = "yum install -y " + amqpapi
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
+                                                         password=setup['password'],
+                                                         command=sendcommand_install, return_output=True)
 
-    with open(json_file_path,'w') as outfile:
-        json.dump(data,outfile)
+    rpm_check = af_support_tools.check_for_installed_rpm(host=setup['IP'], username=setup['user'],
+                                                         password=setup['password'],
+                                                         rpm_name=amqpapi)
 
-    print ('next')
-    print (data)
-    return 1
+    if rpm_check != True:
+        err.append(amqpapi + " did not install properly")
+    # assert not err
 
-
-def run_amqp_tool(amqp_tool_jar, system_def_json):
-    """
-    Description:    This method will run the ampq tool jar file with the given input json file
-    Parameters:     1. amqp_tool_jar       -    Name of the amqp tool jar file (STRING)
-                    2. system_def_json     -    Name of the Json file (STRING)
-    Returns:        0 or 1 (Boolean)
-    """
-    test_status = "pass"
-    cmd = 'java -jar ' + amqp_tool_jar + ' ' + system_def_json
-
-    output = os.system(cmd)
-
-    # Adding sleepp to debug if it is timing issue
-    time.sleep(10)
-
-    if (output != 0):
-        test_status = "fail"
-
-    if (test_status == "fail"):
-        return 0
-
-    else:
-        print ('System Configured')
+    if err == []:
         return 1
+    else:
+        return 0
 
 
-def registerRackHD():
+def api_addsystem(setup, the_payload):
+    err = []
+
+    api_url = 'http://' + setup['IP'] + ':5500/v1/amqp/system-definition/'
+
+    # the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading= payload_header,
+    #                                                       property= payload_property_amqp )
+
+    sysadd = json.loads(the_payload)
+
+    time.sleep(10)
+    header = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+    r = requests.post(api_url, headers=header, data=the_payload)
+    resp = json.loads(r.text)
+
+    ## Validating contents of json file and message returned from Rest API
+    if resp == None:
+        err.append("Error---System not added successfully")
+    assert not err
+
+    if sysadd["body"]["convergedSystem"]["identity"]["serialNumber"] != resp["body"]["convergedSystem"]["identity"][
+        "serialNumber"]:
+        err.append("Error---Correct Serial number not returned")
+    assert not err
+
+    if (sysadd["body"]["convergedSystem"]["components"][0] != resp["body"]["convergedSystem"]["components"][0] and
+                sysadd["body"]["convergedSystem"]["components"][1] != resp["body"]["convergedSystem"]["components"][
+                1] and
+                sysadd["body"]["convergedSystem"]["components"][2] != resp["body"]["convergedSystem"]["components"][
+                2] and
+                sysadd["body"]["convergedSystem"]["components"][3] != resp["body"]["convergedSystem"]["components"][3]):
+        err.append("Error---All Components are not added successfully")
+    assert not err
+
+    if err == []:
+        return 1
+    else:
+        return 0
+
+
+def registerRackHD(setup):
     # Until consul is  working properly & integrated with the rackhd adapter in the same environment we need to register
     # it manually by sending this message.  This test is a prerequisite to getting the full list of
 
@@ -221,62 +219,53 @@ def registerRackHD():
 
     time.sleep(2)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671, ssl_enabled=True,
                                      queue='test.controlplane.rackhd.response')
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671, ssl_enabled=True,
                                      queue='test.endpoint.registration.event')
 
-    the_payload = '{"messageProperties":{"timestamp":"2017-06-14T12:00:00Z","correlationId":"manually-reg-rackhd-3fb0-9696-3f7d28e17f72"},"registrationInfo":{"address":"http://' + rackHD_IP + rackHD_body + '","username":"' + rackHD_username + '","password":"' + rackHD_password + '"}}'
-    print(the_payload)
+    the_payload = '{"messageProperties":{"timestamp":"2017-06-14T12:00:00Z","correlationId":"manually-reg-rackhd-3fb0-9696-3f7d28e17f72"},"registrationInfo":{"address":"http://' + \
+                  setup['rackHD_IP'] + setup['rackHD_body'] + '","username":"' + setup[
+                      'rackHD_username'] + '","password":"' + setup['rackHD_password'] + '"}}'
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.controlplane.rackhd.request',
                                          routing_key='controlplane.rackhd.endpoint.register',
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.rackhd.registration.info.request'},
-                                         payload=the_payload, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         payload=the_payload)
 
     # Verify the RackHD account can be validated
     assert waitForMsg('test.controlplane.rackhd.response'), 'Error: No RackHD validation message received'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.controlplane.rackhd.response',
                                                           remove_message=True)
+
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
+    print(return_json)
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: RackHD validation failure'
 
     # Verify that an event to register the rackHD with endpoint registry is triggered
     assert waitForMsg('test.endpoint.registration.event'), 'Error: No message to register with Consul sent by system'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.endpoint.registration.event',
                                                           remove_message=True)
 
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
-    #assert return_json['endpoint']['type'] == 'rackhd', 'rackhd not registered with endpoint'
+    print(return_json)
+    # assert return_json['endpoint']['type'] == 'rackhd', 'rackhd not registered with endpoint'
     # Removing this assert as the messages from the different adapters are interfering with one another.
     cleanup('test.controlplane.rackhd.response')
     cleanup('test.endpoint.registration.event')
 
-    print ('rackHD registerd')
+    print('rackHD registerd')
 
     time.sleep(3)
     return 1
 
 
-def registerVcenter():
+def registerVcenter(setup):
     # Until consul is  working properly & integrated with the vcenter adapter in the same environment we need to register
     # it manually by sending this message.
 
@@ -287,21 +276,17 @@ def registerVcenter():
 
     time.sleep(2)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671, ssl_enabled=True,
                                      queue='test.controlplane.vcenter.response')
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671, ssl_enabled=True,
                                      queue='test.endpoint.registration.event')
 
-    the_payload = '{"messageProperties":{"timestamp":"2010-01-01T12:00:00Z","correlationId":"vcenter-registtration-corr-id","replyTo":"localhost"},"registrationInfo":{"address":"https://' + vcenter_IP + ':' + vcenter_port + '","username":"' + vcenter_username + '","password":"' + vcenter_password + '"}}'
+    the_payload = '{"messageProperties":{"timestamp":"2010-01-01T12:00:00Z","correlationId":"vcenter-registtration-corr-id","replyTo":"localhost"},"registrationInfo":{"address":"https://' + \
+                  setup['vcenter_IP'] + ':' + setup['vcenter_port'] + '","username":"' + setup[
+                      'vcenter_username'] + '","password":"' + setup['vcenter_password'] + '"}}'
     print(the_payload)
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                         ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.controlplane.vcenter.request',
                                          routing_key='controlplane.hypervisor.vcenter.endpoint.register',
                                          headers={
@@ -310,39 +295,32 @@ def registerVcenter():
 
     # Verify the vcenter is validated
     assert waitForMsg('test.controlplane.vcenter.response'), 'ERROR: No validation Message Returned'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
-                                                          queue='test.controlplane.vcenter.response',
-                                                          remove_message=True)
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
+                                                          queue='test.controlplane.vcenter.response')
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
+    print(return_json)
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: Vcenter validation failure'
 
     # Verify the system triggers a msg to register vcenter with consul
     assert waitForMsg('test.endpoint.registration.event'), 'ERROR: No message to register with Consul sent'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.endpoint.registration.event',
                                                           remove_message=True)
 
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
-    #assert return_json['endpoint']['type'] == 'vcenter', 'vcenter not registered with endpoint'
+    print(return_json)
+    # assert return_json['endpoint']['type'] == 'vcenter', 'vcenter not registered with endpoint'
     # Removing this assert as the messages from the different adapters are interfering with one another.
     cleanup('test.controlplane.vcenter.response')
     cleanup('test.endpoint.registration.event')
 
-    print ('vcenter registerd')
+    print('vcenter registerd')
 
     time.sleep(3)
     return 1
 
 
-def registerScaleIO():
+def registerScaleIO(setup):
     # Until consul is  working properly & integrated with the vcenter adapter in the same environment we need to register
     # it manually by sending this message.
 
@@ -353,76 +331,64 @@ def registerScaleIO():
 
     time.sleep(2)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671, ssl_enabled=True,
                                      queue='test.controlplane.scaleio.response')
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                     ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671, ssl_enabled=True,
                                      queue='test.endpoint.registration.event')
 
-    the_payload = '{"messageProperties":{"timestamp":"2010-01-01T12:00:00Z","correlationId":"scaleio-full-abcd-abcdabcdabcd"},"registrationInfo":{"address":"https://' + scaleIO_IP + '","username":"' + scaleIO_username + '","password":"' + scaleIO_password + '"}}'
+    the_payload = '{"messageProperties":{"timestamp":"2010-01-01T12:00:00Z","correlationId":"scaleio-full-abcd-abcdabcdabcd"},"registrationInfo":{"address":"https://' + \
+                  setup['scaleIO_IP'] + '","username":"' + setup['scaleIO_username'] + '","password":"' + setup[
+                      'scaleIO_password'] + '"}}'
     print(the_payload)
 
-    af_support_tools.rmq_publish_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                         rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.controlplane.scaleio.request',
                                          routing_key='dell.cpsd.scaleio.consul.register.request',
                                          headers={
                                              '__TypeId__': 'com.dell.cpsd.scaleio.registration.info.request'},
-                                         payload=the_payload, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                         payload=the_payload)
 
     # Verify the vcenter is validated
     assert waitForMsg('test.controlplane.scaleio.response'), 'ERROR: No validation Message Returned'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.controlplane.scaleio.response',
                                                           remove_message=True)
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
+    print(return_json)
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: ScaleIO validation failure'
 
     # Verify the system triggers a msg to register vcenter with consul
     assert waitForMsg('test.endpoint.registration.event'), 'ERROR: No message to register with Consul sent'
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
                                                           queue='test.endpoint.registration.event',
                                                           remove_message=True)
 
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
-    #assert return_json['endpoint']['type'] == 'scaleio', 'scaleio not registered with endpoint'
+    print(return_json)
+    # assert return_json['endpoint']['type'] == 'scaleio', 'scaleio not registered with endpoint'
     # Removing this assert as the messages from the different adapters are interfering with one another.
     cleanup('test.controlplane.scaleio.response')
     cleanup('test.endpoint.registration.event')
 
-    print ('scaleio registerd')
+    print('scaleio registerd')
 
     time.sleep(3)
     return 1
 
+
 #####################################################################
 
 def bindQueues(exchange, queue):
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username,
-                                    rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671, ssl_enabled=True,
                                     queue=queue,
                                     exchange=exchange,
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                    routing_key='#')
 
 
 def cleanup(queue):
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username,
-                                      rmq_password=cpsd.props.rmq_password,
-                                      queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671, ssl_enabled=True,
+                                      queue=queue)
 
 
 def waitForMsg(queue):
@@ -445,10 +411,7 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                   rmq_username=cpsd.props.rmq_username,
-                                                   rmq_password=cpsd.props.rmq_password,
-                                                   ssl_enabled=cpsd.props.rmq_ssl_enabled,
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671, ssl_enabled=True,
                                                    queue=queue)
 
         if timeout > max_timeout:
@@ -456,14 +419,3 @@ def waitForMsg(queue):
             return False
 
     return True
-
-def enable_rabbitmq_management_plugin():
-    """ A function to enable the rabbitmq_management plugin
-    It won't cause any errrors if it is already enabled"""
-    command = 'docker exec -d amqp rabbitmq-plugins enable rabbitmq_management'
-    af_support_tools.send_ssh_command(
-        host=ip_address,
-        username=username,
-        password=password,
-        command=command,
-        return_output=False)

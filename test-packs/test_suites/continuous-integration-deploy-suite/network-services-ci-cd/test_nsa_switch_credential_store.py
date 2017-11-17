@@ -36,7 +36,7 @@ def load_test_data():
     af_support_tools.set_config_file_property_by_data_file(data_file)
     # IDrac Server IP & Creds details
     global setup_config_file
-    setup_config_file = 'continuous-integration-deploy-suite/nsa_setup_config.ini'
+    setup_config_file = 'continuous-integration-deploy-suite/setup_config.ini'
     global setup_config_header
     setup_config_header = 'config_details'
     global switch_username
@@ -139,11 +139,8 @@ def check_vault_credential_keys(container_id):
     del output_list[0]
     print ("output_list2:", output_list)
     output_length = len(output_list)
-    last_uuid_index = output_length -1
-    print ("Last uuid in the list: ", output_list[last_uuid_index])
-
-    uuid = output_list[last_uuid_index]
-
+    print("Last uuid in the list: ", output_list[0])
+    uuid = output_list[0]
     #for uuid in output_list:
     cmd1 = "docker exec " + container_id + " vault list secret/" + uuid
     print ("cmd1:", cmd1)

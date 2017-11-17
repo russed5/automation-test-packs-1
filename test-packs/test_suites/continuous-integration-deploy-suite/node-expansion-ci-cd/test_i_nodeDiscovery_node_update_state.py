@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Author: russed5
-# Revision: 1.0
+# Revision: 1.1 (updated to take into account TLS implementation)
 # Code Reviewed by:
 # Description: Testing the ability to change the state of nodes in the Node disocvery postgres DB
 #
@@ -16,165 +16,143 @@ import requests
 import requests.exceptions
 import time
 
-
-##############################################################################################
-
-@pytest.fixture(scope="module", autouse=True)
-def load_test_data():
-    import cpsd
-    global cpsd
-
-    # Set config ini file name
-    global env_file
-    env_file = 'env.ini'
-
-    # Test VM Details
-    global ipaddress
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                          property='hostname')
-    global cli_username
-    cli_username = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                              property='username')
-    global cli_password
-    cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                              property='password')
-
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
-
-    global rmq_username
-    rmq_username = cpsd.props.rmq_username
-    global rmq_password
-    rmq_password = cpsd.props.rmq_password
-    global rmq_port
-    rmq_port = cpsd.props.rmq_port
-    global rmq_cert_path
-    rmq_cert_path = cpsd.props.rmq_cert_path
-    global rmq_ssl_enabled
-    rmq_ssl_enabled = cpsd.props.rmq_ssl_enabled
-
-
-    # a node with the following properties will be added to the DB for testing purposes
-    global testElementId
-    testElementId = "44f0d5ac-44a6-48e0-bf98-93eaa7f452d3"
-    global testNodeId
-    testNodeId = "443819a2dc8f96b33e08569d"
-
-##############################################################################################
+global testElementId 
+testElementId = "44f0d5ac-44a6-48e0-bf98-93eaa7f452d3"
+global testNodeId
+testNodeId = "443819a2dc8f96b33e08569d"
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_changeNodeStateToFAILED():
+def test_changeNodeStateToFAILED(setup):
     """ Verify that the state of a Node, persisted by the Node Discovery PAQX, can be set to 'FAILED'"""
 
     # ARRANGE
     # Add a testNode  to the node discovery 'compute_node' table in the DISCOVERED state
-    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED')
+    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED', setup)
     symphonyNodeId = testElementId
 
     # ACT
     # now set the nodeStatus to FAILED
-    sendNodeAllocationRequestMessage(symphonyNodeId, "FAILED")
+    sendNodeAllocationRequestMessage(symphonyNodeId, "FAILED", setup)
 
     # ASSERT
     # verify the new state by querying the REST API, then cleanup
-    nodeListing = listNodes()
-    deleteEntryInNodeComputeTable(testElementId)
+    nodeListing = listNodes(setup)
+    deleteEntryInNodeComputeTable(testElementId, setup)
 
     # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "FAILED" == node["nodeStatus"], "Error, Status change not persisted"
 
+    error_list = []
+
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("PROVISIONING_FAILED" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+        
+    assert not error_list
 
 ##############################################################################################
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_changeNodeStateToADDED():
+def test_changeNodeStateToADDED(setup):
     """ Verify that the state of a Node, persisted by the Node Discovery PAQX, can be set to 'ADDED'"""
 
     # ARRANGE
     # Add a testNode  to the node discovery 'compute_node' table in the DISCOVERED state
-    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED')
+    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED', setup)
     symphonyNodeId = testElementId
 
     # ACT
     # now set the nodeStatus to ADDED and verify the new state by querying the REST API
-    sendNodeAllocationRequestMessage(symphonyNodeId, "ADDED")
+    sendNodeAllocationRequestMessage(symphonyNodeId, "ADDED", setup)
 
     # ASSERT
     # verify the new state by querying the REST API, then cleanup
-    nodeListing = listNodes()
-    deleteEntryInNodeComputeTable(testElementId)
+    nodeListing = listNodes(setup)
+    deleteEntryInNodeComputeTable(testElementId, setup)
 
-    # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "ADDED" == node["nodeStatus"], "Error, Status change not persisted"
+    error_list = []
 
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("ADDED" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+
+    assert not error_list
 
 ##############################################################################################
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_changeNodeStateToDISCOVERED():
+def test_changeNodeStateToDISCOVERED(setup):
     """ Verify that the state of a Node, persisted by the Node Discovery PAQX, can be set to 'DISCOVERED'"""
 
     # ARRANGE
     # Add a testNode  to the node discovery 'compute_node' table in the FAILED state
-    insertNodeIntoDB(testElementId, testNodeId, 'FAILED')
+    insertNodeIntoDB(testElementId, testNodeId, 'FAILED', setup)
     symphonyNodeId = testElementId
 
     # ACT
     # now set the nodeStatus to DISCOVERED and verify the new state by querying the REST API
-    sendNodeAllocationRequestMessage(symphonyNodeId, "DISCOVERED")
+    sendNodeAllocationRequestMessage(symphonyNodeId, "DISCOVERED", setup)
 
     # ASSERT
     # verify the new state by querying the REST API, then cleanup
-    nodeListing = listNodes()
-    deleteEntryInNodeComputeTable(testElementId)
+    nodeListing = listNodes(setup)
+    deleteEntryInNodeComputeTable(testElementId, setup)
 
-    # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "DISCOVERED" == node["nodeStatus"], "Error, Status change not persisted"
+    error_list = []
+
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("DISCOVERED" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+
+    assert not error_list
 
 
 ##############################################################################################
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_changeNodeStateToRESERVED():
+def test_changeNodeStateToRESERVED(setup):
     """ Verify that the state of a Node, persisted by the Node Discovery PAQX, can be set to 'RESERVED'"""
 
     # ARRANGE
     # Add a testNode  to the node discovery 'compute_node' table in the DISCOVERED state
-    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED')
+    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED', setup)
     symphonyNodeId = testElementId
 
 
     # ACT
     # now set the nodeStatus to RESERVED and verify the new state by querying the REST API
-    sendNodeAllocationRequestMessage(symphonyNodeId, "RESERVED")
+    sendNodeAllocationRequestMessage(symphonyNodeId, "RESERVED", setup)
 
     # ASSERT
     # verify the new state by querying the REST API, then cleanup
-    nodeListing = listNodes()
-    deleteEntryInNodeComputeTable(testElementId)
+    nodeListing = listNodes(setup)
+    deleteEntryInNodeComputeTable(testElementId, setup)
 
-    # there may be multiple nodes in the listing
-    for node in nodeListing:
-        if node['symphonyUuid'] == symphonyNodeId :
-            assert "RESERVED" == node["nodeStatus"], "Error, Status change not persisted"
+    error_list = []
+
+    if (testNodeId not in nodeListing):
+        error_list.append("Error, no node listed in DB")
+
+    if ("PROVISIONING_IN_PROGRESS" not in nodeListing):
+        error_list.append("Error, Status change not persisted")
+
+    assert not error_list
+
 
 ##############################################################################################
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_lookupNodeState():
+def test_lookupNodeState(setup):
     """ Verify that the state(s) of a Node persisted by the Node Discovery PAQX can be looked-up"""
 
     # ARRANGE
@@ -182,8 +160,9 @@ def test_lookupNodeState():
 
     # ARRANGE
     # Add a testNode  to the node discovery 'compute_node' table in the DISCOVERED state
-    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED')
+    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED', setup)
     symphonyNodeId = testElementId
+    sendNodeAllocationRequestMessage(symphonyNodeId, "DISCOVERED", setup)
 
     # bind a test q to the node discovery exchange so that we can consume a response to our message
     # but first we delete it to ensure it doesn't already exist
@@ -192,14 +171,15 @@ def test_lookupNodeState():
 
     # ACT
     # send a LookupNodeAllocationRequestMessage and read-in the response
-    sendNodeAllocationRequestMessage(symphonyNodeId, "LOOKUP")
+    sendNodeAllocationRequestMessage(symphonyNodeId, "LOOKUP", setup)
 
 
     # ASSERT
     # consume response for verification and cleanup
     lookupResponse = consumeResponse('test.dne.paqx.node.response')
     cleanupQ('test.dne.paqx.node.response')
-    deleteEntryInNodeComputeTable(testElementId)
+    deleteEntryInNodeComputeTable(testElementId, setup)
+
 
     if lookupResponse['status'] != "SUCCESS":
         error_list.append("Errror : The lookupResponse message did not have a status of SUCCESS")
@@ -217,12 +197,12 @@ def test_lookupNodeState():
 ##############################################################################################
 
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_getListOfNodes():
+def test_getListOfNodes(setup):
     """ Verify that a listing of all Node states can be retrieved."""
 
     # ARRANGE
     # Add a testNode  to the node discovery 'compute_node' table in the DISCOVERED state
-    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED')
+    insertNodeIntoDB(testElementId, testNodeId, 'DISCOVERED', setup)
     symphonyNodeId = testElementId
 
     # bind a test q to the node discovery exchange so that we can consume a response to our message
@@ -230,13 +210,13 @@ def test_getListOfNodes():
     bindQueue('exchange.dell.cpsd.paqx.node.discovery.response', 'test.dne.paqx.node.response')
 
     # ACT
-    sendNodeAllocationRequestMessage(symphonyNodeId, "LISTING")
+    sendNodeAllocationRequestMessage(symphonyNodeId, "LISTING", setup)
 
     # ASSERT
     # consume response for verification and cleanup
     listingsMsg = consumeResponse('test.dne.paqx.node.response')
     cleanupQ('test.dne.paqx.node.response')
-    deleteEntryInNodeComputeTable(testElementId)
+    deleteEntryInNodeComputeTable(testElementId, setup)
 
     assert listingsMsg['discoveredNodes'], "Error - No discovered nodes were returned in Listing"
     for node in listingsMsg['discoveredNodes']:
@@ -248,7 +228,7 @@ def test_getListOfNodes():
 
 ##############################################################################################
 
-def insertNodeIntoDB(elementId, nodeId, nodeStatus):
+def insertNodeIntoDB(elementId, nodeId, nodeStatus, setup):
     """ Insert a new node entry, DISCOVERED state, into the compute_node table in the postgres database.
 
     :parameter: elementId - symphonyUUID (eg. '44f0d5ac-44a6-48e0-bf98-93eaa7f452d3')
@@ -258,30 +238,42 @@ def insertNodeIntoDB(elementId, nodeId, nodeStatus):
     """
 
     # write the INSERT command into a file on the remote host for ease of execution
-    insertCmd = "insert into ndpx.compute_node(ELEMENT_ID, NODE_ID, NODE_STATUS, LOCKING_VERSION) values ('" + \
-                elementId + "', '" + nodeId + "', '" + nodeStatus + "', 0);"
+    # then copy that file into the postgres docker container
+    # then  ask postgres to execute the command in the file
+    insertCmd = "insert into compute_node(ELEMENT_ID, NODE_ID, NODE_STATUS, LOCKING_VERSION) values (\'" + \
+                elementId + "\', \'" + nodeId + "\', \'" + nodeStatus + "\', 0);"
 
     writeToFileCmd = "echo \"" + insertCmd + "\" > /tmp/sqlInsert.txt"
 
+    copyFileToContainerCmd = "docker cp /tmp/sqlInsert.txt postgres:/tmp/sqlInsert.txt"
+
+    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-paqx options=--search_path=public\\\" -f /tmp/sqlInsert.txt\"\'"
+
     try:
         result = af_support_tools.send_ssh_command(
-            host=ipaddress,
-            username=cli_username,
-            password=cli_password,
-            command=writeToFileCmd,
-            return_output=True)
+           host=setup['IP'],
+           username=setup['cli_user'],
+           password=setup['cli_password'],
+           command=writeToFileCmd,
+           return_output=True)
 
+    
+        result = af_support_tools.send_ssh_command(
+           host=setup['IP'],
+           username=setup['cli_user'],
+           password=setup['cli_password'],
+           command=copyFileToContainerCmd,
+           return_output=True)
 
-        # execute the PSQL command from file
-        execSQLCommand = "sudo  -u postgres -H sh -c \"psql \\\"dbname=symphony options=--search_path=ndpx\\\" \
-                        -f /tmp/sqlInsert.txt\""
 
         result = af_support_tools.send_ssh_command(
-            host=ipaddress,
-            username=cli_username,
-            password=cli_password,
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
             command=execSQLCommand,
             return_output=True)
+
+        sleeptime = 10
 
         return result
 
@@ -293,7 +285,7 @@ def insertNodeIntoDB(elementId, nodeId, nodeStatus):
 
 ################################################################################################
 
-def deleteEntryInNodeComputeTable(elementId):
+def deleteEntryInNodeComputeTable(elementId, setup):
     """ A Function to clear all entries form the postgres table 'compute_node'.
 
     :parameter: elementId - symphonyUUID (eg. '44f0d5ac-44a6-48e0-bf98-93eaa7f452d3')
@@ -306,9 +298,9 @@ def deleteEntryInNodeComputeTable(elementId):
     try:
 
         result = af_support_tools.send_ssh_command(
-                host=ipaddress,
-                username=cli_username,
-                password=cli_password,
+            	host=setup['IP'],
+            	username=setup['cli_user'],
+            	password=setup['cli_password'],
                 command=writeToFileCommand,
                 return_output=True)
 
@@ -316,9 +308,9 @@ def deleteEntryInNodeComputeTable(elementId):
                             -f /tmp/sqlDelete.txt\""
 
         result = af_support_tools.send_ssh_command(
-                host=ipaddress,
-                username=cli_username,
-                password=cli_password,
+            	host=setup['IP'],
+            	username=setup['cli_user'],
+            	password=setup['cli_password'],
                 command=execSQLCommand,
                 return_output=True)
 
@@ -331,7 +323,7 @@ def deleteEntryInNodeComputeTable(elementId):
 
 ################################################################################################
 
-def sendNodeAllocationRequestMessage(node, state):
+def sendNodeAllocationRequestMessage(node, state, setup):
     """ Use the AMQP bus to send a start/cancel/fail/complete/lookup message to the node-discovery paqx for a specific node.
 
     :parameter: node - the symphonyUUID of a Node (eg. dc38f716-8d9e-42d6-a61b-fddf0269f5ac)
@@ -361,8 +353,8 @@ def sendNodeAllocationRequestMessage(node, state):
 
     try:
         # publish the AMQP message to set the state of the node
-        af_support_tools.rmq_publish_message(host=ipaddress, rmq_username=rmq_username, rmq_password=rmq_password,
-                                         port=rmq_port, ssl_enabled=rmq_ssl_enabled,
+        af_support_tools.rmq_publish_message(host='amqp',
+                                         port=5671, ssl_enabled=True,
                                          exchange=my_exchange,
                                          routing_key=my_routing_key,
                                          headers={
@@ -373,25 +365,6 @@ def sendNodeAllocationRequestMessage(node, state):
     except Exception as err:
         # Return code error
         print(err, '\n')
-        raise Exception(err)
-
-##############################################################################################
-
-def listNodes():
-    """ Query the DNE REST API for a list of Nodes. """
-
-    url = 'http://' + ipaddress + ':8071/dne/nodes'
-
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        listing = response.text
-        allNodes = json.loads(listing, encoding='utf-8')
-        return allNodes
-
-    except Exception as err:
-        # Return code error (e.g. 404, 501, ...)
-        print(err,'\n')
         raise Exception(err)
 
 ##############################################################################################
@@ -409,8 +382,8 @@ def getFirstValidNodeID() :
 def bindQueue(exchange, testqueue):
     """ Bind 'testqueue' to 'exchange'."""
 
-    af_support_tools.rmq_bind_queue(host=ipaddress,rmq_username=rmq_username, rmq_password=rmq_password,
-                                    port=rmq_port, ssl_enabled=rmq_ssl_enabled,
+    af_support_tools.rmq_bind_queue(host='amqp',
+                                    port=5671, ssl_enabled=True,
                                     queue=testqueue,
                                     exchange=exchange,
                                     routing_key='#')
@@ -420,10 +393,9 @@ def bindQueue(exchange, testqueue):
 def consumeResponse(testqueue):
     """ Consume the next message received on the testqueue and return the message in json format"""
     waitForMsg('test.dne.paqx.node.response')
-    rxd_message = af_support_tools.rmq_consume_message(host=ipaddress, port=rmq_port, rmq_username=rmq_username,
-                                                              rmq_password=rmq_password,
+    rxd_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                               queue=testqueue,
-                                                              ssl_enabled=rmq_ssl_enabled)
+                                                              ssl_enabled=True)
 
     rxd_json = json.loads(rxd_message, encoding='utf-8')
     return rxd_json
@@ -450,11 +422,9 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=ipaddress,
-                                                   port=rmq_port,
-                                                   rmq_username=rmq_username,
-                                                   rmq_password=rmq_password,
-                                                   ssl_enabled=rmq_ssl_enabled,
+        q_len = af_support_tools.rmq_message_count(host='amqp',
+                                                   port=5671,
+                                                   ssl_enabled=True,
                                                    queue=queue)
 
         if timeout > max_timeout:
@@ -467,9 +437,34 @@ def waitForMsg(queue):
 def cleanupQ(testqueue):
     """ Delete the passed-in queue."""
 
-    af_support_tools.rmq_delete_queue(host=ipaddress, port=rmq_port,
-                                      rmq_username=rmq_username,
-                                      rmq_password=rmq_password,
-                                      ssl_enabled=rmq_ssl_enabled,
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671,
+                                      ssl_enabled=True,
                                     queue=testqueue)
+
+
+####################################################################################################
+def listNodes(setup):
+    """ A Function to get all entries form the postgres table 'compute_node'.
+
+    :parameter: none
+    :return: the result of the select * command
+    """
+
+    execSQLCommand = "docker exec -i postgres sh -c \'su postgres sh -c \"psql \\\"dbname=node-discovery-paqx \\\" -c \\\"select * FROM compute_node;\\\"\"\'"
+
+    try:
+
+        result = af_support_tools.send_ssh_command(
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
+            command=execSQLCommand,
+            return_output=True)
+
+        return result
+
+    except Exception as err:
+        # Return code error
+        print(err, '\n')
+        raise Exception(err)
 

@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 import datetime
 import json
 import time
+import requests
 
 class props(object):
     # Set env.ini file name
@@ -20,18 +21,20 @@ class props(object):
     base_username = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='username')
     base_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='password')
 
-    # Rabbit MQ
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='username')
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='password')
-    rmq_ssl_enabled = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_enabled')
-    if rmq_ssl_enabled == 'True':
-        rmq_ssl_enabled = True
-        rmq_port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
-        rmq_cert_path = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='cert_path')
-    else:
-        rmq_ssl_enabled = False
-        rmq_port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='port')
-        rmq_cert_path = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='cert_path')
+
+def get_rmq_credentials():
+
+    r = requests.put("https://pam-service.cpsd.dell:7002/pam-service/v1/amqp/users",
+                     cert=('/usr/local/share/ca-certificates/taf.cpsd.dell.crt',
+                           '/usr/local/share/ca-certificates/taf.cpsd.dell.key'),
+                     verify='/usr/local/share/ca-certificates/cpsd.dell.ca.crt')
+
+    assert r.status_code == 200, "Error---Rabbitmq credentials not returned"
+    data = json.loads(r.text)
+    rmq_user =data['response']['amqp']['username']    
+
+    return {'rmq_user': rmq_user}
+
 
 def cs_encrypt_credential_elements(my_json):
     '''

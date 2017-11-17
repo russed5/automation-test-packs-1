@@ -2,6 +2,7 @@
 # Author:
 # Revision: 2.1
 # Code Reviewed by:
+# Refactor by @ Toqeer Akhtar
 # Description: Verify the Capability Registry Ping-Pong Message sequence.
 #
 # Copyright (c) 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
@@ -15,13 +16,6 @@ import time
 
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
-    import cpsd
-    global cpsd
-
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
 
     # Set config ini file name
     global env_file
@@ -39,16 +33,6 @@ def load_test_data():
     cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                              property='password')
 
-    # RMQ Details
-    global rmq_username
-    rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='username')
-    global rmq_password
-    rmq_password = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                             property='password')
-    global port
-    port = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
-                                                     property='ssl_port')
 
 
 #####################################################################
@@ -82,15 +66,11 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_core():
     global correlationID  # Set as a Global parameter as it will be used in the next test.
 
     # Ensure the Control & Binding Queues are empty to start
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username,
-                                     rmq_password=cpsd.props.rmq_password,
-                                     queue='test.capability.registry.control', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671,
+                                     queue='test.capability.registry.control', ssl_enabled=True)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username,
-                                     rmq_password=cpsd.props.rmq_password,
-                                     queue='test.capability.registry.binding', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_purge_queue(host='amqp', port=5671,
+                                     queue='test.capability.registry.binding', ssl_enabled=True)
 
     print('\nTest: The Capability Registry Control. Verify the Ping message')
 
@@ -98,11 +78,8 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_core():
     # in the header and the return_basic_properties flag is set to True in order to get the header value. When
     # basic_properties are returned the message cannot be converted to json which is the reason its "consumed" twice.
     waitForMsg('test.capability.registry.control')
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          queue='test.capability.registry.control',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port= 5671,
+                                                          queue='test.capability.registry.control', ssl_enabled=True,
                                                           remove_message=False, return_basic_properties=True)
 
     # Save the correlationID to be used in next part of the test
@@ -113,11 +90,8 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_core():
 
     # The message is consumed again, checked for errors and converted to JSON. The body of the message contains the
     # containerID under the "hostname" value. This value will be compared to the actual containerID value
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
-                                                          queue='test.capability.registry.control',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
+                                                          queue='test.capability.registry.control', ssl_enabled=True)
 
     checkForErrors(return_message)
     return_json = json.loads(return_message, encoding='utf-8')
@@ -155,7 +129,7 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
     capabilityProvider_Vcenter_Compute_Data_Provider = 'vcenter-compute-data-provider'
     capabilityProvider_Rackhd_Adapter = 'rackhd-adapter'
     capabilityProvider_Vcenter_Adapter = 'vcenter-adapter'
-    capabilityProvider_Coprhd_Adapter = 'coprhd-adapter'
+    # capabilityProvider_Coprhd_Adapter = 'coprhd-adapter'
     capabilityProvider_Endpoint_Registry = 'endpoint-registry'
 
     # Each provider/adapter is given a flag that will be set to True once its responded. This method is used as the order
@@ -164,7 +138,7 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
     vcenter_Compute_Data_Provider_Tested = False
     rackhd_Adapter_Tested = False
     vcenter_Adapter_Tested = False
-    coprhd_Adapter_Tested = False
+    #coprhd_Adapter_Tested = False
     endpoint_Registry_Tested = False
 
     allTested = False
@@ -179,11 +153,8 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
 
         # Only a message that comes in with the same correlationID as the Ping message is tested
         waitForMsg('test.capability.registry.binding')
-        return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                              rmq_username=cpsd.props.rmq_username,
-                                                              rmq_password=cpsd.props.rmq_password,
-                                                              queue='test.capability.registry.binding',
-                                                              ssl_enabled=cpsd.props.rmq_ssl_enabled,
+        return_message = af_support_tools.rmq_consume_message(host='amqp', port= 5671,
+                                                              queue='test.capability.registry.binding', ssl_enabled=True,
                                                               remove_message=False, return_basic_properties=True)
 
         testcorrelationID = return_message[0].correlation_id
@@ -192,12 +163,9 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
         if testcorrelationID == correlationID:  # Only check messages that have the same CorrelationID as the ping message
 
             error_list = []
-            return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname,
-                                                                  port=cpsd.props.rmq_port,
-                                                                  rmq_username=cpsd.props.rmq_username,
-                                                                  rmq_password=cpsd.props.rmq_password,
+            return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                                   queue='test.capability.registry.binding',
-                                                                  ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                                                  ssl_enabled=True)
             checkForErrors(return_message)
 
             if capabilityProvider_Poweredge_Compute_Data_Provider in return_message:
@@ -226,14 +194,7 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
                     error_list.append(capabilityProvider_Vcenter_Adapter)
                 else:
                     print('Test:', capabilityProvider_Vcenter_Adapter, 'Binding Message returned\n')
-                    vcenter_Adapter_Tested = True
-
-            if capabilityProvider_Coprhd_Adapter in return_message:
-                if (coprhd_Adapter_Tested == True):
-                    error_list.append(capabilityProvider_Coprhd_Adapter)
-                else:
-                    print('Test:', capabilityProvider_Coprhd_Adapter, 'Binding Message returned\n')
-                    coprhd_Adapter_Tested = True
+                    vcenter_Adapter_Tested = True         
 
             if capabilityProvider_Endpoint_Registry in return_message:
                 if (endpoint_Registry_Tested == True):
@@ -248,7 +209,6 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
                     and vcenter_Compute_Data_Provider_Tested == True \
                     and rackhd_Adapter_Tested == True \
                     and vcenter_Adapter_Tested == True \
-                    and coprhd_Adapter_Tested == True \
                     and endpoint_Registry_Tested == True:
                 allTested = True
 
@@ -272,11 +232,7 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
 
             if vcenter_Adapter_Tested == False:
                 print('ERROR:', capabilityProvider_Vcenter_Adapter, 'Binding Message is not returned')
-                error_list.append(capabilityProvider_Vcenter_Adapter)
-
-            if coprhd_Adapter_Tested == False:
-                print('ERROR:', capabilityProvider_Coprhd_Adapter, 'Binding Message is not returned')
-                error_list.append(capabilityProvider_Coprhd_Adapter)
+                error_list.append(capabilityProvider_Vcenter_Adapter)          
 
             if endpoint_Registry_Tested == False:
                 print('ERROR:', capabilityProvider_Endpoint_Registry, 'Binding Message is not returned')
@@ -317,15 +273,11 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_dne():
     global correlationID  # Set as a Global parameter as it will be used in the next test.
 
     # Ensure the Control & Binding Queues are empty to start
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username,
-                                     rmq_password=cpsd.props.rmq_password,
-                                     queue='test.capability.registry.control', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_purge_queue(host= 'amqp', port=5671,
+                                     queue='test.capability.registry.control', ssl_enabled=True)
 
-    af_support_tools.rmq_purge_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                     rmq_username=cpsd.props.rmq_username,
-                                     rmq_password=cpsd.props.rmq_password,
-                                     queue='test.capability.registry.binding', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_purge_queue(host='amqp', port= 5671,
+                                     queue='test.capability.registry.binding', ssl_enabled= True)
 
     print('\nTest: The Capability Registry Control. Verify the Ping message')
 
@@ -333,11 +285,9 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_dne():
     # in the header and the return_basic_properties flag is set to True in order to get the header value. When
     # basic_properties are returned the message cannot be converted to json which is the reason its "consumed" twice.
     waitForMsg('test.capability.registry.control')
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
+    return_message = af_support_tools.rmq_consume_message(host= 'amqp', port=5671,
                                                           queue='test.capability.registry.control',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled,
+                                                          ssl_enabled= True,
                                                           remove_message=False, return_basic_properties=True)
 
     # Save the correlationID to be used in next part of the test
@@ -348,11 +298,9 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_dne():
 
     # The message is consumed again, checked for errors and converted to JSON. The body of the message contains the
     # containerID under the "hostname" value. This value will be compared to the actual containerID value
-    return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                          rmq_username=cpsd.props.rmq_username,
-                                                          rmq_password=cpsd.props.rmq_password,
+    return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                           queue='test.capability.registry.control',
-                                                          ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                                          ssl_enabled= True)
 
     checkForErrors(return_message)
     return_json = json.loads(return_message, encoding='utf-8')
@@ -403,11 +351,8 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_dne():
 
         # Only a message that comes in with the same correlationID as the Ping message is tested
         waitForMsg('test.capability.registry.binding')
-        return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                              rmq_username=cpsd.props.rmq_username,
-                                                              rmq_password=cpsd.props.rmq_password,
-                                                              queue='test.capability.registry.binding',
-                                                              ssl_enabled=cpsd.props.rmq_ssl_enabled,
+        return_message = af_support_tools.rmq_consume_message(host= 'amqp', port=5671,
+                                                              queue='test.capability.registry.binding', ssl_enabled= True,
                                                               remove_message=False, return_basic_properties=True)
 
         testcorrelationID = return_message[0].correlation_id
@@ -416,12 +361,8 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_dne():
         if testcorrelationID == correlationID:  # Only check messages that have the same CorrelationID as the ping message
 
             error_list = []
-            return_message = af_support_tools.rmq_consume_message(host=cpsd.props.base_hostname,
-                                                                  port=cpsd.props.rmq_port,
-                                                                  rmq_username=cpsd.props.rmq_username,
-                                                                  rmq_password=cpsd.props.rmq_password,
-                                                                  queue='test.capability.registry.binding',
-                                                                  ssl_enabled=cpsd.props.rmq_ssl_enabled)
+            return_message = af_support_tools.rmq_consume_message(host= 'amqp', port=5671,
+                                                                  queue='test.capability.registry.binding', ssl_enabled= True)
             checkForErrors(return_message)
 
             if capabilityProvider_Node_Discovery_Paqx in return_message:
@@ -458,27 +399,23 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_dne():
 #######################################################################################################################
 # These are common functions that are used throughout the main test.
 def bindQueues():
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671,
                                     queue='test.capability.registry.control',
                                     exchange='exchange.dell.cpsd.hdp.capability.registry.control',
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                    routing_key='#', ssl_enabled=True)
 
-    af_support_tools.rmq_bind_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                    rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
+    af_support_tools.rmq_bind_queue(host='amqp', port=5671,
                                     queue='test.capability.registry.binding',
                                     exchange='exchange.dell.cpsd.hdp.capability.registry.binding',
-                                    routing_key='#', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+                                    routing_key='#', ssl_enabled=True)
 
 
 def cleanup():
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                      queue='test.capability.registry.control', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671,
+                                      queue='test.capability.registry.control', ssl_enabled=True)
 
-    af_support_tools.rmq_delete_queue(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                      rmq_username=cpsd.props.rmq_username, rmq_password=cpsd.props.rmq_password,
-                                      queue='test.capability.registry.binding', ssl_enabled=cpsd.props.rmq_ssl_enabled)
+    af_support_tools.rmq_delete_queue(host='amqp', port=5671,
+                                      queue='test.capability.registry.binding', ssl_enabled=True)
 
 
 def waitForMsg(queue):
@@ -501,10 +438,8 @@ def waitForMsg(queue):
         time.sleep(sleeptime)
         timeout += sleeptime
 
-        q_len = af_support_tools.rmq_message_count(host=cpsd.props.base_hostname, port=cpsd.props.rmq_port,
-                                                   rmq_username=cpsd.props.rmq_username,
-                                                   rmq_password=cpsd.props.rmq_password,
-                                                   queue=queue, ssl_enabled=cpsd.props.rmq_ssl_enabled)
+        q_len = af_support_tools.rmq_message_count(host='amqp', port=5671,
+                                                   queue=queue, ssl_enabled=True)
 
         if timeout > max_timeout:
             print('ERROR: Message took too long to return. Something is wrong')
