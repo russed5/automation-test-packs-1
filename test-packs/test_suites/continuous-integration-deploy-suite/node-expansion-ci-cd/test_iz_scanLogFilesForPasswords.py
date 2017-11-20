@@ -75,12 +75,20 @@ def setup():
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_log_files_free_of_passwords(service, directory, setup):
-    filePath = '/opt/dell/cpsd/dne/' + directory + '/logs/'
+    filePath = '/opt/dell/cpsd/' + directory + '/logs/'
 
     infoLogFile = directory + '-info.log'
 
     # Need this exception as the node-discovery-paqx log file format is different to the others
-    if filePath == '/opt/dell/cpsd/node-discovery-paqx/logs/':
+    if filePath == '/opt/dell/cpsd/engineering-standards-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/engineering-standards-service/logs/'
+        infoLogFile = 'ess-info.log'
+
+    if filePath == '/opt/dell/cpsd/node-expansion-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/node-expansion-service/logs/'
+
+    if filePath == '/opt/dell/cpsd/node-discovery-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/node-discovery-service/logs/'
         infoLogFile = 'node-discovery-info.log'
 
     if filePath == '/opt/dell/cpsd/credential/logs/':
