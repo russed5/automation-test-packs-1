@@ -150,19 +150,19 @@
 				}, {
 					"identifier": "N9A-EP-admin",
 					"protocol": "SSH",
-					"address": "10.1.164.5",
+					"address": "10.234.121.8",
 					"credentials": [{
 							"name": "DEFAULT",
 							"credentialElements": {
 								"username": "admin",
-								"password": "admin1234"
+								"password": "Vc3m0l@b"
 							}
 						}
 					]
 				}, {
 					"identifier": "N9A-EP-SNMP",
 					"protocol": "SNMP",
-					"address": "10.1.164.5",
+					"address": "10.234.121.8",
 					"credentials": [{
 							"name": "DEFAULT",
 							"credentialElements": {
@@ -173,19 +173,19 @@
 				}, {
 					"identifier": "N9B-EP-admin",
 					"protocol": "SSH",
-					"address": "10.1.164.6",
+					"address": "10.234.121.9",
 					"credentials": [{
 							"name": "DEFAULT",
 							"credentialElements": {
 								"username": "admin",
-								"password": "admin1234"
+								"password": "Vc3m0l@b"
 							}
 						}
 					]
 				}, {
 					"identifier": "N9B-EP-SNMP",
 					"protocol": "SNMP",
-					"address": "10.1.164.6",
+					"address": "10.234.121.9",
 					"credentials": [{
 							"name": "DEFAULT",
 							"credentialElements": {
