@@ -334,7 +334,7 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_dne():
     print("Test: The Capability Registry Binding. Verify the Pong message from each provider / adapter")
 
     # This is the list of DNE Specific current/providers
-    capabilityProvider_Node_Discovery_Paqx = 'node-discovery-paqx'
+    capabilityProvider_Node_Discovery_Paqx = 'dell-cpsd-dne-node-discovery-service'
 
     # Each provider/adapter is given a flag that will be set to True once its responded. This method is used as the order
     node_Discovery_Paqx_Tested = False

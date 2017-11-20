@@ -159,12 +159,12 @@ def test_capabilityRegistry_ListCapabilities_core_2(param_providerName, param_ca
     cleanup()
 
 
-@pytest.mark.parametrize('param_providerName, param_capabilities1, param_capabilities2', [
-    ('node-discovery-paqx', 'list-discovered-nodes', 'manage-node-allocation')])
+@pytest.mark.parametrize('param_providerName, param_capabilities1, param_capabilities2, param_capabilities3, param_capabilities4', [
+    ('dell-cpsd-dne-node-discovery-service ', 'list-discovered-nodes', 'manage-node-allocation', 'start-node-allocation', 'fail-node-allocation')])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_capabilityRegistry_ListCapabilities_dne_2(param_providerName, param_capabilities1, param_capabilities2):
+def test_capabilityRegistry_ListCapabilities_dne_4(param_providerName, param_capabilities1, param_capabilities2, param_capabilities3, param_capabilities4):
     """
     Title           :       Verify the registry.list.capability Message returns all capabilities for the provider under test
     Description     :       A registry.list.capability message is sent.  It is expected that a response is returned that
@@ -187,6 +187,8 @@ def test_capabilityRegistry_ListCapabilities_dne_2(param_providerName, param_cap
     providerName = param_providerName
     capabilities1 = param_capabilities1
     capabilities2 = param_capabilities2
+    capabilities3 = param_capabilities3
+    capabilities4 = param_capabilities4
 
     error_list = []
 
@@ -196,6 +198,10 @@ def test_capabilityRegistry_ListCapabilities_dne_2(param_providerName, param_cap
         error_list.append(capabilities1)
     if (capabilities2 not in return_message):
         error_list.append(capabilities2)
+    if (capabilities3 not in return_message):
+        error_list.append(capabilities3)
+    if (capabilities4 not in return_message):
+        error_list.append(capabilities4)
 
     assert not error_list, ('Missing the service or some capabilities')
 
