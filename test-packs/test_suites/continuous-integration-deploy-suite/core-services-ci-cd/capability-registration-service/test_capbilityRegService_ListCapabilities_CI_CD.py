@@ -160,7 +160,7 @@ def test_capabilityRegistry_ListCapabilities_core_2(param_providerName, param_ca
 
 
 @pytest.mark.parametrize('param_providerName, param_capabilities1, param_capabilities2, param_capabilities3, param_capabilities4', [
-    ('dell-cpsd-dne-node-discovery-service ', 'list-discovered-nodes', 'manage-node-allocation', 'start-node-allocation', 'fail-node-allocation')])
+    ('dell-cpsd-dne-node-discovery-service', 'list-discovered-nodes', 'manage-node-allocation', 'start-node-allocation', 'fail-node-allocation')])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
