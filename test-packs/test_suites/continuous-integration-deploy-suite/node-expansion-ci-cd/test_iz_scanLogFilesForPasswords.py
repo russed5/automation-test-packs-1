@@ -65,9 +65,9 @@ def setup():
 @pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),
                                                 ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),
                                                 ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),
-                                                ("symphony-dne-paqx", "dne-paqx"),
-                                                ("symphony-engineering-standards-service", "ess"),
-                                                ("dell-cpsd-node-discovery-paqx", "node-discovery-paqx"),
+                                                ("dell-cpsd-dne-node-expansion-service", "node-expansion-service"),
+                                                ("dell-cpsd-dne-engineering-standards-service", "engineering-standards-service"),
+                                                ("dell-cpsd-dne-node-discovery-service", "node-discovery-service"),
                                                 ("dell-cpsd-core-credential-service", "credential"),
                                                 ("dell-cpsd-core-endpoint-registration-service",
                                                  "registration-services/endpoint-registration")])
@@ -75,7 +75,7 @@ def setup():
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_log_files_free_of_passwords(service, directory, setup):
-    filePath = '/opt/dell/cpsd/' + directory + '/logs/'
+    filePath = '/opt/dell/cpsd/dne/' + directory + '/logs/'
 
     infoLogFile = directory + '-info.log'
 
