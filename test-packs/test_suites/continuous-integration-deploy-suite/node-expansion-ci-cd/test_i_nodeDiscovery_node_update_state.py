@@ -237,17 +237,22 @@ def insertNodeIntoDB(elementId, nodeId, nodeStatus, setup):
     :return: The result of the psql command (success result is 'INSERT 0 1')
     """
 
+    nodeSerial = "88888888"
+    nodeProduct = "R730 Base"
+    nodeVendor = ""
+
     # write the INSERT command into a file on the remote host for ease of execution
     # then copy that file into the postgres docker container
     # then  ask postgres to execute the command in the file
-    insertCmd = "insert into compute_node(ELEMENT_ID, NODE_ID, NODE_STATUS, LOCKING_VERSION) values (\'" + \
-                elementId + "\', \'" + nodeId + "\', \'" + nodeStatus + "\', 0);"
+    insertCmd = "insert into compute_node(ELEMENT_ID, NODE_ID, NODE_STATUS, NODE_SERIAL, NODE_PRODUCT, NODE_VENDOR, LOCKING_VERSION) values (\'" + \
+                elementId + "\', \'" + nodeId + "\', \'" + nodeStatus + "\', \'" + nodeSerial + "\',\'" + nodeProduct + "\',\'" + nodeVendor + "\', 0);"
+
 
     writeToFileCmd = "echo \"" + insertCmd + "\" > /tmp/sqlInsert.txt"
 
     copyFileToContainerCmd = "docker cp /tmp/sqlInsert.txt postgres:/tmp/sqlInsert.txt"
 
-    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-paqx options=--search_path=public\\\" -f /tmp/sqlInsert.txt\"\'"
+    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-service\\\" -f /tmp/sqlInsert.txt\"\'"
 
     try:
         result = af_support_tools.send_ssh_command(
@@ -292,20 +297,9 @@ def deleteEntryInNodeComputeTable(elementId, setup):
     :return: the result of the delete command (sample success result is 'DELETE #'
     where '#' is the number of entries deleted. """
 
-    deleteFromCommand = "DELETE FROM compute_node where ELEMENT_ID=\'" + elementId + "\';"
-    writeToFileCommand = "echo \"" + deleteFromCommand + "\" > /tmp/sqlDelete.txt"
+    execSQLCommand = "docker exec -i postgres sh -c \'su postgres sh -c \"psql \\\"dbname=node-discovery-service \\\" -c \\\"delete FROM compute_node;\\\"\"\'"
 
     try:
-
-        result = af_support_tools.send_ssh_command(
-            	host=setup['IP'],
-            	username=setup['cli_user'],
-            	password=setup['cli_password'],
-                command=writeToFileCommand,
-                return_output=True)
-
-        execSQLCommand = "sudo  -u postgres -H sh -c \"psql \\\"dbname=symphony options=--search_path=ndpx\\\" \
-                            -f /tmp/sqlDelete.txt\""
 
         result = af_support_tools.send_ssh_command(
             	host=setup['IP'],
@@ -450,7 +444,7 @@ def listNodes(setup):
     :return: the result of the select * command
     """
 
-    execSQLCommand = "docker exec -i postgres sh -c \'su postgres sh -c \"psql \\\"dbname=node-discovery-paqx \\\" -c \\\"select * FROM compute_node;\\\"\"\'"
+    execSQLCommand = "docker exec -i postgres sh -c \'su postgres sh -c \"psql \\\"dbname=node-discovery-service \\\" -c \\\"select * FROM compute_node;\\\"\"\'"
 
     try:
 
