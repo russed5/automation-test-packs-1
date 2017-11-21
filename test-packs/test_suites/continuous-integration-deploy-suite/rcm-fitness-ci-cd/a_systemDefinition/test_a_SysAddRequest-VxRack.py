@@ -102,7 +102,7 @@ def test_SystemAdditionRequested():
 
         if timeout > 30:
             print('ERROR: System list Request Message took to long to return. Something is wrong')
-            cleanup()
+            cleanupSDS()
             break
 
     return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemListRequest')
@@ -171,7 +171,7 @@ def test_HAL_CollectComponentVersion():
 
         if timeout > 500:
             print('ERROR: HAL Responce Message took to long to return. Something is wrong')
-            cleanup()
+            cleanupHAL()
             break
 
     return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
