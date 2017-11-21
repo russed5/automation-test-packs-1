@@ -5,23 +5,7 @@
 import af_support_tools
 import pytest
 
-
-################################################
-@pytest.fixture()
-def setup():
-    parameters = {}
-    env_file = 'env.ini'
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                          property='hostname')
-    parameters['IP'] = ipaddress
-    cli_user = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                         property='username')
-    parameters['cli_user'] = cli_user
-    cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                             property='password')
-    parameters['cli_password'] = cli_password
-    return parameters
-
+# Tests use the setup fixture in conftest.py
 
 ################################################
 @pytest.mark.parametrize('service_name', ["dell-cpsd-dne-engineering-standards-service", "dell-cpsd-dne-node-expansion-service",
@@ -169,9 +153,9 @@ def test_dne_service_stop_start(service_name, setup):
 @pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),
                                                 ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),
                                                 ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),
-                                                ("dell-cpsd-dne-node-expansion-service", "dne/node-expansion-service"),
-                                                ("dell-cpsd-dne-engineering-standards-service", "dne/engineering-standards-service"),
-                                                ("dell-cpsd-dne-node-discovery-service", "dne/node-discovery-service")])
+                                                ("dell-cpsd-dne-node-expansion-service", "node-expansion-service"),
+                                                ("dell-cpsd-dne-engineering-standards-service", "engineering-standards-service"),
+                                                ("dell-cpsd-dne-node-discovery-service", "node-discovery-service")])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -190,8 +174,17 @@ def test_dne_services_log_files_exceptions(service, directory, setup):
     infoLogFile = directory + '-info.log'
 
     # Need this exception as the node-discovery-paqx log file format is different to the others
-    if filePath == '/opt/dell/cpsd/dne/node-discovery-service/logs/':
+    if filePath == '/opt/dell/cpsd/engineering-standards-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/engineering-standards-service/logs/'
+        infoLogFile = 'ess-info.log'
+
+    if filePath == '/opt/dell/cpsd/node-expansion-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/node-expansion-service/logs/'
+
+    if filePath == '/opt/dell/cpsd/node-discovery-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/node-discovery-service/logs/'
         infoLogFile = 'node-discovery-info.log'
+
 
     # Verify the log files exist
     sendCommand = 'docker ps | grep ' + service + ' | awk \'{system("docker exec -i "$1" ls ' + filePath + '") }\''
