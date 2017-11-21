@@ -3,32 +3,22 @@ import pytest
 import json
 import os
 import time
-import paramiko
 import requests
-import datetime
-# import pika
 import af_support_tools
-import re
-import traceback
-from collections import Counter
+
 
 
 
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
-    global cpsd
-    import cpsd
     global path
     path = "/home/autouser/PycharmProjects/auto-framework/test_suites/continuous-integration-deploy-suite/rcm-fitness-ci-cd/a_systemDefinition/"
-    # Update config ini files at runtime
     my_data_file = os.environ.get(
         'AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/symphony-sds-VxRack.properties'
     af_support_tools.set_config_file_property_by_data_file(my_data_file)
-
-    # Set config ini file name
     global env_file
     env_file = 'env.ini'
-
+    # Set config ini file name
     global hostTLS
     hostTLS = "amqp"
     global host
@@ -100,7 +90,7 @@ def test_SystemAdditionRequested():
 
     urldefine = 'http://' + host + ':5500/v1/amqp/'
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    respdefine = requests.post(urldefine, data=the_payload, headers=headers)
+    requests.post(urldefine, data=the_payload, headers=headers)
 
     time.sleep(30)
 
@@ -159,7 +149,7 @@ def test_HAL_CollectComponentVersion():
 
     urlcollect = 'http://' + host + ':5500/v1/amqp/'
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    respcollect = requests.post(urlcollect, data=the_payload, headers=headers)
+    requests.post(urlcollect, data=the_payload, headers=headers)
     time.sleep(2)
     return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                                           queue='test.hal.orchestrator.request', remove_message=False)
@@ -437,32 +427,6 @@ def registerRackHD(payLoad, responseRegRackHD):
 def registerVcenter(payLoad, responseRegVcenter):
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.vcenter.registration.info.request'}
 
-    # credentials = pika.PlainCredentials(rmq_username, rmq_password)
-    # parameters = pika.ConnectionParameters(host, port, '/', credentials)
-    # connection = pika.BlockingConnection(parameters)
-    # channel = connection.channel()
-
-
-    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                  queue='testRegisterVcenterRequest', ssl_enabled=False)
-    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                  queue='testRegisterVcenterResponse', ssl_enabled=False)
-    #
-    # time.sleep(2)
-    #
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue='testRegisterVcenterRequest', exchange='exchange.dell.cpsd.controlplane.vcenter.request',
-    #                                 routing_key='#', ssl_enabled=False)
-    # af_support_tools.rmq_bind_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                 queue='testRegisterVcenterResponse', exchange='exchange.dell.cpsd.controlplane.vcenter.response',
-    #                                 routing_key='#', ssl_enabled=False)
-    #
-    # af_support_tools.rmq_publish_message(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                      exchange="exchange.dell.cpsd.controlplane.vcenter.request",
-    #                                      routing_key="controlplane.hypervisor.vcenter.endpoint.register",
-    #                                      headers=messageReqHeader, payload=payLoad, payload_type='json',
-    #                                      ssl_enabled=False)
-
     af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                      queue='testRegisterVcenterRequest')
     af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
@@ -496,21 +460,11 @@ def registerVcenter(payLoad, responseRegVcenter):
         q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
                                                    queue='testRegisterVcenterResponse')
 
-        # q_len = af_support_tools.rmq_message_count(host=ipaddress,
-        #                                            port=port, rmq_username=rmq_username, rmq_password=rmq_password,
-        #                                            queue='test.system.list.found')
-
         # If the test queue doesn't get a message then something is wrong
         if timeout > 10:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
             cleanup()
             break
-
-    # my_response_credentials_body = af_support_tools.rmq_consume_message(host=host, port=port,
-    #                                                                     rmq_username=rmq_username,
-    #                                                                     rmq_password=rmq_username,
-    #                                                                     queue='testRegisterVcenterResponse',
-    #                                                                     ssl_enabled=False)
 
     my_response_credentials_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                                                         queue='testRegisterVcenterResponse')
@@ -519,11 +473,6 @@ def registerVcenter(payLoad, responseRegVcenter):
     print("\nRegister response consumed.")
     data_Vcenter = open(path + responseRegVcenter, 'rU')
     dataVcenter = json.load(data_Vcenter)
-
-    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                  queue='testRegisterVcenterRequest', ssl_enabled=False)
-    # af_support_tools.rmq_purge_queue(host=host, port=port, rmq_username=rmq_username, rmq_password=rmq_username,
-    #                                  queue='testRegisterVcenterResponse', ssl_enabled=False)
 
     af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                      queue='testRegisterVcenterRequest')
