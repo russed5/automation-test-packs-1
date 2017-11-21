@@ -60,8 +60,6 @@ def load_test_data():
 @pytest.mark.daily_status
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
-@pytest.mark.dne_paqx_parent
-@pytest.mark.dne_paqx_parent_mvp_extended
 def test_enable_rabbitmq_management_plugin():
     """ A function to enable the rabbitmq_management plugin
     It won't cause any errrors if it is already enabled"""
