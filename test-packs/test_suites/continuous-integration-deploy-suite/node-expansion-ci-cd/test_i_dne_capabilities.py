@@ -15,25 +15,6 @@ import os
 import time
 
 
-##############################################################################################
-
-@pytest.fixture()
-def setup():
-    parameters = {}
-    env_file = 'env.ini'
-
-    ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
-    cli_user = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='username')
-    cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
-                                                             property='password')
-
-    parameters['IP'] = ipaddress
-    parameters['cli_user'] = cli_user
-    parameters['cli_password'] = cli_password
-
-    return parameters
-
-
 #####################################################################
 # These are the main tests.
 #####################################################################
@@ -112,7 +93,6 @@ def test_dne_rackhd_adapter_capabilities():
     capabilities13 = 'rackhd-configure-bmc-settings'
     capabilities14 = 'rackhd-set-idrac-credentials'
     capabilities15 = 'rackhd-node-inventory'
-
 
     error_list = []
 
