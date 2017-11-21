@@ -65,9 +65,9 @@ def setup():
 @pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),
                                                 ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),
                                                 ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),
-                                                ("symphony-dne-paqx", "dne-paqx"),
-                                                ("symphony-engineering-standards-service", "ess"),
-                                                ("dell-cpsd-node-discovery-paqx", "node-discovery-paqx"),
+                                                ("dell-cpsd-dne-node-expansion-service", "node-expansion-service"),
+                                                ("dell-cpsd-dne-engineering-standards-service", "engineering-standards-service"),
+                                                ("dell-cpsd-dne-node-discovery-service", "node-discovery-service"),
                                                 ("dell-cpsd-core-credential-service", "credential"),
                                                 ("dell-cpsd-core-endpoint-registration-service",
                                                  "registration-services/endpoint-registration")])
@@ -80,7 +80,15 @@ def test_dne_log_files_free_of_passwords(service, directory, setup):
     infoLogFile = directory + '-info.log'
 
     # Need this exception as the node-discovery-paqx log file format is different to the others
-    if filePath == '/opt/dell/cpsd/node-discovery-paqx/logs/':
+    if filePath == '/opt/dell/cpsd/engineering-standards-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/engineering-standards-service/logs/'
+        infoLogFile = 'ess-info.log'
+
+    if filePath == '/opt/dell/cpsd/node-expansion-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/node-expansion-service/logs/'
+
+    if filePath == '/opt/dell/cpsd/node-discovery-service/logs/':
+        filePath = '/opt/dell/cpsd/dne/node-discovery-service/logs/'
         infoLogFile = 'node-discovery-info.log'
 
     if filePath == '/opt/dell/cpsd/credential/logs/':

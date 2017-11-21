@@ -24,8 +24,8 @@ def setup():
 
 
 ################################################
-@pytest.mark.parametrize('service_name', ["symphony-engineering-standards-service", "symphony-dne-paqx",
-                                          "dell-cpsd-node-discovery-paqx", "dell-cpsd-hal-vcenter-adapter",
+@pytest.mark.parametrize('service_name', ["dell-cpsd-dne-engineering-standards-service", "dell-cpsd-dne-node-expansion-service",
+                                          "dell-cpsd-dne-node-discovery-service", "dell-cpsd-hal-vcenter-adapter",
                                           "dell-cpsd-hal-scaleio-adapter", "dell-cpsd-hal-rackhd-adapter",
                                           "dell-cpsd-core-api-gateway"])
 @pytest.mark.daily_status
@@ -59,9 +59,9 @@ def test_dne_services_up(service_name, setup):
     assert not err
 
 
-@pytest.mark.parametrize('service_name', ["symphony-engineering-standards-service", "symphony-dne-paqx",
+@pytest.mark.parametrize('service_name', ["dell-cpsd-dne-engineering-standards-service", "dell-cpsd-dne-node-expansion-service",
                                           "dell-cpsd-hal-vcenter-adapter", "dell-cpsd-hal-scaleio-adapter",
-                                          "dell-cpsd-node-discovery-paqx", "dell-cpsd-hal-rackhd-adapter"])
+                                          "dell-cpsd-dne-node-discovery-service", "dell-cpsd-hal-rackhd-adapter"])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -108,8 +108,8 @@ def test_dne_amqpconnection_tls_port(service_name, setup):
     assert not err
 
 
-@pytest.mark.parametrize('service_name', ["symphony-engineering-standards-service", "symphony-dne-paqx",
-                                          "dell-cpsd-node-discovery-paqx", "dell-cpsd-hal-vcenter-adapter",
+@pytest.mark.parametrize('service_name', ["dell-cpsd-dne-engineering-standards-service", "dell-cpsd-dne-node-expansion-service",
+                                          "dell-cpsd-dne-node-discovery-service", "dell-cpsd-hal-vcenter-adapter",
                                           "dell-cpsd-hal-scaleio-adapter", "dell-cpsd-hal-rackhd-adapter",
                                           "dell-cpsd-core-api-gateway"])
 @pytest.mark.dne_paqx_parent_mvp
@@ -169,9 +169,9 @@ def test_dne_service_stop_start(service_name, setup):
 @pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),
                                                 ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),
                                                 ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),
-                                                ("symphony-dne-paqx", "dne-paqx"),
-                                                ("symphony-engineering-standards-service", "ess"),
-                                                ("dell-cpsd-node-discovery-paqx", "node-discovery-paqx")])
+                                                ("dell-cpsd-dne-node-expansion-service", "dne/node-expansion-service"),
+                                                ("dell-cpsd-dne-engineering-standards-service", "dne/engineering-standards-service"),
+                                                ("dell-cpsd-dne-node-discovery-service", "dne/node-discovery-service")])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
@@ -190,7 +190,7 @@ def test_dne_services_log_files_exceptions(service, directory, setup):
     infoLogFile = directory + '-info.log'
 
     # Need this exception as the node-discovery-paqx log file format is different to the others
-    if filePath == '/opt/dell/cpsd/node-discovery-paqx/logs/':
+    if filePath == '/opt/dell/cpsd/dne/node-discovery-service/logs/':
         infoLogFile = 'node-discovery-info.log'
 
     # Verify the log files exist
