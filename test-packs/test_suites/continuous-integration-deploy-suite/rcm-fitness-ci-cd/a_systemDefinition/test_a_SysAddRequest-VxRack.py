@@ -76,7 +76,7 @@ def load_test_data():
 def test_SystemAdditionRequested():
     q_len = 0
     timeout = 0
-    cleanup()
+    cleanupSDS()
 
     bindSDSQueus()
 
@@ -84,9 +84,6 @@ def test_SystemAdditionRequested():
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file,
                                                             heading=payload_header,
                                                             property=payload_property_sys)
-
-    # data = json.dumps(the_payload)
-
 
     urldefine = 'http://' + host + ':5500/v1/amqp/'
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
@@ -108,9 +105,9 @@ def test_SystemAdditionRequested():
             cleanup()
             break
 
-    return_message = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemListRequest')
+    return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemListRequest')
 
-    return_json = json.loads(return_message[0])
+    return_json = json.loads(return_message)
 
     assert return_json['messageProperties']
     assert return_json['convergedSystem']['groups']
@@ -129,7 +126,7 @@ def test_SystemAdditionRequested():
     verify_SystemExists()
     verifyConsulUpdate("rcm-fitness-paqx", "rcm-fitness-api")
 
-    cleanup()
+    cleanupSDS()
 
 # *** Kick of the collectComponentVersion Msg
 @pytest.mark.daily_status
@@ -193,29 +190,31 @@ def test_HAL_CollectComponentVersion():
 
     print('\nTEST: CollectComponentVersions run: PASSED')
 
-    cleanup()
+    cleanupHAL()
 
 
 #######################################################################################################################
 
-def cleanup():
+def cleanupSDS():
     # Delete the test queues
     print('Cleaning up...')
 
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testSystemListRequest')
-
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testSystemListFound')
-
-    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                      queue='testHalOrchestratorRequest')
-
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testComponentCredentialRequest')
-
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testSystemDefinitionEvent')
+
+def cleanupHAL():
+    # Delete the test queues
+    print('Cleaning up...')
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                      queue='testHalOrchestratorRequest')
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                      queue='testHalOrchestratorResponse')
 
 def bindSDSQueus():
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
