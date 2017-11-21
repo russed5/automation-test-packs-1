@@ -37,7 +37,7 @@ def load_test_data():
     global host
     host = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
     global portTLS
-    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='tls_port')
+    portTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ', property='ssl_port')
     portTLS = int(portTLS)
     global rmq_username
     rmq_username = af_support_tools.get_config_file_property(config_file=env_file, heading='RabbitMQ',
