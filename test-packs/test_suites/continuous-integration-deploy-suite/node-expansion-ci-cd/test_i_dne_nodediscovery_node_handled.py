@@ -66,7 +66,7 @@ def test_dne_discovered_node_handled(setup):
     time.sleep(2)
 
     # Step 1: Publish a message to dummy a node discovery. Values used here are all dummy values.
-    the_payload = '{"data":{"ipMacAddresses":[{"ipAddress":"172.31.128.12","macAddress":"fb-43-62-54-d4-3a"},{"macAddress":"b9-ce-c4-73-10-35"},{"macAddress":"4d-63-c5-48-9f-5c"},{"macAddress":"1d-97-c3-a0-42-1a"},{"macAddress":"ce-1d-b5-a6-65-ad"},{"macAddress":"30-e5-72-6f-78-79"}],"nodeId":"123456789012345678909777","nodeType":"compute"},"messageProperties":{"timestamp":"2017-06-27T08:58:32.437+0000"},"action":"discovered","createdAt":"2017-06-27T08:58:31.871Z","nodeId":"123456789012345678909777","severity":"information","type":"node","typeId":"123456789012345678909777","version":"1.0"}'
+    the_payload = '{"data":{"ipMacAddresses":[{"ipAddress":"172.31.128.12","macAddress":"fb-43-62-54-d4-3a"},{"macAddress":"b9-ce-c4-73-10-35"},{"macAddress":"4d-63-c5-48-9f-5c"},{"macAddress":"1d-97-c3-a0-42-1a"},{"macAddress":"ce-1d-b5-a6-65-ad"},{"macAddress":"30-e5-72-6f-78-79"}],"nodeId":"123456789012345678909777","nodeType":"compute","serial":"XXTESTX","product":"R730 Base","vendor":""},"messageProperties":{"timestamp":"2017-06-27T08:58:32.437+0000"},"action":"discovered","createdAt":"2017-06-27T08:58:31.871Z","nodeId":"123456789012345678909777","severity":"information","type":"node","typeId":"123456789012345678909777","version":"1.0"}'
 
     af_support_tools.rmq_publish_message(host='amqp', port=5671, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.adapter.rackhd.node.discovered.event',
@@ -151,7 +151,7 @@ def readEntryInNodeComputeTable(setup):
     readFromCommand = 'select * FROM compute_node'
     writeToFileCommand = "echo \"" + readFromCommand + "\" > /tmp/sqlRead.txt"
     writeToDockerFileCommand = 'docker cp /tmp/sqlRead.txt postgres:/tmp/sqlRead.txt'
-    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-paqx options=--search_path=public\\\" -f /tmp/sqlRead.txt\"\'"
+    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-service options=--search_path=public\\\" -f /tmp/sqlRead.txt\"\'"
 
     try:
 
