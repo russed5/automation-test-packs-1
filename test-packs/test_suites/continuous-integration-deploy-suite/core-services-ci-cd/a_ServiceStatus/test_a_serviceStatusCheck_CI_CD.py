@@ -10,9 +10,9 @@ import pytest
 @pytest.fixture(scope="session",
                 params=["system-definition-service", "credential-service", "hal-orchestrator-service",
                         "identity-service",
-                        "capability-registry-service", "endpoint-registration-service", "vcenter-adapter",
+                        "capability-registry-service", "endpoint-registration-service", "hal-vcenter-adapter",
                         "vcenter-compute",
-                        "poweredge-compute", "rackhd-adapter", "scaleio-adapter", "core-tls-service",
+                        "poweredge-compute", "hal-rackhd-adapter", "hal-scaleio-adapter", "core-tls-service",
                         "core-pam-service", "api-gateway",
                         ])
 def core_container(setup, request):
@@ -173,3 +173,25 @@ def test_core_serviceup(setup, core_container):
 #                                                   password=setup['password'],
 #                                                   command=cmd3, return_output=True)
 #     assert "Up" in response3, "%s did not start correctly" % core_container
+
+
+@pytest.mark.core_services_mvp
+@pytest.mark.core_services_mvp_extended
+def test_core_version(core_container, setup):
+    """
+            Title: Verify Core services have a version associated with them
+            Description: This test verifies that each core service container has a version
+            Params: List of Core service names
+            Returns: None
+        """
+    print(test_core_version.__doc__)
+
+    assert core_container, "container name not found, test fails immediately"
+
+    sendcommand = "docker image ls " + core_container + "|grep -v TAG | awk '{print $2}'"
+
+    my_return_status = af_support_tools.send_ssh_command(host=setup['IP'], username=setup['user'],
+                                                         password=setup['password'],
+                                                         command=sendcommand, return_output=True)
+
+    assert "." in my_return_status, "versioning is not present for this container"

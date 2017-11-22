@@ -76,7 +76,7 @@ def load_test_data():
 def test_SystemAdditionRequested():
     q_len = 0
     timeout = 0
-    cleanup()
+    cleanupSDS()
 
     bindSDSQueus()
 
@@ -84,9 +84,6 @@ def test_SystemAdditionRequested():
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file,
                                                             heading=payload_header,
                                                             property=payload_property_sys)
-
-    # data = json.dumps(the_payload)
-
 
     urldefine = 'http://' + host + ':5500/v1/amqp/'
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
@@ -99,18 +96,18 @@ def test_SystemAdditionRequested():
         timeout += 1
 
         q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                   queue='test.system.list.request')
+                                                   queue='testSystemListRequest')
 
         print(q_len)
 
         if timeout > 30:
             print('ERROR: System list Request Message took to long to return. Something is wrong')
-            cleanup()
+            cleanupSDS()
             break
 
-    return_message = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True, queue='test.system.list.request')
+    return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemListRequest')
 
-    return_json = json.loads(return_message[0])
+    return_json = json.loads(return_message)
 
     assert return_json['messageProperties']
     assert return_json['convergedSystem']['groups']
@@ -122,14 +119,14 @@ def test_SystemAdditionRequested():
     time.sleep(60)
     verifyCSmessage()
 
-    mess_count = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True, queue='test.system.definition.event')
+    mess_count = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemDefinitionEvent')
     assert mess_count >= 4, "Unexpected number of components defined."
 
     # Call the function to verify the system exists. This is not a necessary step but it will return the system UUID.
     verify_SystemExists()
     verifyConsulUpdate("rcm-fitness-paqx", "rcm-fitness-api")
 
-    cleanup()
+    cleanupSDS()
 
 # *** Kick of the collectComponentVersion Msg
 @pytest.mark.daily_status
@@ -152,7 +149,7 @@ def test_HAL_CollectComponentVersion():
     requests.post(urlcollect, data=the_payload, headers=headers)
     time.sleep(2)
     return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                          queue='test.hal.orchestrator.request', remove_message=False)
+                                                          queue='testHalOrchestratorRequest', remove_message=False)
 
     return_json = json.loads(return_message, encoding='utf-8')
 
@@ -170,15 +167,15 @@ def test_HAL_CollectComponentVersion():
         timeout += 1
 
         q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                   queue='test.hal.orchestrator.response')
+                                                   queue='testHalOrchestratorResponse')
 
         if timeout > 500:
             print('ERROR: HAL Responce Message took to long to return. Something is wrong')
-            cleanup()
+            cleanupHAL()
             break
 
     return_message = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                          queue='test.hal.orchestrator.response',
+                                                          queue='testHalOrchestratorResponse',
                                                           remove_message=False)
 
     return_json = json.loads(return_message, encoding='utf-8')
@@ -193,61 +190,63 @@ def test_HAL_CollectComponentVersion():
 
     print('\nTEST: CollectComponentVersions run: PASSED')
 
-    cleanup()
+    cleanupHAL()
 
 
 #######################################################################################################################
 
-def cleanup():
+def cleanupSDS():
     # Delete the test queues
     print('Cleaning up...')
 
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                      queue='test.system.list.request')
-
+                                      queue='testSystemListRequest')
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                      queue='test.system.list.found')
-
+                                      queue='testSystemListFound')
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                      queue='test.hal.orchestrator.request')
-
+                                      queue='testComponentCredentialRequest')
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                      queue='test.component.credential.request')
+                                      queue='testSystemDefinitionEvent')
 
+def cleanupHAL():
+    # Delete the test queues
+    print('Cleaning up...')
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                      queue='test.system.definition.event')
+                                      queue='testHalOrchestratorRequest')
+    af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
+                                      queue='testHalOrchestratorResponse')
 
 def bindSDSQueus():
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                    queue='test.system.list.request',
+                                    queue='testSystemListRequest',
                                     exchange='exchange.dell.cpsd.syds.system.definition.request',
                                     routing_key='#')
 
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                    queue='test.system.list.found',
+                                    queue='testSystemListFound',
                                     exchange='exchange.dell.cpsd.syds.system.definition.response',
                                     routing_key='#')
 
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                    queue='test.system.definition.event',
+                                    queue='testSystemDefinitionEvent',
                                     exchange='exchange.dell.cpsd.syds.system.definition.event',
                                     routing_key='#')
 
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                    queue='test.component.credential.request',
+                                    queue='testComponentCredentialRequest',
                                     exchange='exchange.dell.cpsd.cms.credentials.request',
                                     routing_key='#')
 
 
 def bindHALQueus():
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                    queue='test.hal.orchestrator.request',
+                                    queue='testHalOrchestratorRequest',
                                     exchange='exchange.dell.cpsd.hal.orchestrator.request',
                                     routing_key='#')
 
     # Create a test queue that will bind to system.definition.response
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                    queue='test.hal.orchestrator.response',
+                                    queue='testHalOrchestratorResponse',
                                     exchange='exchange.dell.cpsd.hal.orchestrator.response',
                                     routing_key='#')
 
@@ -262,7 +261,7 @@ def verifyCSmessage():
         timeout += 1
 
         q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                   queue='test.component.credential.request')
+                                                   queue='testComponentCredentialRequest')
 
         if timeout > 30:
             print('ERROR: CS Request Message took to long to return. Something is wrong')
@@ -270,7 +269,7 @@ def verifyCSmessage():
             break
 
     return_message = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                          queue='test.component.credential.request')
+                                                          queue='testComponentCredentialRequest')
 
     print(return_message)
 
@@ -298,8 +297,8 @@ def verify_SystemExists():
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                             property=payload_property_req)
 
-    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='test.system.list.found')
-    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='test.system.list.found')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemListFound')
+    af_support_tools.rmq_purge_queue(host=hostTLS, port=portTLS, ssl_enabled=True, queue='testSystemListFound')
 
     af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.syds.system.definition.request',
@@ -315,7 +314,7 @@ def verify_SystemExists():
         timeout += 1
 
         q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                   queue='test.system.list.found')
+                                                   queue='testSystemListFound')
 
         if timeout > 10:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
@@ -323,7 +322,7 @@ def verify_SystemExists():
             break
 
     return_message = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
-                                                          queue='test.system.list.found')
+                                                          queue='testSystemListFound')
 
     return_json = json.loads(return_message[0], encoding='utf-8')
 
