@@ -142,8 +142,6 @@ def test_HAL_CollectComponentVersion():
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                             property=payload_property_hal)
 
-
-
     urlcollect = 'http://' + host + ':5500/v1/amqp/'
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
     requests.post(urlcollect, data=the_payload, headers=headers)
@@ -192,8 +190,8 @@ def test_HAL_CollectComponentVersion():
 
     cleanupHAL()
 
-
 #######################################################################################################################
+
 
 def cleanupSDS():
     # Delete the test queues
@@ -208,6 +206,7 @@ def cleanupSDS():
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testSystemDefinitionEvent')
 
+
 def cleanupHAL():
     # Delete the test queues
     print('Cleaning up...')
@@ -215,6 +214,7 @@ def cleanupHAL():
                                       queue='testHalOrchestratorRequest')
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testHalOrchestratorResponse')
+
 
 def bindSDSQueus():
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
@@ -250,6 +250,7 @@ def bindHALQueus():
                                     exchange='exchange.dell.cpsd.hal.orchestrator.response',
                                     routing_key='#')
 
+
 def verifyCSmessage():
     # We need to verify that the triggered component.credentials.addition.requested is valid.
 
@@ -265,7 +266,7 @@ def verifyCSmessage():
 
         if timeout > 30:
             print('ERROR: CS Request Message took to long to return. Something is wrong')
-            cleanup()
+            cleanupSDS()
             break
 
     return_message = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
@@ -288,6 +289,7 @@ def verifyCSmessage():
     assert return_json['messageProperties']['timestamp']
     assert return_json['endpoints'][0]['credentials'][0]['credentialUuid']
     print('credentials.addition.requested is valid')
+
 
 def verify_SystemExists():
     # Check that the system exists
@@ -318,7 +320,7 @@ def verify_SystemExists():
 
         if timeout > 10:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
-            cleanup()
+            cleanupSDS()
             break
 
     return_message = af_support_tools.rmq_consume_all_messages(host=hostTLS, port=portTLS, ssl_enabled=True,
@@ -340,6 +342,7 @@ def verify_SystemExists():
     my_systemUuid = config['convergedSystems'][0]['uuid']
     print('\nTEST: System Exists - System UUID: ', my_systemUuid)
 
+
 def verifyConsulUpdate(paqx, context):
     url = 'https://' + host + ':8500/v1/catalog/services'
     resp = requests.get(url, verify=False)
@@ -358,6 +361,7 @@ def verifyConsulUpdate(paqx, context):
         return
 
     assert False, "No Consul info returned."
+
 
 def registerRackHD(payLoad, responseRegRackHD):
     messageHeaderRequest = {'__TypeId__': 'com.dell.cpsd.rackhd.registration.info.request'}
@@ -396,7 +400,6 @@ def registerRackHD(payLoad, responseRegRackHD):
 
         if timeout > 10:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
-            cleanup()
             break
 
     my_response_credentials_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
@@ -422,6 +425,7 @@ def registerRackHD(payLoad, responseRegRackHD):
         return
 
     assert False, "Consumed message not as expected."
+
 
 def registerVcenter(payLoad, responseRegVcenter):
     messageReqHeader = {'__TypeId__': 'com.dell.cpsd.vcenter.registration.info.request'}
@@ -462,7 +466,6 @@ def registerVcenter(payLoad, responseRegVcenter):
         # If the test queue doesn't get a message then something is wrong
         if timeout > 10:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
-            cleanup()
             break
 
     my_response_credentials_body = af_support_tools.rmq_consume_message(host=hostTLS, port=portTLS, ssl_enabled=True,
