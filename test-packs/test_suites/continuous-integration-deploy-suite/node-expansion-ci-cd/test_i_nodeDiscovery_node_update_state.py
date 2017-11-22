@@ -47,7 +47,7 @@ def test_changeNodeStateToFAILED(setup):
     if (testNodeId not in nodeListing):
         error_list.append("Error, no node listed in DB")
 
-    if ("PROVISIONING_FAILED" not in nodeListing):
+    if ("FAILED" not in nodeListing):
         error_list.append("Error, Status change not persisted")
         
     assert not error_list
