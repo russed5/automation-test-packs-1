@@ -74,7 +74,7 @@ def test_dne_rackhd_adapter_capabilities():
     Parameters      :       none
     Returns         :       None
     """
-
+    time.sleep(60)
     return_message = full_ListCapabilities()
 
     providerName = 'rackhd-adapter'
@@ -148,7 +148,7 @@ def test_dne_scaleio_adapter_capabilities():
     Parameters      :       none
     Returns         :       None
     """
-
+    time.sleep(60)
     return_message = full_ListCapabilities()
 
     # Verify the scaleio Apapter Response
@@ -222,7 +222,7 @@ def test_dne_vcenter_adapter_capabilities():
     Parameters      :       none
     Returns         :       None
     """
-
+    time.sleep(60)
     return_message = full_ListCapabilities()
 
     # Verify the vcenter Apapter Response
