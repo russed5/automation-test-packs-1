@@ -154,7 +154,7 @@ def test_HAL_CollectComponentVersion():
     print(return_json)
     assert return_json['messageProperties']['correlationId']
     assert return_json['messageProperties']['replyTo']
-    assert return_json['messageProperties']['timestamp']
+
 
     # We need to wait until the queue gets the response message and timeout if it never arrives
     q_len = 0
