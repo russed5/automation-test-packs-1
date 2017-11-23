@@ -137,7 +137,7 @@ def test_HAL_CollectComponentVersion():
     registerRackHD(message_rackHD, "out_registerRackHDResp.json")
     time.sleep(2)
     registerVcenter(message_vcenter, "out_registerVcenterResp.json")
-
+    print(host)
     # Get the collectComponentVersions payload data from the config symphony-sds.ini file.
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                             property=payload_property_hal)
