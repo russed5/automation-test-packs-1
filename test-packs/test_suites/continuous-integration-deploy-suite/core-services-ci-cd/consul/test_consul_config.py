@@ -15,7 +15,9 @@ import socket
 import json
 
 @pytest.fixture(scope="session", params=["amqp", "api-gateway", "capability-registry-service", "credential-service",
-                                        "endpoint-registration-service", "identity-service", "pam-service", "postgres"])
+                                        "endpoint-registration-service", "identity-service", "hal-rackhd-adapter",
+                                         "vcenter-adapter", "scaleio-adapter", "hdp-scaleio-storage-provider", "hdp-poweredge-compute-provider",
+                                         "hdp-vcenter-compute-provider","pam-service", "postgres"])
 def service_name(setup, request):
     ''' Fixture to get Service names expected to register in Consul'''
 
