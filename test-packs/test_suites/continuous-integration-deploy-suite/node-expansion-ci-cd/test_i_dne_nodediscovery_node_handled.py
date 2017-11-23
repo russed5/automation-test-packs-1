@@ -13,11 +13,18 @@ import pytest
 import af_support_tools
 import time
 import requests
-import sys
-import os
-
 
 ##############################################################################################
+#  Common API details
+global headers
+headers = {'Content-Type': 'application/json'}
+
+global protocol
+protocol = 'https://'
+
+global dne_port
+dne_port = ':8071'
+
 
 @pytest.fixture()
 def setup():
@@ -41,10 +48,9 @@ def setup():
 #####################################################################
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
-# @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_discovered_node_handled(setup):
     """
-    Title           :       Verify that dne/nodes API has disocvered Dell nodes
+    Title           :       Verify that dne/nodes API has discovered Dell nodes
     Description     :       A dummy node discovered message is published to trigger the node discovery process
                             It will fail if :
                                 A node is already present
@@ -80,6 +86,7 @@ def test_dne_discovered_node_handled(setup):
     nodeID = rmqNodeDiscover()
 
     # Step 3: Verify the EIDS Messages sequence and get the UUID for the new node
+    global element_id
     element_id = verifyEidsMessage()
 
     # Step 4: Verify the Node is in Postgres
@@ -89,10 +96,10 @@ def test_dne_discovered_node_handled(setup):
 
     error_list = []
 
-    if (nodeID not in currentNodes):
+    if nodeID not in currentNodes:
         error_list.append(nodeID)
 
-    if (element_id not in currentNodes):
+    if element_id not in currentNodes:
         error_list.append(nodeID)
 
     assert not error_list, 'ERROR: Node not in Postgres'
@@ -100,6 +107,127 @@ def test_dne_discovered_node_handled(setup):
     cleanup('test.rackhd.node.discovered.event')
     cleanup('test.eids.identity.request')
     cleanup('test.eids.identity.response')
+
+
+@pytest.mark.dne_paqx_parent_mvp
+def test_dne_node_in_esx_cannot_be_provisioned(setup):
+    '''
+    Attempt to use the dummy node and use the name of an ESXi Hostname existing node
+    Expect provisioning to fail
+    :param setup:
+    :return: none
+    '''
+
+    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","esxiManagementHostname":"fpr1-h14","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementGatewayIpAddress":"string","esxiManagementIpAddress":"string","esxiManagementSubnetMask":"string","idracGatewayIpAddress":"string","idracIpAddress":"string","idracSubnetMask":"string","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1EsxIpAddress":"string","scaleIoData1EsxSubnetMask":"string","scaleIoData1SvmIpAddress":"string","scaleIoData1SvmSubnetMask":"string","scaleIoData2EsxIpAddress":"string","scaleIoData2EsxSubnetMask":"string","scaleIoData2SvmIpAddress":"string","scaleIoData2SvmSubnetMask":"string","scaleIoSvmManagementGatewayAddress":"string","scaleIoSvmManagementIpAddress":"string","scaleIoSvmManagementSubnetMask":"string","vMotionManagementIpAddress":"string","vMotionManagementSubnetMask":"string"}]'
+
+    request_body = json.loads(request_body)
+
+    endpoint_post = '/multinode/addnodes'
+    url_body_post = protocol + setup['IP'] + dne_port + endpoint_post
+
+    try:
+        # POST to the addnode workflow
+        response = requests.post(url_body_post, json=request_body, headers=headers, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 on /multinode/addnodes'
+        data = response.json()
+
+        # save the workflowID as this will be used next to get the status of the job
+        addnode_workflow_id = data['id']
+        print('WorkflowID: ', addnode_workflow_id)
+
+        endpoint_get = '/multinode/status/'
+        url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
+
+        # GET on /multinode/status/
+        response = requests.get(url_body_get, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 response on /multinode/status/'
+        data = response.text
+        data = json.loads(data, encoding='utf-8')
+
+        jobState = data['state']
+        errorCode = data['errors'][0]['errorCode']
+        processStatusLog = data['additionalProperties']['processStatusLogs'][1]
+
+        error_list = []
+
+        if jobState != 'FAILED':
+            error_list.append(jobState)
+
+        if errorCode != 'Verify-Nodes-Selected-Failed':
+            error_list.append(errorCode)
+
+        if processStatusLog != 'The following Nodes have already been added.  Please remove the Nodes from the request and try again.  Nodes currently in use: XXTESTX':
+            error_list.append(processStatusLog)
+
+        assert not error_list, 'Test Failed'
+        print('Test Pass: Unable to provision node as expected.'
+              '\nESXi Hostname already in use.'
+              '\nError returned: ' + processStatusLog)
+
+    except Exception as err:
+        # Return code error (e.g. 404, 501, ...)
+        print(err, '\n')
+        raise Exception(err)
+
+
+@pytest.mark.dne_paqx_parent_mvp
+def test_dne_node_in_sdc_cannot_be_provisioned(setup):
+    '''
+    Attempt to use the dummy node and use the IP of an existing ESXi Mgmt node
+    Expect provisioning to fail
+    :param setup:
+    :return: none
+    '''
+
+    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","esxiManagementIpAddress":"10.239.139.21","esxiManagementHostname":"string","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementGatewayIpAddress":"string","esxiManagementSubnetMask":"string","idracGatewayIpAddress":"string","idracIpAddress":"string","idracSubnetMask":"string","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1EsxIpAddress":"string","scaleIoData1EsxSubnetMask":"string","scaleIoData1SvmIpAddress":"string","scaleIoData1SvmSubnetMask":"string","scaleIoData2EsxIpAddress":"string","scaleIoData2EsxSubnetMask":"string","scaleIoData2SvmIpAddress":"string","scaleIoData2SvmSubnetMask":"string","scaleIoSvmManagementGatewayAddress":"string","scaleIoSvmManagementIpAddress":"string","scaleIoSvmManagementSubnetMask":"string","vMotionManagementIpAddress":"string","vMotionManagementSubnetMask":"string"}]'
+    request_body = json.loads(request_body)
+
+    endpoint_post = '/multinode/addnodes'
+    url_body_post = protocol + setup['IP'] + dne_port + endpoint_post
+
+    try:
+        # POST to the addnode workflow
+        response = requests.post(url_body_post, json=request_body, headers=headers, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 on dne/nodes'
+        data = response.json()
+
+        # save the workflowID as this will be used next to get the status of the job
+        addnode_workflow_id = data['id']
+        print('WorkflowID: ', addnode_workflow_id)
+
+        endpoint_get = '/multinode/status/'
+        url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
+
+        # GET on /multinode/status/
+        response = requests.get(url_body_get, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 response'
+        data = response.text
+        data = json.loads(data, encoding='utf-8')
+
+        jobState = data['state']
+        errorCode = data['errors'][0]['errorCode']
+        processStatusLog = data['additionalProperties']['processStatusLogs'][1]
+
+        error_list = []
+
+        if jobState != 'FAILED':
+            error_list.append(jobState)
+
+        if errorCode != 'Verify-Nodes-Selected-Failed':
+            error_list.append(errorCode)
+
+        if processStatusLog != 'The following Nodes have already been added.  Please remove the Nodes from the request and try again.  Nodes currently in use: XXTESTX':
+            error_list.append(processStatusLog)
+
+        assert not error_list, 'Test Failed'
+        print('Test Pass: Unable to provision node as expected.'
+              '\nESXi IP already in use.'
+              '\nError returned: ' + processStatusLog)
+
+    except Exception as err:
+        # Return code error (e.g. 404, 501, ...)
+        print(err, '\n')
+        raise Exception(err)
 
 
 #####################################################################
