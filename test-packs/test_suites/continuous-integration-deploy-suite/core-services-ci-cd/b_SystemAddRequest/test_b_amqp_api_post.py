@@ -92,30 +92,4 @@ def test_api_addsystem():
         err.append("Error---All Components are not added successfully")
     assert not err
 
-@pytest.mark.tls_enabled
-def test_sds_consul():
-    """
-            Title: sds Registered in con
-            Description: This test verify SystemDefinition Services is registered with consul
-            Params: None
-            Returns: None
-        """
-    print(test_sds_consul.__doc__)
-    err = []
-
-
-    consul_url = 'https://' + consulHost + ':8500/v1/catalog/services'
-    resp = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
-    data = json.loads(resp.text)
-
-    assert resp.status_code == 200, "Request has not been acknowledged as expected."
-
-    if 'system-definition-service' not in data:
-        err.append("Error--- system-definition-service not registered in Consul")
-    assert not err
-
-    if 'postgres' not in data:
-        err.append("Error--- Postgres not registered in Consul")
-    assert not err
-
 
