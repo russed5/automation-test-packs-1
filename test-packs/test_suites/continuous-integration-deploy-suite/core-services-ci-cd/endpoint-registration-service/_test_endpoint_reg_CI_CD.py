@@ -388,7 +388,7 @@ def deregisterServiceFromConsul(serviceID):
     url = 'https://' + 'consul.cpsd.dell' + ':8500' + apipath
     print("jk consul url ",url)
     resp = requests.put(url, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
-    #resp = requests.put(url, verify='/home/autouser/PycharmProjects/auto-framework/test_suites/continuous-integration-deploy-suite/core-services-ci-cd/z_endpoint-registration-service/certs/taf.cpsd.dell.ca.crt')
+    #resp = requests.put(url, verify='/home/autouser/PycharmProjects/auto-framework/test_suites/continuous-integration-deploy-suite/core-services-ci-cd/endpoint-registration-service/certs/taf.cpsd.dell.ca.crt')
     return resp.status_code
 
 
