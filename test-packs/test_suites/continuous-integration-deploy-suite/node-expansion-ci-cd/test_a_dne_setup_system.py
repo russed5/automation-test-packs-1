@@ -31,9 +31,6 @@ def load_test_data():
 
 @pytest.fixture()
 def setup():
-
-
-
     parameters = {}
     env_file = 'env.ini'
 
@@ -111,7 +108,7 @@ def test_dne_setup_system(setup):
     """
     # Install dell-cpsd-amqp-rest-api
     time.sleep(2)
-    assert install_amqpapi(setup), 'failed to install amqpapi'
+    assert install_amqpapi(setup), 'Error: Failed to install amqpapi'
 
     payload_file = 'continuous-integration-deploy-suite/symphony-sds.ini'
     payload_header = 'payload'
@@ -121,7 +118,7 @@ def test_dne_setup_system(setup):
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                             property=payload_property_sys)
 
-    assert api_addsystem(setup, the_payload), 'error'
+    assert api_addsystem(setup, the_payload), 'Error: System not configured correctly'
 
 
 @pytest.mark.dne_paqx_parent_mvp
@@ -254,8 +251,23 @@ def registerRackHD(setup):
 
     return_json = json.loads(return_message, encoding='utf-8')
     print(return_json)
-    # assert return_json['endpoint']['type'] == 'rackhd', 'rackhd not registered with endpoint'
-    # Removing this assert as the messages from the different adapters are interfering with one another.
+
+    endpointType = return_json['endpoint']['type']
+    timeout = 0
+    
+    # We need to check that we received the registration msg for rackHd and not something else 
+    while endpointType != 'rackhd' and timeout < 20:
+        assert waitForMsg(
+            'test.endpoint.registration.event'), 'Error: No message to register with Consul sent by system'
+        return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
+                                                              queue='test.endpoint.registration.event',
+                                                              remove_message=True)
+        return_json = json.loads(return_message, encoding='utf-8')
+        print(return_json)
+        endpointType = return_json['endpoint']['type']
+        timeout += 1
+
+    assert return_json['endpoint']['type'] == 'rackhd', 'rackhd not registered with endpoint'
     cleanup('test.controlplane.rackhd.response')
     cleanup('test.endpoint.registration.event')
 
@@ -309,8 +321,23 @@ def registerVcenter(setup):
 
     return_json = json.loads(return_message, encoding='utf-8')
     print(return_json)
-    # assert return_json['endpoint']['type'] == 'vcenter', 'vcenter not registered with endpoint'
-    # Removing this assert as the messages from the different adapters are interfering with one another.
+
+    endpointType = return_json['endpoint']['type']
+    timeout = 0
+
+    # We need to check that we received the registration msg for vcenter and not something else 
+    while endpointType != 'vcenter' and timeout < 20:
+        assert waitForMsg(
+            'test.endpoint.registration.event'), 'Error: No message to register with Consul sent by system'
+        return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
+                                                              queue='test.endpoint.registration.event',
+                                                              remove_message=True)
+        return_json = json.loads(return_message, encoding='utf-8')
+        print(return_json)
+        endpointType = return_json['endpoint']['type']
+        timeout += 1
+
+    assert return_json['endpoint']['type'] == 'vcenter', 'vcenter not registered with endpoint'
     cleanup('test.controlplane.vcenter.response')
     cleanup('test.endpoint.registration.event')
 
@@ -366,8 +393,22 @@ def registerScaleIO(setup):
 
     return_json = json.loads(return_message, encoding='utf-8')
     print(return_json)
-    # assert return_json['endpoint']['type'] == 'scaleio', 'scaleio not registered with endpoint'
-    # Removing this assert as the messages from the different adapters are interfering with one another.
+    endpointType = return_json['endpoint']['type']
+    timeout = 0
+
+    # We need to check that we received the registration msg for scaleio and not something else 
+    while endpointType != 'scaleio' and timeout < 20:
+        assert waitForMsg(
+            'test.endpoint.registration.event'), 'Error: No message to register with Consul sent by system'
+        return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True,
+                                                              queue='test.endpoint.registration.event',
+                                                              remove_message=True)
+        return_json = json.loads(return_message, encoding='utf-8')
+        print(return_json)
+        endpointType = return_json['endpoint']['type']
+        timeout += 1
+
+    assert return_json['endpoint']['type'] == 'scaleio', 'scaleio not registered with endpoint'
     cleanup('test.controlplane.scaleio.response')
     cleanup('test.endpoint.registration.event')
 
