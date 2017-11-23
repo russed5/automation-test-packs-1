@@ -108,7 +108,7 @@ def test_dne_setup_system(setup):
     """
     # Install dell-cpsd-amqp-rest-api
     time.sleep(2)
-    assert install_amqpapi(setup), 'failed to install amqpapi'
+    assert install_amqpapi(setup), 'Error: Failed to install amqpapi'
 
     payload_file = 'continuous-integration-deploy-suite/symphony-sds.ini'
     payload_header = 'payload'
@@ -118,7 +118,7 @@ def test_dne_setup_system(setup):
     the_payload = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                             property=payload_property_sys)
 
-    assert api_addsystem(setup, the_payload), 'Error, System cont configured correctly'
+    assert api_addsystem(setup, the_payload), 'Error: System not configured correctly'
 
 
 @pytest.mark.dne_paqx_parent_mvp
