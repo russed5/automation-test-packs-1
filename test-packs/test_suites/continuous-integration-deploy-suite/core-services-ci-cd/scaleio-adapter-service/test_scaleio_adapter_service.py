@@ -365,7 +365,7 @@ def test_scaleio_adapter_log_files_exist():
     Returns         :       None
     """
 
-    filePath = '/opt/dell/cpsd/scaleio-adapter-service/logs/'
+    filePath = '/opt/dell/cpsd/scaleio-adapter/logs/'
     errorLogFile = 'scaleio-adapter-error.log'
     infoLogFile = 'scaleio-adapter-info.log'
 
@@ -399,7 +399,7 @@ def test_scaleio_adapter_log_files_free_of_exceptions():
     Returns         :       None
     """
 
-    filePath = '/opt/dell/cpsd/scaleio-adapter-service/logs/'
+    filePath = '/opt/dell/cpsd/scaleio-adapter/logs/'
     errorLogFile = 'scaleio-adapter-error.log'
     excep1 = 'AuthenticationFailureException'
     excep2 = 'RuntimeException'
