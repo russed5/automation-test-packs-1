@@ -153,25 +153,25 @@ def verifyRESTdownloadInvalidFileRequest(rcmUUID, compUUID):
 
         if statusResp["state"] == "ERROR":
             print(statusResp)
-            assert len(statusResp["fileRepresentationList"]) == 0, "Unexpected file details returned in error message."
             if rcmUUID == "" and compUUID == "":
-                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp["jobMessage"], "Unexpected error message for empty values returned."
+                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp["message"], "Unexpected error message for empty values returned."
                 return
             if rcmUUID == "" and compUUID != "":
-                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp["jobMessage"], "Unexpected error message for empty values returned."
+                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp["message"], "Unexpected error message for empty values returned."
                 return
             if rcmUUID != "" and compUUID == "":
-                assert "RFCA1045E The [rcmComponentUuid] can not be null or empty" in statusResp["jobMessage"], "Unexpected error message for empty values returned."
+                assert "RFCA1045E The [rcmComponentUuid] can not be null or empty" in statusResp["message"], "Unexpected error message for empty values returned."
                 # assert "does not have any associated files" in statusResp["jobMessage"], "Unexpected error string returned."
                 return
             else:
-                assert compUUID in statusResp["jobMessage"], "Unexpected error message for empty values returned."
-                assert rcmUUID in statusResp["jobMessage"], "Unexpected error message for empty values returned."
-                assert "RFCA1046E The Component" in statusResp["jobMessage"], "Unexpected error message for empty values returned."
+                assert compUUID in statusResp["message"], "Unexpected error message for empty values returned."
+                assert rcmUUID in statusResp["message"], "Unexpected error message for empty values returned."
+                assert "RFCA1046E The Component" in statusResp["message"], "Unexpected error message for empty values returned."
+                assert "does not have any associated files" in statusResp["message"], "Unexpected error message for empty values returned."
                 # assert "does not have any associated files" in statusResp["jobMessage"], "Unexpected error string returned."
                 return
 
-            return
+            # return
     assert False, ("Initial REST update request not complete.")
 
 def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
@@ -224,64 +224,84 @@ def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
         time.sleep(1)
         statusData = requests.get(statusURL, verify=False)
         statusResp = json.loads(statusData.text)
-        assert statusResp["state"] == "COMPLETE" or "IN_PROGRESS", "Unexpected initial state returned."
+        assert statusResp["state"] == "COMPLETE" or "RUNNING", "Unexpected initial state returned."
         assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
         assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
         assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
         assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"]["href"], "No URL included in response to query subsequent progress."
         assert statusResp["link"]["rel"] == "download-status", "Unexpected REL value returned."
+        assert "REQUESTED" in data["tasks"][0]["state"], "Unexpected state in Tasks detail"
+        assert "RFCA1064I Download operation" in data["tasks"][0]["message"], "Unexpected message in Tasks detail"
+        assert len(data["tasks"][0]["errors"]) == 0, "Expected an empty list of errors."
+        assert data["tasks"][0]["file"] is None, "File details should be NULL."
 
-    i = 0
-    while statusResp["state"] != "COMPLETE":
-        assert statusResp["state"] == "IN_PROGRESS" or "RUNNING", "Unexpected initial state returned."
-        assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
-        assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
-        assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
-        assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"][
-            "href"], "No URL included in response to query subsequent progress."
-        assert statusResp["link"]["rel"] == "download-status"
-        assert statusResp["fileRepresentationList"][0]["downloadedSize"] != 0, "Unexpected download size returned."
-        assert statusResp["fileRepresentationList"][0]["size"] != 0, "Unexpected file size returned."
-        assert statusResp["fileRepresentationList"][0]["url"] is None, "Unexpected url returned."
-        assert statusResp["fileRepresentationList"][0]["hashVal"] is None, "Unexpected hashval returned."
-        assert statusResp["fileRepresentationList"][0]["error"] is "", "Unexpected error returned."
-        # assert statusResp["error"] is None, "Unexpected error returned."
+        i = 0
 
-        time.sleep(0.5)
-        statusURL = statusResp["link"]["href"]
-        statusData = requests.get(statusURL, verify=False)
-        statusResp = json.loads(statusData.text)
+        while statusResp["state"] != "COMPLETE":
+            assert statusResp["state"] == "IN_PROGRESS" or "RUNNING", "Unexpected initial state returned."
+            assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
+            assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
+            assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
+            assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"][
+                "href"], "No URL included in response to query subsequent progress."
+            assert statusResp["link"]["rel"] == "download-status"
+            # print(fileCount)
+            print(len(statusResp["tasks"][i]["file"]))
+            while i < len(statusResp["tasks"]):
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
+                assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
+                if statusResp["tasks"][i]["file"]["size"] == statusResp["tasks"][i]["file"]["downloadedSize"]:
+                    assert statusResp["tasks"][i]["file"]["url"] is not None, "Unexpected url returned."
+                else:
+                    assert statusResp["tasks"][i]["file"]["url"] is None, "Unexpected url returned."
+                    assert statusResp["tasks"][i]["file"]["hashVal"] is None, "Unexpected hashval returned."
+                    assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
+                print("Progressing ...")
+                i += 1
+            # assert statusResp["error"] is "", "Unexpected error returned."
 
-        if statusResp["state"] == "IN_PROGRESS":
-            i += 1
             time.sleep(0.5)
             statusURL = statusResp["link"]["href"]
             statusData = requests.get(statusURL, verify=False)
             statusResp = json.loads(statusData.text)
-            continue
 
-    if statusResp["state"] == "COMPLETE":
-        assert statusResp["state"] == "COMPLETE", "Unexpected initial state returned."
-        assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
-        assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
-        assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
-        assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"][
-            "href"], "No URL included in response to query subsequent progress."
-        assert statusResp["link"]["rel"] == "download-status"
-        assert filename in statusResp["fileRepresentationList"][0]["url"], "Expected filename not included in returned URL."
-        assert len(statusResp["fileRepresentationList"][0]["hashVal"]) > 32, "HashVal not the expected length."
-        assert statusResp["fileRepresentationList"][0]["downloadedSize"] != 0, "Unexpected download size returned."
-        assert statusResp["fileRepresentationList"][0]["size"] != 0, "Unexpected file size returned."
-        assert statusResp["fileRepresentationList"][0]["downloadedSize"] == statusResp["fileRepresentationList"][0]["size"], "Download size is reported as larger than expected size."
-        assert statusResp["fileRepresentationList"][0]["error"] is "", "Unexpected error returned."
-        # assert statusResp["error"] is None, "Unexpected error returned."
-        return
+            if statusResp["state"] == "RUNNING":
+                time.sleep(0.5)
+                statusURL = statusResp["link"]["href"]
+                statusData = requests.get(statusURL, verify=False)
+                statusResp = json.loads(statusData.text)
+                continue
 
-    if statusResp["state"] != "COMPLETE":
-        if statusResp["state"] != "IN_PROGRESS":
-            assert False, "Invalid status reported."
+        i = 0
+        if statusResp["state"] == "COMPLETE":
+            assert statusResp["state"] == "COMPLETE", "Unexpected initial state returned."
+            assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
+            assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
+            assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
+            assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"][
+                "href"], "No URL included in response to query subsequent progress."
+            assert statusResp["link"]["rel"] == "download-status"
+
+            while i < len(statusResp["tasks"]):
+                assert statusResp["tasks"][i]["state"] == "COMPLETE", "Unexpected state in task list."
+                assert "RFCA1064I Download operation" in statusResp["tasks"][i]["message"], "Unexpected message in Tasks detail"
+                assert filename in statusResp["tasks"][i]["file"]["url"], "Expected filename not included in returned URL."
+                assert len(statusResp["tasks"][i]["file"]["hashVal"]) > 32, "HashVal not the expected length."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
+                assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] == statusResp["tasks"][i]["file"]["size"], "Download size is reported as larger than expected size."
+                assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
+                i += 1
+
+            # assert statusResp["error"] is "", "Unexpected error returned."
             return
-    assert False, "Initial REST update request not complete."
+
+        if statusResp["state"] != "COMPLETE":
+            if statusResp["state"] != "IN_PROGRESS":
+                assert False, "Invalid status reported."
+                return
+        assert False, "Initial REST update request not complete."
+
 
 def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
     contentIndex = 0
@@ -342,10 +362,14 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
             statusURL = data["link"]["href"]
             assert data["link"]["rel"] == "download-status", "Unexpected REL value returned."
             assert data["link"]["method"] == "GET", "Unexpected method value returned."
+            assert "REQUESTED" in data["tasks"][0]["state"], "Unexpected state in Tasks detail"
+            assert "RFCA1064I Download operation" in data["tasks"][0]["message"], "Unexpected message in Tasks detail"
+            assert len(data["tasks"][0]["errors"]) == 0, "Expected an empty list of errors."
+            assert data["tasks"][0]["file"] is None, "File details should be NULL."
             time.sleep(1)
             statusData = requests.get(statusURL, verify=False)
             statusResp = json.loads(statusData.text)
-            assert statusResp["state"] == "COMPLETE" or "IN_PROGRESS", "Unexpected initial state returned."
+            assert statusResp["state"] == "COMPLETE" or "RUNNING", "Unexpected initial state returned."
             assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
             assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
             assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
@@ -364,17 +388,16 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
                 "href"], "No URL included in response to query subsequent progress."
             assert statusResp["link"]["rel"] == "download-status"
             print(fileCount)
-            print(len(statusResp["fileRepresentationList"]))
-            assert len(statusResp["fileRepresentationList"]) == fileCount, "Unexpected number of files returned."
-            while i < len(statusResp["fileRepresentationList"]):
-                assert statusResp["fileRepresentationList"][i]["downloadedSize"] != 0, "Unexpected download size returned."
-                assert statusResp["fileRepresentationList"][i]["size"] != 0, "Unexpected file size returned."
-                if statusResp["fileRepresentationList"][i]["size"] == statusResp["fileRepresentationList"][i]["downloadedSize"]:
-                    assert statusResp["fileRepresentationList"][i]["url"] is not None, "Unexpected url returned."
+            print(len(statusResp["tasks"]))
+            while i < len(statusResp["tasks"]):
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
+                assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
+                if statusResp["tasks"][i]["file"]["size"] == statusResp["tasks"][i]["file"]["downloadedSize"]:
+                    assert statusResp["tasks"][i]["file"]["url"] is not None, "Unexpected url returned."
                 else:
-                    assert statusResp["fileRepresentationList"][i]["url"] is None, "Unexpected url returned."
-                    assert statusResp["fileRepresentationList"][i]["hashVal"] is None, "Unexpected hashval returned."
-                    assert statusResp["fileRepresentationList"][i]["error"] is "", "Unexpected error returned."
+                    assert statusResp["tasks"][i]["file"]["url"] is None, "Unexpected url returned."
+                    assert statusResp["tasks"][i]["file"]["hashVal"] is None, "Unexpected hashval returned."
+                    assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
                 print("Progressing ...")
                 i += 1
             # assert statusResp["error"] is "", "Unexpected error returned."
@@ -384,7 +407,7 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
             statusData = requests.get(statusURL, verify=False)
             statusResp = json.loads(statusData.text)
 
-            if statusResp["state"] == "IN_PROGRESS":
+            if statusResp["state"] == "RUNNING":
                 time.sleep(0.5)
                 statusURL = statusResp["link"]["href"]
                 statusData = requests.get(statusURL, verify=False)
@@ -401,13 +424,15 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
                 "href"], "No URL included in response to query subsequent progress."
             assert statusResp["link"]["rel"] == "download-status"
 
-            while i < len(statusResp["fileRepresentationList"]):
-                assert filename in statusResp["fileRepresentationList"][i]["url"], "Expected filename not included in returned URL."
-                assert len(statusResp["fileRepresentationList"][i]["hashVal"]) > 32, "HashVal not the expected length."
-                assert statusResp["fileRepresentationList"][i]["downloadedSize"] != 0, "Unexpected download size returned."
-                assert statusResp["fileRepresentationList"][i]["size"] != 0, "Unexpected file size returned."
-                assert statusResp["fileRepresentationList"][i]["downloadedSize"] == statusResp["fileRepresentationList"][i]["size"], "Download size is reported as larger than expected size."
-                assert statusResp["fileRepresentationList"][i]["error"] is "", "Unexpected error returned."
+            while i < len(statusResp["tasks"]):
+                assert statusResp["tasks"][i]["state"] == "COMPLETE", "Unexpected state in task list."
+                assert "RFCA1064I Download operation" in statusResp["tasks"][i]["message"], "Unexpected message in Tasks detail"
+                assert filename in statusResp["tasks"][i]["file"]["url"], "Expected filename not included in returned URL."
+                assert len(statusResp["tasks"][i]["file"]["hashVal"]) > 32, "HashVal not the expected length."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
+                assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] == statusResp["tasks"][i]["file"]["size"], "Download size is reported as larger than expected size."
+                assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
                 i += 1
 
             # assert statusResp["error"] is "", "Unexpected error returned."
@@ -420,7 +445,7 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
         assert False, "Initial REST update request not complete."
 
 def verifyRESTrepositoryStatus(filepath, filename):
-    url = 'https://' + host + ':8888/downloads/' + filepath
+    url = 'http://' + host + ':8888/downloads/' + filepath
     repoStatus = requests.get(url, verify=False)
     # urlSec = 'https://' + host + ':8888/downloads/' + filepath
     # repoStatus = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
@@ -447,10 +472,10 @@ def test_verifyRESTdownloadSingleFileRequest1():
 def test_verifyRESTdownloadSingleFileRequestSTATUS1():
     verifyRESTdownloadSingleFileRequestSTATUS("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE", "3.2", "3.2.1")
 
-# @pytest.mark.daily_status
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyRESTrepositoryStatus1():
-#     verifyRESTrepositoryStatus("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/", "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE")
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyRESTrepositoryStatus1():
+    verifyRESTrepositoryStatus("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/", "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -461,10 +486,10 @@ def test_verifyRESTdownloadSingleFileRequest2():
 def test_verifyRESTdownloadSingleFileRequestSTATUS2():
     verifyRESTdownloadSingleFileRequestSTATUS("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE", "3.2", "3.2.3")
 
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyRESTrepositoryStatus2():
-#     verifyRESTrepositoryStatus("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/", "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE")
-#
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyRESTrepositoryStatus2():
+    verifyRESTrepositoryStatus("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/", "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE")
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest3():
@@ -509,4 +534,4 @@ def test_verifyRESTdownloadInvalidFileRequest10():
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadMultiFileRequest11():
     verifyRESTdownloadMultiFileRequest("RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/", "3.2", "3.2.2", 3)
-# #
+#
