@@ -143,7 +143,12 @@ def test_dne_log_files_free_of_passwords(service, directory, setup):
         '\nNo plain text passwords in log files\n')
 
 ##############################################################################################
-
+@pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),		
+                                                ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),		
+                                                ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),		
+                                                ("dell-cpsd-dne-node-expansion-service", "node-expansion-service"),		
+                                                ("dell-cpsd-dne-engineering-standards-service", "engineering-standards-service"),		
+                                                ("dell-cpsd-dne-node-discovery-service", "node-discovery-service")])
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
