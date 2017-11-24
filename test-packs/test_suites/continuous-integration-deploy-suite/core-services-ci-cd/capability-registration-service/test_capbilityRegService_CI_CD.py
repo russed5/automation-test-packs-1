@@ -19,10 +19,7 @@ def load_test_data():
     import cpsd
     global cpsd
 
-    af_support_tools.rmq_get_server_side_certs(host_hostname=cpsd.props.base_hostname,
-                                               host_username=cpsd.props.base_username,
-                                               host_password=cpsd.props.base_password, host_port=22,
-                                               rmq_certs_path=cpsd.props.rmq_cert_path)
+   
 
     # Set config ini file name
     global env_file
