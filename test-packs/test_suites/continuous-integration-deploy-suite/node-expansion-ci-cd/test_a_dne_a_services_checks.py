@@ -150,10 +150,4 @@ def test_dne_service_stop_start(service_name, setup):
     assert not err
 
 
-@pytest.mark.parametrize('service, directory', [("dell-cpsd-hal-vcenter-adapter", "vcenter-adapter"),
-                                                ("dell-cpsd-hal-rackhd-adapter", "rackhd-adapter"),
-                                                ("dell-cpsd-hal-scaleio-adapter", "scaleio-adapter"),
-                                                ("dell-cpsd-dne-node-expansion-service", "node-expansion-service"),
-                                                ("dell-cpsd-dne-engineering-standards-service", "engineering-standards-service"),
-                                                ("dell-cpsd-dne-node-discovery-service", "node-discovery-service")])
 

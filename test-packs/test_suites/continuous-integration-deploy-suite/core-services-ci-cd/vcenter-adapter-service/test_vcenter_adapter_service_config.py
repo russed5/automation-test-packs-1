@@ -132,7 +132,7 @@ def test_registerVcenter():
                                      queue='test.endpoint.registration.event')
 
     the_payload = '{"messageProperties":{"timestamp":"2010-01-01T12:00:00Z","correlationId":"vcenter-registtration-corr-id","replyTo":"localhost"},"registrationInfo":{"address":"https://' + vcenter_IP + ':' + vcenter_port + '","username":"' + vcenter_username + '","password":"' + vcenter_password + '"}}'
-    print(the_payload)
+    
     af_support_tools.rmq_publish_message(host='amqp', port=5671,
                                          ssl_enabled=True,
                                          exchange='exchange.dell.cpsd.controlplane.vcenter.request',
@@ -148,7 +148,7 @@ def test_registerVcenter():
                                                           queue='test.controlplane.vcenter.response',
                                                           remove_message=True)
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
+    
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: Vcenter validation failure'
 
     #May remove the below commented test due to test cases already existing for consul registration further down
@@ -218,7 +218,7 @@ def test_vcenter_adapter_RMQ_bindings_core(exchange, queue):
     queues = json.dumps(queues)
 
     assert queue in queues, 'The queue "' + queue + '" is not bound to the exchange "' + exchange + '"'
-    print(exchange, '\nis bound to\n', queue, '\n')
+    
 
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
@@ -257,7 +257,7 @@ def test_vcenter_adapter_full_ListCapabilities():
     return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                           queue='test.capability.registry.response',
                                                           ssl_enabled=True)
-    print(return_message)
+    
     time.sleep(5)
     # Verify the vcenter Apapter Response
     identity = 'vcenter-adapter'
@@ -344,87 +344,6 @@ def test_vcenter_adapter_full_ListCapabilities():
 
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
-def test_consul_verify_vcenter_registered():
-    """
-    Test Case Title :       Verify vcenter is registered with Consul
-    Description     :       This method tests that vcenter-adapter is registered in the Consul API http://{SymphonyIP}:8500/v1/agent/services
-                            It will fail if :
-                                The line 'Service: "vcenter"' is not present
-    Parameters      :       none
-    Returns         :       None
-    """
-
-    service = 'vcenter'
-
-    url_body = ':8500/v1/agent/services'
-    my_url = 'https://' + consul_hostname + url_body
-
-    print('GET:', my_url)
-
-    try:
-        url_response = requests.get(my_url,verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt")
-        url_response.raise_for_status()
-
-        # A 200 has been received
-        print(url_response)
-
-        the_response = url_response.text
-
-        # Create the sting as it should appear in the API
-        serviceToCheck = '"Service":"' + service + '"'
-
-        assert serviceToCheck in the_response, ('ERROR:', service, 'is not in Consul\n')
-
-        print(service, 'Registered in Consul')
-
-    # Error check the response
-    except Exception as err:
-        # Return code error (e.g. 404, 501, ...)
-        print(err)
-        print('\n')
-        raise Exception(err)
-
-
-@pytest.mark.core_services_mvp
-@pytest.mark.core_services_mvp_extended
-def test_consul_verify_vcenter_passing_status():
-    """
-    Test Case Title :       Verify Vcenter is Passing in Consul
-    Description     :       This method tests that Vcenter-adapter has a passing status in the Consul API http://{SymphonyIP}:8500/v1/health/checks/vcenter
-                            It will fail if :
-                                The line '"Status": "passing"' is not present
-    Parameters      :       none
-    Returns         :       None
-    """
-    service = 'vcenter'
-
-    url_body = ':8500/v1/health/checks/' + service
-    my_url = 'https://' + consul_hostname + url_body
-
-    print('GET:', my_url)
-
-    try:
-        url_response = requests.get(my_url,verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt")
-        url_response.raise_for_status()
-
-        # A 200 has been received
-        print(url_response)
-        the_response = url_response.text
-
-        serviceStatus = '"Status":"passing"'
-        assert serviceStatus in the_response, ('ERROR:', service, 'is not Passing in Consul\n')
-        print(service, 'Status = Passing in consul\n\n')
-
-    # Error check the response
-    except Exception as err:
-        # Return code error (e.g. 404, 501, ...)
-        print(err)
-        print('\n')
-        raise Exception(err)
-
-
-@pytest.mark.core_services_mvp
-@pytest.mark.core_services_mvp_extended
 def test_vcenter_adapter_log_files_exist():
     """
     Title           :       Verify vcenter-adapter log files exist
@@ -436,7 +355,7 @@ def test_vcenter_adapter_log_files_exist():
     """
 
     service = 'dell-cpsd-hal-vcenter-adapter'
-    filePath = '/opt/dell/cpsd/vcenter-adapter-service/logs/'
+    filePath = '/opt/dell/cpsd/vcenter-adapter/logs/'
     errorLogFile = 'vcenter-adapter-error.log'
     infoLogFile = 'vcenter-adapter-info.log'
 
@@ -471,7 +390,7 @@ def test_vcenter_adapter_log_files_free_of_exceptions():
     """
 
     service = 'dell-cpsd-hal-vcenter-adapter'
-    filePath = '/opt/dell/cpsd/vcenter-adapter-service/logs/'
+    filePath = '/opt/dell/cpsd/vcenter-adapter/logs/'
     errorLogFile = 'vcenter-adapter-error.log'
     excep1 = 'AuthenticationFailureException'
     excep2 = 'RuntimeException'
