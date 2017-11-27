@@ -65,7 +65,7 @@ def test_identify_element():
                                          payload=identifyelement, payload_type='json')
 
     return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671, ssl_enabled=True, queue='test.identity.request')
-    print (return_message)
+    
 
 
 
