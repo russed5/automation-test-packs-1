@@ -25,7 +25,7 @@ def load_test_data():
     env_file = 'env.ini'
 
     global hostTLS
-    hostTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostnametls')
+    hostTLS = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
 
     # getSystemDefinition()
 

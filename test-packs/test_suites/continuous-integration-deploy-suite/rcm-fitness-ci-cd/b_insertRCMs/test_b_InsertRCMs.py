@@ -274,8 +274,10 @@ def verifyConsumedAttributes(filename, expectedResult, train, version, family, m
             dictUUID.update({responseData["correlationId"]: responseData["insertSuccessful"]["rcmDetails"]["uuid"]})
             # print(dictUUID)
 
-    print("\nAll verification steps executed successfully.....")
-    return dictUUID
+            print("\nAll verification steps executed successfully.....")
+            return dictUUID
+
+    assert False, "Unable to consume response."
 
 
 def verifyCorrectCorrelationID(requestFile, responseFile):
@@ -296,7 +298,9 @@ def verifyCorrectCorrelationID(requestFile, responseFile):
             assert requestData["correlationId"] == responseData[
                 "correlationId"], "Correlation ID on response message does not match."
 
-    print("\nAll verification steps executed successfully.....")
+            print("\nAll verification steps executed successfully.....")
+            return
+    assert False, "Unable to verify Corr IDs."
 
 
 def verifyUniqueUUIDinResponse():
