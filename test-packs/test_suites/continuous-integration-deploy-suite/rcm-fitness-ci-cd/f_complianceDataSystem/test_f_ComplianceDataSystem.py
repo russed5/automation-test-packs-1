@@ -222,27 +222,18 @@ def getComplianceDataSystem(product, family, identifier, deviceFamily, deviceMod
 
 def getComplianceDataSystemSubComps(model, elementType, identifier, sysDefFilename, compDataFilename, sysUUID):
     getSystemDefinition()
-
-    # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/system/definition/' + sysUUID
-    #
-    # resp = requests.get(url)
     urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/system/definition/' + sysUUID
     resp = requests.get(urlSec, verify=False)
     # resp = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     data = json.loads(resp.text)
 
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
-
     with open(sysDefFilename, 'w') as outfile:
         json.dump(data, outfile, sort_keys=True, indent=4, ensure_ascii=False)
-
-    # compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/system/' + sysUUID
-    # compResp = requests.get(compURL)
 
     compURLSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/system/' + sysUUID
     compResp = requests.get(compURLSec, verify=False)
 
-    # compResp = requests.get(compURLsec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     compData = json.loads(compResp.text)
 
     assert compResp.status_code == 200, "Request has not been acknowledged as expected."
@@ -286,7 +277,7 @@ def getComplianceDataSystemSubComps(model, elementType, identifier, sysDefFilena
                             "uuid"], "Response not detail parent Group UUID."
                         assert compData["subComponents"][subIndex]["auditData"][
                                    "messageReceivedTime"] != "", "No timestamp included."
-                        assert compData["subComponents"][subIndex]["versionDatas"][0]["type"] == "FIRMWARE"
+                        assert compData["subComponents"][subIndex]["versionDatas"][0]["type"] == "FIRMWARE" or "SOFTWARE"
                         assert compData["subComponents"][subIndex]["versionDatas"][0]["version"] != ""
                         if compData["subComponents"][subIndex]["elementData"]["elementType"] == "NIC":
                             macAddress = compData["subComponents"][subIndex]["elementData"]["identifier"]
@@ -386,6 +377,12 @@ def test_getComplianceDataSystem6():
     getComplianceDataSystemSubComps("R730XD", "RAID", "PERC H730", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataSystemPOWEREDGE.json", systemUUID)
 
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem6():
+    getComplianceDataSystemSubComps("R730XD", "PERCCLI", "PercCli SAS Customization Utility", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataSystem7():
@@ -420,6 +417,12 @@ def test_getComplianceDataSystem11():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataSystem12():
     getComplianceDataSystemSubComps("R630", "NonRAID", "Dell HBA330", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem12a():
+    getComplianceDataSystemSubComps("R630", "PERCCLI", "PercCli SAS Customization Utility", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataSystemPOWEREDGE.json", systemUUID)
 
 @pytest.mark.daily_status
@@ -468,3 +471,38 @@ def test_getComplianceDataSystem18():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataSystem19():
     getComplianceDataSystem_NULL()
+
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem20():
+    getComplianceDataSystem("VXRACK", "FLEX", "VXRACKFLEX", "730", "R730XD", "SERVER",
+                            path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem21():
+    getComplianceDataSystemSubComps("SCALEIO", "SVM", "Manager2", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem22():
+    getComplianceDataSystemSubComps("SCALEIO", "SVM", "lab.vce.com-ESX", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem23():
+    getComplianceDataSystemSubComps("SCALEIO", "SVM", "Manager1", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem24():
+    getComplianceDataSystemSubComps("SCALEIO", "SVM", "TB1", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
