@@ -197,6 +197,7 @@ def test_scaleio_RMQ_bindings_core(exchange, queue):
     print(exchange, '\nis bound to\n', queue, '\n')
 
 
+@pytest.mark.skip(reason="Need to discuss with author regarding the timing issue for these tests ")
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
 def test_scaleio_adapter_full_ListCapabilities():
