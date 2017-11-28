@@ -125,7 +125,7 @@ def test_registerscaleio():
                                      queue='test.endpoint.registration.event')
 
     the_payload = '{"messageProperties":{"timestamp":"2017-06-14T12:00:00Z","correlationId":"manually-reg-scaleio-3fb0-9696-3f7d28e17f72"},"registrationInfo":{"address":"https://' + scaleio_IP + '","username":"' + scaleio_username + '","password":"' + scaleio_password + '"}}'
-    print(the_payload)
+    
 
     af_support_tools.rmq_publish_message(host='amqp', port=5671,
                                          exchange='exchange.dell.cpsd.controlplane.scaleio.request',
@@ -134,6 +134,7 @@ def test_registerscaleio():
                                              '__TypeId__': 'com.dell.cpsd.scaleio.registration.info.request'},
                                          payload=the_payload, ssl_enabled=True)
 
+    time.sleep(5)
     # Verify the scaleio account can be validated
     assert waitForMsg('test.controlplane.scaleio.response'), 'Error: No scaleio validation message received'
     return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
@@ -141,9 +142,10 @@ def test_registerscaleio():
                                                           queue='test.controlplane.scaleio.response',
                                                           remove_message=True)
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
+    
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: scaleio validation failure'
 
+    
     # Verify that an event to register the scaleio with endpoint registry is triggered
     assert waitForMsg('test.endpoint.registration.event'), 'Error: No message to register with Consul sent by system'
     return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
@@ -152,13 +154,13 @@ def test_registerscaleio():
                                                           remove_message=True)
 
     return_json = json.loads(return_message, encoding='utf-8')
-    print (return_json)
+    
     assert return_json['endpoint']['type'] == 'scaleio', 'scaleio not registered with endpoint'
 
     cleanup('test.controlplane.scaleio.response')
     cleanup('test.endpoint.registration.event')
 
-    time.sleep(3)
+    
 
 
 @pytest.mark.parametrize('exchange, queue', [
@@ -232,8 +234,6 @@ def test_scaleio_adapter_full_ListCapabilities():
                                                           queue='test.capability.registry.response',
                                                           ssl_enabled=True)
     time.sleep(5)
-
-    print(return_message)
 
     # Verify the scaleio Apapter Response
     identity = 'scaleio-adapter'
