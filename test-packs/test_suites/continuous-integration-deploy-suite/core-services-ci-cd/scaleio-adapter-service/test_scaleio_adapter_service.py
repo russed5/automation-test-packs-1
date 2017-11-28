@@ -134,13 +134,14 @@ def test_registerscaleio():
                                              '__TypeId__': 'com.dell.cpsd.scaleio.registration.info.request'},
                                          payload=the_payload, ssl_enabled=True)
 
-    time.sleep(5)
+    
     # Verify the scaleio account can be validated
     assert waitForMsg('test.controlplane.scaleio.response'), 'Error: No scaleio validation message received'
     return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                           ssl_enabled=True,
                                                           queue='test.controlplane.scaleio.response',
                                                           remove_message=True)
+    time.sleep(10)
     return_json = json.loads(return_message, encoding='utf-8')
     
     assert return_json['responseInfo']['message'] == 'SUCCESS', 'ERROR: scaleio validation failure'
