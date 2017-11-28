@@ -88,8 +88,8 @@ def sys():
     ("3.2", "3.2.1", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
     ("3.2", "3.2.1", "RAID", "730", "PERC H730 Mini"),
     ("3.2", "3.2.1", "NonRAID", "630", "Dell HBA330 Mini"),
-    ("3.2", "3.2.1", "PERCCLI", "30", "PERC H730 Mini"),
-    ("3.2", "3.2.1", "NonRAID", "30", "Dell HBA330 Mini"),
+    ("3.2", "3.2.1", "PERCCLI", "R730XD", "PercCli SAS Customization Utility"),
+    ("3.2", "3.2.1", "PERCCLI", "R630", "PercCli SAS Customization Utility"),
     ("3.2", "3.2.1", "SVM", "SCALEIO", "TB1"),
     ("3.2", "3.2.1", "SVM", "SCALEIO", "Manager2"),
     ("3.2", "3.2.1", "SCALEIO", "SCALEIO", "SCALEIO-1"),
@@ -105,6 +105,8 @@ def sys():
     ("3.2", "3.2.2", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
     ("3.2", "3.2.2", "RAID", "730", "PERC H730 Mini"),
     ("3.2", "3.2.2", "NonRAID", "630", "Dell HBA330 Mini"),
+    ("3.2", "3.2.2", "PERCCLI", "R730XD", "PercCli SAS Customization Utility"),
+    ("3.2", "3.2.2", "PERCCLI", "R630", "PercCli SAS Customization Utility"),
     ("3.2", "3.2.2", "SVM", "SCALEIO", "TB1"),
     ("3.2", "3.2.2", "SVM", "SCALEIO", "Manager2"),
     ("3.2", "3.2.2", "SCALEIO", "SCALEIO", "SCALEIO-1"),
@@ -123,6 +125,8 @@ def sys():
     ("3.2", "3.2.3", "SCALEIO", "SCALEIO", "SCALEIO-1"),
     ("3.2", "3.2.3", "SVM", "SCALEIO", "lab.vce.com"),
     ("3.2", "3.2.3", "NonRAID", "630", "Dell HBA330 Mini"),
+    ("3.2", "3.2.3", "PERCCLI", "R730XD", "PercCli SAS Customization Utility"),
+    ("3.2", "3.2.3", "PERCCLI", "R630", "PercCli SAS Customization Utility"),
     ("3.2", "3.2.3", "RAID", "730", "PERC H730 Mini")])
 def test_post_eval(sys, train, version, type, model, identifier):
     # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/VxRack/1000 FLEX/' + train + '/' + version + '/'
