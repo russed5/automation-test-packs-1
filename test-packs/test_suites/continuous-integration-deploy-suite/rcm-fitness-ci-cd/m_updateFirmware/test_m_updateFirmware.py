@@ -863,10 +863,10 @@ def test_verifyRESTupdateRequest():
 def test_verifyRESTupdateResponse():
     verifyRESTupdateResponse("out_restResponse.json")
 
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyInvalidRESTUpdateRequest1():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_1.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5.EXE", "BIOS", subCompUUID[:8])
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyInvalidRESTUpdateRequest1():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_1.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5.EXE", "BIOS", subCompUUID[:8])
 
 # @pytest.mark.rcm_fitness_mvp_extended
 # @pytest.mark.rcm_fitness_mvp
@@ -874,18 +874,18 @@ def test_verifyInvalidRESTUpdateRequest1():
 #     verifyInvalidRESTUpdateRequest("out_restErrorBody_2.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
 #                                    "BIOS", subCompUUID)
 
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyInvalidRESTUpdateRequest3():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_3.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
-                                   "BIOS", subCompUUID[:8])
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyInvalidRESTUpdateRequest4():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_4.json", "////", "BIOS", subCompUUID[8:])
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyInvalidRESTUpdateRequest5():
-    verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyInvalidRESTUpdateRequest3():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_3.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
+#                                    "BIOS", subCompUUID[:8])
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyInvalidRESTUpdateRequest4():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_4.json", "////", "BIOS", subCompUUID[8:])
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyInvalidRESTUpdateRequest5():
+#     verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
 
 # @pytest.mark.rcm_fitness_mvp_extended
 # @pytest.mark.rcm_fitness_mvp

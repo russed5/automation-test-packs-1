@@ -55,13 +55,14 @@ def load_test_data():
     cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                              property='password')
 
-
     ensurePathExists(path)
     purgeOldOutput(path, "rest")
+
 
 def ensurePathExists(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
 
 def purgeOldOutput(dir, pattern):
     for f in os.listdir(dir):
@@ -70,6 +71,7 @@ def purgeOldOutput(dir, pattern):
             print("Old output files successfully deleted.")
         else:
             print('Unable to locate output files to remove.')
+
 
 def deletePreviousDownloadFiles(filename, filepath):
     sendCommand = "find /opt/dell/cpsd -name downloads"
@@ -92,6 +94,7 @@ def deletePreviousDownloadFiles(filename, filepath):
     else:
         print(filename + "not found in the repo directory.")
 
+
 def resetTestQueues():
     # credentials = pika.PlainCredentials(rmq_username, rmq_password)
     # parameters = pika.ConnectionParameters(host, port, '/', credentials)
@@ -111,7 +114,8 @@ def resetTestQueues():
     print("Old test queues successfully purged.")
 
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS,
-                                    queue='testDownloadFWRequest', exchange='exchange.dell.cpsd.prepositioning.downloader.request',
+                                    queue='testDownloadFWRequest',
+                                    exchange='exchange.dell.cpsd.prepositioning.downloader.request',
                                     routing_key='#', ssl_enabled=True)
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS,
                                     queue='testDownloadFWResponse',
@@ -125,10 +129,11 @@ def resetTestQueues():
                                     routing_key='#', ssl_enabled=True)
     print("New test queues successfully initialized.")
 
+
 def verifyRESTdownloadInvalidFileRequest(rcmUUID, compUUID):
     resetTestQueues()
     deletePreviousDownloadFiles("100mbfiletest.zip",
-                              "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
 
     timeout = 0
     # url = 'http://' + host + ':19080/rcm-fitness-api/api/download/firmware/'
@@ -154,32 +159,38 @@ def verifyRESTdownloadInvalidFileRequest(rcmUUID, compUUID):
         if statusResp["state"] == "ERROR":
             print(statusResp)
             if rcmUUID == "" and compUUID == "":
-                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp["message"], "Unexpected error message for empty values returned."
+                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp[
+                    "message"], "Unexpected error message for empty values returned."
                 return
             if rcmUUID == "" and compUUID != "":
-                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp["message"], "Unexpected error message for empty values returned."
+                assert "RFCA1045E The [rcmUuid] can not be null or empty" in statusResp[
+                    "message"], "Unexpected error message for empty values returned."
                 return
             if rcmUUID != "" and compUUID == "":
-                assert "RFCA1045E The [rcmComponentUuid] can not be null or empty" in statusResp["message"], "Unexpected error message for empty values returned."
+                assert "RFCA1045E The [rcmComponentUuid] can not be null or empty" in statusResp[
+                    "message"], "Unexpected error message for empty values returned."
                 # assert "does not have any associated files" in statusResp["jobMessage"], "Unexpected error string returned."
                 return
             else:
                 assert compUUID in statusResp["message"], "Unexpected error message for empty values returned."
                 assert rcmUUID in statusResp["message"], "Unexpected error message for empty values returned."
-                assert "RFCA1046E The Component" in statusResp["message"], "Unexpected error message for empty values returned."
-                assert "does not have any associated files" in statusResp["message"], "Unexpected error message for empty values returned."
+                assert "RFCA1046E The Component" in statusResp[
+                    "message"], "Unexpected error message for empty values returned."
+                assert "does not have any associated files" in statusResp[
+                    "message"], "Unexpected error message for empty values returned."
                 # assert "does not have any associated files" in statusResp["jobMessage"], "Unexpected error string returned."
                 return
 
-            # return
+                # return
     assert False, ("Initial REST update request not complete.")
+
 
 def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
     contentIndex = 0
     fileIndex = 0
     resetTestQueues()
     deletePreviousDownloadFiles("100mbfiletest.zip",
-                              "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
 
     urlInventorySec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
     respInventory = requests.get(urlInventorySec, verify=False)
@@ -195,14 +206,14 @@ def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
     # respComp = requests.get(compInventorySec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
     dataComp = json.loads(respComp.text)
 
-
     if dataComp != "":
         while contentIndex < len(dataComp["rcmDefinition"]["rcmContents"]):
             if len(dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"]) == 0:
                 contentIndex += 1
                 continue
             if len(dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"]) > 0:
-                if filename in dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"][fileIndex]["cdnPath"]:
+                if filename in dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"][fileIndex][
+                    "cdnPath"]:
                     compUUID = dataComp["rcmDefinition"]["rcmContents"][contentIndex]["uuid"]
             contentIndex += 1
 
@@ -217,7 +228,8 @@ def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
     assert resp.status_code == 200, "Request has not been acknowledged as expected."
 
     if "REQUESTED" in data["state"]:
-        assert "19080/rcm-fitness-api/api/download/firmware/status/" in data["link"]["href"], "No URL included in response to query subsequent progress."
+        assert "19080/rcm-fitness-api/api/download/firmware/status/" in data["link"][
+            "href"], "No URL included in response to query subsequent progress."
         statusURL = data["link"]["href"]
         assert data["link"]["rel"] == "download-status", "Unexpected REL value returned."
         assert data["link"]["method"] == "GET", "Unexpected method value returned."
@@ -228,16 +240,18 @@ def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
         assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
         assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
         assert statusResp["link"]["method"] == "GET", "Unexpected method returned in response."
-        assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"]["href"], "No URL included in response to query subsequent progress."
+        assert "19080/rcm-fitness-api/api/download/firmware/status/" in statusResp["link"][
+            "href"], "No URL included in response to query subsequent progress."
         assert statusResp["link"]["rel"] == "download-status", "Unexpected REL value returned."
         assert "REQUESTED" in data["tasks"][0]["state"], "Unexpected state in Tasks detail"
         assert "RFCA1064I Download operation" in data["tasks"][0]["message"], "Unexpected message in Tasks detail"
         assert len(data["tasks"][0]["errors"]) == 0, "Expected an empty list of errors."
         assert data["tasks"][0]["file"] is None, "File details should be NULL."
 
-        i = 0
+        # i = 0
 
         while statusResp["state"] != "COMPLETE":
+            i = 0
             assert statusResp["state"] == "IN_PROGRESS" or "RUNNING", "Unexpected initial state returned."
             assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
             assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
@@ -272,8 +286,8 @@ def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
                 statusResp = json.loads(statusData.text)
                 continue
 
-        i = 0
         if statusResp["state"] == "COMPLETE":
+            i = 0
             assert statusResp["state"] == "COMPLETE", "Unexpected initial state returned."
             assert len(statusResp["uuid"]) > 16, "No valid request UUID returned."
             assert statusResp["uuid"] in statusResp["link"]["href"], "Request UUID not found in returned HREF link."
@@ -284,12 +298,15 @@ def verifyRESTdownloadSingleFileRequestSTATUS(filename, train, version):
 
             while i < len(statusResp["tasks"]):
                 assert statusResp["tasks"][i]["state"] == "COMPLETE", "Unexpected state in task list."
-                assert "RFCA1064I Download operation" in statusResp["tasks"][i]["message"], "Unexpected message in Tasks detail"
-                assert filename in statusResp["tasks"][i]["file"]["url"], "Expected filename not included in returned URL."
+                assert "RFCA1064I Download operation" in statusResp["tasks"][i][
+                    "message"], "Unexpected message in Tasks detail"
+                assert filename in statusResp["tasks"][i]["file"][
+                    "url"], "Expected filename not included in returned URL."
                 assert len(statusResp["tasks"][i]["file"]["hashVal"]) > 32, "HashVal not the expected length."
                 assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
                 assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
-                assert statusResp["tasks"][i]["file"]["downloadedSize"] == statusResp["tasks"][i]["file"]["size"], "Download size is reported as larger than expected size."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] == statusResp["tasks"][i]["file"][
+                    "size"], "Download size is reported as larger than expected size."
                 assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
                 i += 1
 
@@ -309,7 +326,7 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
     resetTestQueues()
     print("Queues reset.")
     deletePreviousDownloadFiles("100mbfiletest.zip",
-                              "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
+                                "/opt/dell/cpsd/rcm-fitness/prepositioning-downloader-service/repository/downloads/")
 
     # urlInventory = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
     urlInventorySec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/vxrack/1000 FLEX/' + train + '/' + version + '/'
@@ -328,14 +345,14 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
     respComp = requests.get(compInventorySec, verify=False)
     dataComp = json.loads(respComp.text)
 
-
     if dataComp != "":
         while contentIndex < len(dataComp["rcmDefinition"]["rcmContents"]):
             if len(dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"]) == 0:
                 contentIndex += 1
                 continue
             if len(dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"]) > 0:
-                if filename in dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"][fileIndex]["cdnPath"]:
+                if filename in dataComp["rcmDefinition"]["rcmContents"][contentIndex]["remediationFiles"][fileIndex][
+                    "cdnPath"]:
                     compUUID = dataComp["rcmDefinition"]["rcmContents"][contentIndex]["uuid"]
                     global tempCompUUID
                     tempCompUUID = compUUID
@@ -426,12 +443,15 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
 
             while i < len(statusResp["tasks"]):
                 assert statusResp["tasks"][i]["state"] == "COMPLETE", "Unexpected state in task list."
-                assert "RFCA1064I Download operation" in statusResp["tasks"][i]["message"], "Unexpected message in Tasks detail"
-                assert filename in statusResp["tasks"][i]["file"]["url"], "Expected filename not included in returned URL."
+                assert "RFCA1064I Download operation" in statusResp["tasks"][i][
+                    "message"], "Unexpected message in Tasks detail"
+                assert filename in statusResp["tasks"][i]["file"][
+                    "url"], "Expected filename not included in returned URL."
                 assert len(statusResp["tasks"][i]["file"]["hashVal"]) > 32, "HashVal not the expected length."
                 assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
                 assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
-                assert statusResp["tasks"][i]["file"]["downloadedSize"] == statusResp["tasks"][i]["file"]["size"], "Download size is reported as larger than expected size."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] == statusResp["tasks"][i]["file"][
+                    "size"], "Download size is reported as larger than expected size."
                 assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
                 i += 1
 
@@ -443,6 +463,7 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
                 assert False, "Invalid status reported."
                 return
         assert False, "Initial REST update request not complete."
+
 
 def verifyRESTrepositoryStatus(filepath, filename):
     url = 'http://' + host + ':8888/downloads/' + filepath
@@ -459,79 +480,103 @@ def verifyRESTrepositoryStatus(filepath, filename):
         return
     assert False, "Failing....."
 
+
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadSingleFileRequest1():
-    verifyRESTdownloadMultiFileRequest("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE", "3.2", "3.2.1", 1)
+    verifyRESTdownloadMultiFileRequest(
+        "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
+        "3.2", "3.2.1", 1)
 
 
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadSingleFileRequestSTATUS1():
-    verifyRESTdownloadSingleFileRequestSTATUS("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE", "3.2", "3.2.1")
+    verifyRESTdownloadSingleFileRequestSTATUS(
+        "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
+        "3.2", "3.2.1")
+
 
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyRESTrepositoryStatus1():
-    verifyRESTrepositoryStatus("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/", "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE")
+    verifyRESTrepositoryStatus("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/",
+                               "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyRESTdownloadSingleFileRequest2():
-    verifyRESTdownloadMultiFileRequest("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE", "3.2", "3.2.3", 1)
+    verifyRESTdownloadMultiFileRequest(
+        "RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE",
+        "3.2", "3.2.3", 1)
+
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyRESTdownloadSingleFileRequestSTATUS2():
-    verifyRESTdownloadSingleFileRequestSTATUS("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE", "3.2", "3.2.3")
+    verifyRESTdownloadSingleFileRequestSTATUS(
+        "RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE",
+        "3.2", "3.2.3")
+
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyRESTrepositoryStatus2():
-    verifyRESTrepositoryStatus("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/", "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE")
+    verifyRESTrepositoryStatus("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/",
+                               "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE")
+
 
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest3():
     verifyRESTdownloadInvalidFileRequest(tempRCMuuid[:8], tempCompUUID)
 
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest4():
     verifyRESTdownloadInvalidFileRequest(tempRCMuuid[:8], tempCompUUID[:8])
+
 
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest5():
     verifyRESTdownloadInvalidFileRequest(tempRCMuuid, tempCompUUID[:8])
 
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest6():
     verifyRESTdownloadInvalidFileRequest(tempRCMuuid, "")
+
 
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest7():
     verifyRESTdownloadInvalidFileRequest("", tempCompUUID)
 
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest8():
     verifyRESTdownloadInvalidFileRequest("----", tempCompUUID)
+
 
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest9():
     verifyRESTdownloadInvalidFileRequest(tempRCMuuid, "----")
 
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadInvalidFileRequest10():
     verifyRESTdownloadInvalidFileRequest("", "")
 
+
 @pytest.mark.rcm_fitness_mvp_extended
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadMultiFileRequest11():
     verifyRESTdownloadMultiFileRequest("RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/", "3.2", "3.2.2", 3)
+
 #
