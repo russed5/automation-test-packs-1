@@ -455,7 +455,6 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
                 assert statusResp["tasks"][i]["file"]["error"] is "", "Unexpected error returned."
                 i += 1
 
-            # assert statusResp["error"] is "", "Unexpected error returned."
             return
 
         if statusResp["state"] != "COMPLETE":
