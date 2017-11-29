@@ -220,6 +220,7 @@ def test_vcenter_adapter_RMQ_bindings_core(exchange, queue):
     assert queue in queues, 'The queue "' + queue + '" is not bound to the exchange "' + exchange + '"'
     
 
+@pytest.mark.skip(reason="Need to discuss with Author if it is timing issue . test fails first time but after that passes everythime ran")
 @pytest.mark.core_services_mvp
 @pytest.mark.core_services_mvp_extended
 def test_vcenter_adapter_full_ListCapabilities():
