@@ -114,7 +114,7 @@ def test_registerscaleio():
     bindQueues('exchange.dell.cpsd.controlplane.scaleio.response', 'test.controlplane.scaleio.response')
     bindQueues('exchange.dell.cpsd.endpoint.registration.event', 'test.endpoint.registration.event')
 
-    time.sleep(300)
+    time.sleep(500)
 
     af_support_tools.rmq_purge_queue(host='amqp', port=5671,
                                      ssl_enabled=True,
