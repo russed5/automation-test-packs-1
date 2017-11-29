@@ -254,11 +254,11 @@ def test_vcenter_adapter_full_ListCapabilities():
 
     # Wait for and consume the Capability Response Message
     assert waitForMsg('test.capability.registry.response'), 'ERROR: No List Capabilities Message returned'
+    time.sleep(10)
     return_message = af_support_tools.rmq_consume_message(host='amqp', port=5671,
                                                           queue='test.capability.registry.response',
                                                           ssl_enabled=True)
-    
-    time.sleep(5)
+     
     # Verify the vcenter Apapter Response
     identity = 'vcenter-adapter'
     capabilities1 = 'vcenter-consul-register'
