@@ -154,7 +154,8 @@ def test_registerscaleio():
                                                           queue='test.endpoint.registration.event',
                                                           remove_message=True)
 
-    return_json = json.loads(return_message, encoding='utf-8')   
+    return_json = json.loads(return_message, encoding='utf-8')
+    print (return_json)
     assert return_json['endpoint']['type'] == 'scaleio', 'scaleio not registered with endpoint'
 
     cleanup('test.controlplane.scaleio.response')
