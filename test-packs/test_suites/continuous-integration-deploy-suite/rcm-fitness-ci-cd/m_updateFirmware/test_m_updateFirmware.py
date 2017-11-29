@@ -720,6 +720,14 @@ def verifyInvalidRESTUpdateRequest(filename, invalidPath, invalidSubComp, invali
         statusData = requests.get(statusURL, verify=False)
         # statusData = requests.get(statusURL, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
         data = json.loads(statusData.text)
+        time.sleep(5)
+
+        if "ERROR" not in data["state"]:
+            time.sleep(5)
+            statusURL = data["link"]["href"]
+            statusData = requests.get(statusURL, verify=False)
+            # statusData = requests.get(statusURL, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')
+            data = json.loads(statusData.text)
 
         if "ERROR" in data["state"]:
             print("Now here....")
@@ -731,8 +739,14 @@ def verifyInvalidRESTUpdateRequest(filename, invalidPath, invalidSubComp, invali
                 assert "RFCA1065I Install operation" in data["tasks"][0]["message"], "Unexpected task error message returned."
                 assert invalidSubCompUUID in data["tasks"][0]["message"], "Unexpected task error message returned."
                 assert invalidPath in data["tasks"][0]["message"], "Unexpected task error message returned."
-                assert "RHDA1007E" in data["tasks"][0]["errors"][0]["code"], "Unexpected error code included."
-                assert "does not exist" in data["tasks"][0]["errors"][0]["message"], "Unexpected error code included."
+                if "RHDA1001E" in data["tasks"][0]["errors"][0]["code"]:
+                    assert "Control Plane Error encountered" in data["tasks"][0]["errors"][0]["message"], "Unexpected message returned in error."
+                    assert "HTTP Status error response" in data["tasks"][0]["errors"][1][
+                        "message"], "Unexpected message returned in error."
+                    assert "CRHD1002E" in data["tasks"][0]["errors"][1]["code"], "Unexpected HTTP error status returned in error."
+                else:
+                    assert "RHDA1007E" in data["tasks"][0]["errors"][0]["code"], "Unexpected error code included."
+                    assert "does not exist" in data["tasks"][0]["errors"][0]["message"], "Unexpected error code included."
 
             statusURL = data["link"]["href"]
             statusData = requests.get(statusURL, verify=False)
@@ -746,8 +760,16 @@ def verifyInvalidRESTUpdateRequest(filename, invalidPath, invalidSubComp, invali
                     assert "RFCA1065I Install operation" in data["tasks"][0]["message"], "Unexpected task error message returned."
                     assert invalidSubCompUUID in data["tasks"][0]["message"], "Unexpected task error message returned."
                     assert invalidPath in data["tasks"][0]["message"], "Unexpected task error message returned."
-                    assert "RHDA1007E" in data["tasks"][0]["errors"][0]["code"], "Unexpected error code included."
-                    assert "does not exist" in data["tasks"][0]["errors"][0]["message"], "Unexpected error code included."
+                    if "RHDA1001E" in data["tasks"][0]["errors"][0]["code"]:
+                        assert "Control Plane Error encountered" in data["tasks"][0]["errors"][0]["message"], "Unexpected message returned in error."
+                        assert "HTTP Status error response" in data["tasks"][0]["errors"][1]["message"], "Unexpected message returned in error."
+                        assert "CRHD1002E" in data["tasks"][0]["errors"][1]["code"], "Unexpected HTTP error status returned in error."
+                    else:
+                        assert "RHDA1007E" in data["tasks"][0]["errors"][0]["code"], "Unexpected error code included."
+                        assert "does not exist" in data["tasks"][0]["errors"][0][
+                            "message"], "Unexpected error code included."
+                    # assert "RHDA1007E" in data["tasks"][0]["errors"][0]["code"], "Unexpected error code included."
+                    # assert "does not exist" in data["tasks"][0]["errors"][0]["message"], "Unexpected error code included."
 
                     return
 
@@ -863,29 +885,29 @@ def test_verifyRESTupdateRequest():
 def test_verifyRESTupdateResponse():
     verifyRESTupdateResponse("out_restResponse.json")
 
-# @pytest.mark.rcm_fitness_mvp_extended
-# @pytest.mark.rcm_fitness_mvp
-# def test_verifyInvalidRESTUpdateRequest1():
-#     verifyInvalidRESTUpdateRequest("out_restErrorBody_1.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5.EXE", "BIOS", subCompUUID[:8])
+@pytest.mark.rcm_fitness_mvp_extended
+@pytest.mark.rcm_fitness_mvp
+def test_verifyInvalidRESTUpdateRequest1():
+    verifyInvalidRESTUpdateRequest("out_restErrorBody_1.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5.EXE", "BIOS", subCompUUID[:8])
 
-# @pytest.mark.rcm_fitness_mvp_extended
-# @pytest.mark.rcm_fitness_mvp
-# def test_verifyInvalidRESTUpdateRequest2():
-#     verifyInvalidRESTUpdateRequest("out_restErrorBody_2.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
-#                                    "BIOS", subCompUUID)
+@pytest.mark.rcm_fitness_mvp_extended
+@pytest.mark.rcm_fitness_mvp
+def test_verifyInvalidRESTUpdateRequest2():
+    verifyInvalidRESTUpdateRequest("out_restErrorBody_2.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
+                                   "BIOS", subCompUUID)
 
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyInvalidRESTUpdateRequest3():
-#     verifyInvalidRESTUpdateRequest("out_restErrorBody_3.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
-#                                    "BIOS", subCompUUID[:8])
-#
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyInvalidRESTUpdateRequest4():
-#     verifyInvalidRESTUpdateRequest("out_restErrorBody_4.json", "////", "BIOS", subCompUUID[8:])
-#
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyInvalidRESTUpdateRequest5():
-#     verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyInvalidRESTUpdateRequest3():
+    verifyInvalidRESTUpdateRequest("out_restErrorBody_3.json", "/home/vce/firmware/BIOS_PFWCY_WN64_2.2.5",
+                                   "BIOS", subCompUUID[:8])
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyInvalidRESTUpdateRequest4():
+    verifyInvalidRESTUpdateRequest("out_restErrorBody_4.json", "////", "BIOS", subCompUUID[8:])
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyInvalidRESTUpdateRequest5():
+    verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
 
 # @pytest.mark.rcm_fitness_mvp_extended
 # @pytest.mark.rcm_fitness_mvp
