@@ -247,23 +247,15 @@ def getComplianceDataDeviceSubComps(elementType, identifier, model, sysDefFilena
     assert sysCompResp.status_code == 200, "Request has not been acknowledged as expected."
 
     while index < len(sysCompData["components"]):
-        print(1)
         if sysCompData["components"][index]["definition"]["model"] != model:
-            print(2)
             index += 1
             continue
         if sysCompData["components"][index]["definition"]["model"] == model:
-            print(3)
             if "MGMT" in sysCompData["components"][index]["identity"]["identifier"]:
-                print(4)
                 componentID = sysCompData["components"][index]["uuid"]
-                # continue
             else:
-                print(5)
                 componentID = sysCompData["components"][index]["uuid"]
             index += 1
-
-    print(componentID)
 
     # compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/device/' + componentID
     # compURLSec = 'https://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/device/' + componentID
