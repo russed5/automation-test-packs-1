@@ -270,14 +270,12 @@ def getComplianceDataDeviceSubComps(elementType, identifier, model, sysDefFilena
         json.dump(compData, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
     if len(compData["subComponents"]) != "":
-        print("SubComps found")
         totalSubComponents = len(compData["subComponents"])
         while subIndex < totalSubComponents:
             if identifier not in compData["subComponents"][subIndex]["elementData"]["identifier"]:
                 subIndex += 1
                 continue
             if identifier in compData["subComponents"][subIndex]["elementData"]["identifier"]:
-                print("Blah blah")
                 assert "uuid" in compData["subComponents"][subIndex], "Response detailed an empty group UUID."
                 assert "parentDeviceUuid" in compData["subComponents"][
                     subIndex], "Response not detail parent Group UUID."
