@@ -465,7 +465,7 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
 
 
 def verifyRESTrepositoryStatus(filepath, filename):
-    url = 'http://' + host + ':8888/downloads/' + filepath
+    url = 'https://' + host + ':8888/downloads/' + filepath
     repoStatus = requests.get(url, verify=False)
     # urlSec = 'https://' + host + ':8888/downloads/' + filepath
     # repoStatus = requests.get(urlSec, verify='/usr/local/share/ca-certificates/taf.cpsd.dell.ca.crt')

@@ -94,6 +94,7 @@ def sys():
     ("3.2", "3.2.1", "SVM", "SCALEIO", "Manager2"),
     ("3.2", "3.2.1", "SCALEIO", "SCALEIO", "SCALEIO-1"),
     ("3.2", "3.2.1", "SVM", "SCALEIO", "lab.vce.com"),
+    ("3.2", "3.2.1", "SUB_ESXI", "VCENTER-APPLIANCE", "i40e"),
     ("3.2", "3.2.2", "BIOS", "630", "BIOS"),
     ("3.2", "3.2.2", "BIOS", "730", "BIOS"),
     ("3.2", "3.2.2", "NIC", "630", "Intel(R) Gigabit 4P X520/I350 rNDC -"),
@@ -204,7 +205,7 @@ def test_post_eval(sys, train, version, type, model, identifier):
             results += 1
         else:
             results += 1
-            continue
+            # continue
 
 
     assert False, "No Evaluation for this component"

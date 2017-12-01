@@ -506,3 +506,10 @@ def test_getComplianceDataSystem23():
 def test_getComplianceDataSystem24():
     getComplianceDataSystemSubComps("SCALEIO", "SVM", "TB1", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem25():
+    getComplianceDataSystemSubComps("VCENTER-APPLIANCE", "SUB_ESXI", "i40e", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemPOWEREDGE.json", systemUUID)
