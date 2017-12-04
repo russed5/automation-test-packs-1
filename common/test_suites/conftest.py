@@ -46,7 +46,7 @@ def scomm_deployment():
         my_hostname = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'hostname')
         my_username = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'username')
         my_password = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'password')
-		my_taf_username = 'autouser'
+        my_taf_username = 'autouser'
         my_taf_password = 'Password01!'
 
         #my_command = 'docker ps --filter name=taf-scomm --format \'{{.Status}}\' | awk \'{print $1}\''
