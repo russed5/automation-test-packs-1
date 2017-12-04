@@ -5,6 +5,9 @@
     "replyTo": "test"
   },
   "discoverClusterResponseInfo": {
-    "clusters": []
+    "clusters": [],
+    "nodeIds": [
+      "XXTESTXX"
+    ]
   }
 }
