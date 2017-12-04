@@ -13,9 +13,7 @@ import af_support_tools
 import pytest
 import json
 import time
-import requests
 import os
-import uuid
 
 
 #####################################################################
@@ -51,9 +49,11 @@ def test_handle_validateVcenterCluster_message_1():
 
     error_list = []
 
-    if responseMsg['clusters'][0] != 'test_cluster_1host':
+    if responseMsg['clusters']['XXTESTXX1'] != 'test_cluster_63hosts':
         error_list.append('Error :wrong cluster identified')
-    if responseMsg['clusters'][1] != 'test_cluster_63hosts':
+    if responseMsg['clusters']['XXTESTXX2'] != 'test_cluster_63hosts':
+        error_list.append('Error :wrong cluster identified')
+    if responseMsg['clusters']['XXTESTXX3'] != 'test_cluster_63hosts':
         error_list.append('Error :wrong cluster identified')
 
 
