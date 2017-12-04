@@ -81,8 +81,8 @@ def scomm_deployment():
             ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             time.sleep(15)
             my_command = '. scomm_env.sh;nohup python $SCOMM_BASE_PATH/scomm_api.py &'
-            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username=my_taf_username, password=my_taf_password, command=my_command, return_output=False)			
-            time.sleep(15)			
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username=my_taf_username, password=my_taf_password, command=my_command, return_output=False)
+            time.sleep(15)
             # This should be replaced with an API call
             # Run tls_enable.sh
             my_command = '. $SCOMM_BASE_PATH/libs/tls_enable.sh'
@@ -92,7 +92,7 @@ def scomm_deployment():
             # SCOMM already deployed
             print('SCOMM already deployed')
             return
-            
+
         return
     except Exception as e:
         print(e)
