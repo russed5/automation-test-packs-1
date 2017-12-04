@@ -46,6 +46,8 @@ def scomm_deployment():
         my_hostname = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'hostname')
         my_username = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'username')
         my_password = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'password')
+		my_taf_username = 'autouser'
+        my_taf_password = 'Password01!'
 
         #my_command = 'docker ps --filter name=taf-scomm --format \'{{.Status}}\' | awk \'{print $1}\''
         #docker_up = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
@@ -59,7 +61,7 @@ def scomm_deployment():
         except Exception as e:
             print(e)
             deploy_scomm = True
-        
+
         if deploy_scomm == True:
             # Deploy SCOMM
             print('Deploy SCOMM')
@@ -79,12 +81,12 @@ def scomm_deployment():
             ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             time.sleep(15)
             my_command = '. scomm_env.sh;nohup python $SCOMM_BASE_PATH/scomm_api.py &'
-            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username='autouser', password='Password01!', command=my_command, return_output=False)			
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username=my_taf_username, password=my_taf_password, command=my_command, return_output=False)			
             time.sleep(15)			
             # This should be replaced with an API call
             # Run tls_enable.sh
             my_command = '. $SCOMM_BASE_PATH/libs/tls_enable.sh'
-            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username='autouser', password='Password01!', command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username=my_taf_username, password=my_taf_password, command=my_command, return_output=True)
             print(ssh_return_value)
         else:
             # SCOMM already deployed
