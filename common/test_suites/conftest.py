@@ -14,13 +14,6 @@ def cpsd_common_properties():
     my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/cpsd-common/cpsd_common.properties'
     af_support_tools.set_config_file_property_by_data_file(my_data_file)
 
-
-# def get_certificates_for_tls():
-#     result = subprocess.Popen('./tls-enable.sh', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-#     result_status = result.wait()
-#     print(result_status)
-
-
 @pytest.fixture(autouse=True, scope='session')
 def get_tls_certs():
     hostname = socket.gethostname()
@@ -49,9 +42,10 @@ def scomm_deployment():
     Example: my_return_value = scomm_required()
     """
     try:
-        my_hostname = get_config_file_property(env_file, 'Base_OS', 'hostname')
-        my_username = get_config_file_property(env_file, 'Base_OS', 'username')
-        my_password = get_config_file_property(env_file, 'Base_OS', 'password')
+        env_file = 'env.ini'
+        my_hostname = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'hostname')
+        my_username = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'username')
+        my_password = af_support_tools.get_config_file_property(env_file, 'Base_OS', 'password')
 
         #my_command = 'docker ps --filter name=taf-scomm --format \'{{.Status}}\' | awk \'{print $1}\''
         #docker_up = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
@@ -70,27 +64,27 @@ def scomm_deployment():
             # Deploy SCOMM
             print('Deploy SCOMM')
             my_command = 'systemctl start docker'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             my_command = 'mkdir -p /root/images'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             my_command = 'docker rm -f $(docker ps -a -q  --filter ancestor=cpsd-taf-scomm)'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             my_command = 'docker rmi -f cpsd-taf-scomm'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             my_command = 'curl -o /root/images/cpsd-taf-scomm http://artifactory.mpe.lab.vce.com:8080/artifactory/docker-dev-local/tar_files/cpsd-taf-scomm'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             my_command = 'docker load -i /root/images/cpsd-taf-scomm'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             my_command = 'docker run -d -h taf-scomm.cpsd.dell --dns=172.17.0.1 -p 2223:22 -p 19720:19720 --name cpsd-taf-scomm cpsd-taf-scomm'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=22, username=my_username, password=my_password, command=my_command, return_output=True)
             time.sleep(15)
             my_command = '. scomm_env.sh;nohup python $SCOMM_BASE_PATH/scomm_api.py &'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=2223, username='autouser', password='Password01!', command=my_command, return_output=False)			
-            time.sleep(60)			
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username='autouser', password='Password01!', command=my_command, return_output=False)			
+            time.sleep(15)			
             # This should be replaced with an API call
             # Run tls_enable.sh
             my_command = '. $SCOMM_BASE_PATH/libs/tls_enable.sh'
-            ssh_return_value = send_ssh_command(host=my_hostname, port=2223, username='autouser', password='Password01!', command=my_command, return_output=True)
+            ssh_return_value = af_support_tools.send_ssh_command(host=my_hostname, port=2223, username='autouser', password='Password01!', command=my_command, return_output=True)
             print(ssh_return_value)
         else:
             # SCOMM already deployed
