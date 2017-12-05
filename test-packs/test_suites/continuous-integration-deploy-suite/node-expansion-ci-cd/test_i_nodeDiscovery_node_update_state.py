@@ -287,26 +287,46 @@ def insertNodeIntoDB(elementId, nodeId, nodeStatus, setup):
         print(err, '\n')
         raise Exception(err)
 
-
 ################################################################################################
 
 def deleteEntryInNodeComputeTable(elementId, setup):
-    """ A Function to clear all entries form the postgres table 'compute_node'.
+
+    """ A Function to clear the node associated with 'elementId' from the postgres table 'compute_node'.
 
     :parameter: elementId - symphonyUUID (eg. '44f0d5ac-44a6-48e0-bf98-93eaa7f452d3')
     :return: the result of the delete command (sample success result is 'DELETE #'
     where '#' is the number of entries deleted. """
 
-    execSQLCommand = "docker exec -i postgres sh -c \'su postgres sh -c \"psql \\\"dbname=node-discovery-service \\\" -c \\\"delete FROM compute_node;\\\"\"\'"
+    deleteCmd = "delete from compute_node where element_id=\'" + elementId + "\';"
+    writeToFileCmd = "echo \"" + deleteCmd + "\" > /tmp/sqlDelete.txt"
+    copyFileToContainerCmd = "docker cp /tmp/sqlDelete.txt postgres:/tmp/sqlDelete.txt"
+    execSQLCommand = "docker exec -i postgres sh -c \'su - postgres sh -c \"psql \\\"dbname=node-discovery-service\\\" -f /tmp/sqlDelete.txt\"\'"
 
     try:
+        result = af_support_tools.send_ssh_command(
+           host=setup['IP'],
+           username=setup['cli_user'],
+           password=setup['cli_password'],
+           command=writeToFileCmd,
+           return_output=True)
+
 
         result = af_support_tools.send_ssh_command(
-            	host=setup['IP'],
-            	username=setup['cli_user'],
-            	password=setup['cli_password'],
-                command=execSQLCommand,
-                return_output=True)
+           host=setup['IP'],
+           username=setup['cli_user'],
+           password=setup['cli_password'],
+           command=copyFileToContainerCmd,
+           return_output=True)
+
+
+        result = af_support_tools.send_ssh_command(
+            host=setup['IP'],
+            username=setup['cli_user'],
+            password=setup['cli_password'],
+            command=execSQLCommand,
+            return_output=True)
+
+        sleeptime = 10
 
         return result
 
