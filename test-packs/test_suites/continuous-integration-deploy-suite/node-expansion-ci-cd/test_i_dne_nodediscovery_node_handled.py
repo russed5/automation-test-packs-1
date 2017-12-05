@@ -135,6 +135,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         addnode_workflow_id = data['id']
         print('WorkflowID: ', addnode_workflow_id)
 
+        time.sleep(15)
         endpoint_get = '/multinode/status/'
         url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
 
@@ -195,6 +196,7 @@ def test_dne_node_in_sdc_cannot_be_provisioned(setup):
         addnode_workflow_id = data['id']
         print('WorkflowID: ', addnode_workflow_id)
 
+        time.sleep(15)
         endpoint_get = '/multinode/status/'
         url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
 
