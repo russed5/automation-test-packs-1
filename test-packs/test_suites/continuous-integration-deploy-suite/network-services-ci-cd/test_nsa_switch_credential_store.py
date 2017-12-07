@@ -23,7 +23,8 @@ def load_test_data():
     payload_header = 'payload'
     global payload_property_sys
     payload_property_sys = 'sys_payload'
-
+    global sds_json_file
+    sds_json_file = 'nsa_add_switch.json'
     # Set Vars
     global ip_address
     ip_address = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
@@ -60,8 +61,7 @@ def load_test_data():
 @pytest.mark.network_services_mvp
 def test_AddVxRackSystem():
     print('Setup: Add VxRack RTP system via SDS Service')
-    #origin_file = config_file_path + sysdef_payload_file
-    origin_file = config_file_path + payload_file
+    origin_file = config_file_path + sds_json_file
     dest_file = '/tmp/nsa_add_switch.json'
 
     # Get the switch data from the nsa_add_vxrack.json file and publish message using amqp-post tool.
