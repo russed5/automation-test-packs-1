@@ -109,7 +109,7 @@ def test_dne_discovered_node_handled(setup):
     cleanup('test.eids.identity.response')
 
 
-@pytest.mark.dne_paqx_parent_mvp
+#@pytest.mark.dne_paqx_parent_mvp
 def test_dne_node_in_esx_cannot_be_provisioned(setup):
     '''
     Attempt to use the dummy node and use the name of an ESXi Hostname existing node
@@ -135,6 +135,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         addnode_workflow_id = data['id']
         print('WorkflowID: ', addnode_workflow_id)
 
+        time.sleep(15)
         endpoint_get = '/multinode/status/'
         url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
 
@@ -170,7 +171,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         raise Exception(err)
 
 
-@pytest.mark.dne_paqx_parent_mvp
+#@pytest.mark.dne_paqx_parent_mvp
 def test_dne_node_in_sdc_cannot_be_provisioned(setup):
     '''
     Attempt to use the dummy node and use the IP of an existing ESXi Mgmt node
@@ -195,6 +196,7 @@ def test_dne_node_in_sdc_cannot_be_provisioned(setup):
         addnode_workflow_id = data['id']
         print('WorkflowID: ', addnode_workflow_id)
 
+        time.sleep(15)
         endpoint_get = '/multinode/status/'
         url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
 

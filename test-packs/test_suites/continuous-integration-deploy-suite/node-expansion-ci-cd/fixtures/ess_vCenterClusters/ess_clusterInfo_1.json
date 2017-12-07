@@ -22,6 +22,11 @@
         "name": "test_cluster_65hosts",
         "numberOfHosts": "65"
       }
+    ],
+    "nodeIds": [
+      "XXTESTXX1",
+      "XXTESTXX2",
+      "XXTESTXX3"
     ]
   }
 }

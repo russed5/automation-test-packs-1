@@ -188,3 +188,17 @@ def test_getRCM8():
 #@pytest.mark.TC546560_Empty
 #def test_getRCM7():
 #    getAvailableRCMs_Invalid("", "", "")
+@pytest.mark.rcm_fitness_mvp_extended
+@pytest.mark.rcm_fitness_mvp
+def test_getRCM10():
+    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.1")
+
+@pytest.mark.rcm_fitness_mvp_extended
+@pytest.mark.rcm_fitness_mvp
+def test_getRCM11():
+    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.2")
+
+@pytest.mark.rcm_fitness_mvp_extended
+@pytest.mark.rcm_fitness_mvp
+def test_getRCM12():
+    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.3")

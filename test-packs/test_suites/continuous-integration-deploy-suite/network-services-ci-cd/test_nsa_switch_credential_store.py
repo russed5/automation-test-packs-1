@@ -62,7 +62,7 @@ def test_AddVxRackSystem():
     print('Setup: Add VxRack RTP system via SDS Service')
     #origin_file = config_file_path + sysdef_payload_file
     origin_file = config_file_path + payload_file
-    dest_file = '/tmp/nsa_add_vxrack.json'
+    dest_file = '/tmp/nsa_add_switch.json'
 
     # Get the switch data from the nsa_add_vxrack.json file and publish message using amqp-post tool.
     cmd = 'curl --header "Content-Type: application/json" -X POST --data @%s http://127.0.0.1:5500/v1/amqp/system-definition/' % (
