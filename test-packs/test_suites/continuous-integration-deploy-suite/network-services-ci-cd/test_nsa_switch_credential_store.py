@@ -61,7 +61,6 @@ def load_test_data():
 @pytest.mark.network_services_mvp
 def test_AddVxRackSystem():
     print('Setup: Add VxRack RTP system via SDS Service')
-    #origin_file = config_file_path + sysdef_payload_file
     origin_file = config_file_path + sds_json_file
     dest_file = '/tmp/nsa_add_switch.json'
 
