@@ -61,6 +61,7 @@ def load_test_data():
 @pytest.mark.network_services_mvp
 def test_AddVxRackSystem():
     print('Setup: Add VxRack RTP system via SDS Service')
+    #origin_file = config_file_path + sysdef_payload_file
     origin_file = config_file_path + sds_json_file
     dest_file = '/tmp/nsa_add_switch.json'
 
@@ -97,6 +98,9 @@ def test_switch_credential_store():
     #the_payload = af_support_tools.get_config_file_property(config_file=payload_file,
     #                                                        heading=payload_header,
     #                                                        property=payload_property_sys)
+    print('Sleep 5 seconds to let system definition is added')
+    time.sleep(5)
+
     container_id = get_vault_container_id()
     assert check_vault_credential_keys(container_id), 'test failed: switch credentials are not stored properly'
 
