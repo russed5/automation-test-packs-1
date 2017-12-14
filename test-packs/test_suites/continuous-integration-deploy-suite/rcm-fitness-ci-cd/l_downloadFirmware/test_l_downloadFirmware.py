@@ -1169,7 +1169,7 @@ def verifyProgressMessage(requestFile, credentialsFile, responseFile):
                 assert data[count]["downloadSpeed"] >= 0, "No download speed returned as per progress message."
                 if data[count]["downloadSpeed"] > 0:
                     print("In here....")
-                    assert data[count]["downloadedSize"] > 1, "Progress message downloaded size not as expected."
+                    assert data[count]["downloadedSize"] >= 0, "Progress message downloaded size not as expected."
                     assert data[count]["downloadedSize"] < data[count]["totalSize"], "Progress message download size equal or greater than expected size."
                 print("Here at last")
                 count += 1
