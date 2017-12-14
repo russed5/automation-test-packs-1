@@ -23,7 +23,8 @@ def load_test_data():
     payload_header = 'payload'
     global payload_property_sys
     payload_property_sys = 'sys_payload'
-
+    global sds_json_file
+    sds_json_file = 'nsa_add_switch.json'
     # Set Vars
     global ip_address
     ip_address = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS', property='hostname')
@@ -61,8 +62,8 @@ def load_test_data():
 def test_AddVxRackSystem():
     print('Setup: Add VxRack RTP system via SDS Service')
     #origin_file = config_file_path + sysdef_payload_file
-    origin_file = config_file_path + payload_file
-    dest_file = '/tmp/nsa_add_vxrack.json'
+    origin_file = config_file_path + sds_json_file
+    dest_file = '/tmp/nsa_add_switch.json'
 
     # Get the switch data from the nsa_add_vxrack.json file and publish message using amqp-post tool.
     cmd = 'curl --header "Content-Type: application/json" -X POST --data @%s http://127.0.0.1:5500/v1/amqp/system-definition/' % (
@@ -97,6 +98,9 @@ def test_switch_credential_store():
     #the_payload = af_support_tools.get_config_file_property(config_file=payload_file,
     #                                                        heading=payload_header,
     #                                                        property=payload_property_sys)
+    print('Sleep 5 seconds to let system definition is added')
+    time.sleep(5)
+
     container_id = get_vault_container_id()
     assert check_vault_credential_keys(container_id), 'test failed: switch credentials are not stored properly'
 

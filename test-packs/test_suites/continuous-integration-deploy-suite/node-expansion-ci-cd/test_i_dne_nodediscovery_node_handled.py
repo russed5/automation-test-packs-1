@@ -109,7 +109,7 @@ def test_dne_discovered_node_handled(setup):
     cleanup('test.eids.identity.response')
 
 
-@pytest.mark.dne_paqx_parent_mvp
+#@pytest.mark.dne_paqx_parent_mvp
 def test_dne_node_in_esx_cannot_be_provisioned(setup):
     '''
     Attempt to use the dummy node and use the name of an ESXi Hostname existing node
@@ -135,6 +135,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         addnode_workflow_id = data['id']
         print('WorkflowID: ', addnode_workflow_id)
 
+        time.sleep(15)
         endpoint_get = '/multinode/status/'
         url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
 
@@ -170,7 +171,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         raise Exception(err)
 
 
-@pytest.mark.dne_paqx_parent_mvp
+#@pytest.mark.dne_paqx_parent_mvp
 def test_dne_node_in_sdc_cannot_be_provisioned(setup):
     '''
     Attempt to use the dummy node and use the IP of an existing ESXi Mgmt node
@@ -195,6 +196,7 @@ def test_dne_node_in_sdc_cannot_be_provisioned(setup):
         addnode_workflow_id = data['id']
         print('WorkflowID: ', addnode_workflow_id)
 
+        time.sleep(15)
         endpoint_get = '/multinode/status/'
         url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnode_workflow_id
 
@@ -229,7 +231,114 @@ def test_dne_node_in_sdc_cannot_be_provisioned(setup):
         print(err, '\n')
         raise Exception(err)
 
+        
+@pytest.mark.dne_paqx_parent_mvp
+def test_dne_preprocess_api_200_response(setup):
+    '''
+    Use a dummy node to test he multinode\preproess API.
+    User should get a 200 response on the POST and GET requests.
+    :param setup:
+    :return: none
+    '''
+    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX"}]'
+    request_body = json.loads(request_body)
 
+    endpoint_post = '/multinode/preprocess'
+    url_body_post = protocol + setup['IP'] + dne_port + endpoint_post
+
+    try:
+        # POST to the preprocess workflow
+        response = requests.post(url_body_post, json=request_body, headers=headers, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 on /multinode/preprocess'
+        data = response.json()
+
+        # save the workflowID as this will be used next to get the status of the job
+        preprocess_workflow_id = data['id']
+        print('WorkflowID: ', preprocess_workflow_id)
+
+        time.sleep(10)
+
+        endpoint_get = '/multinode/status/'
+        url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + preprocess_workflow_id
+
+        # GET on /multinode/status/
+        response = requests.get(url_body_get, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 response on /multinode/status/'
+        data = response.text
+        data = json.loads(data, encoding='utf-8')
+
+        error_list = []
+        jobState = data['state']
+        errorCode = data['errors'][0]['errorCode']
+
+        if jobState != 'FAILED':
+            error_list.append(jobState)
+
+        if errorCode != 'Inventory-Node-Failed':
+            error_list.append(errorCode)
+
+        assert not error_list, 'Test Failed'
+        print('Test Pass: Preprocess API Responding as expected.')
+
+    except Exception as err:
+        # Return code error (e.g. 404, 501, ...)
+        print(err, '\n')
+        raise Exception(err)
+
+
+@pytest.mark.dne_paqx_parent_mvp
+def test_dne_addnodes_api_200_response(setup):
+    '''
+    Use a dummy node to test he multinode\addnodes API.
+    User should get a 200 response on the POST and GET requests.
+    :param setup:
+    :return: none
+    '''
+    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementGatewayIpAddress":"string","esxiManagementHostname":"string","esxiManagementIpAddress":"string","esxiManagementSubnetMask":"string","idracGatewayIpAddress":"string","idracIpAddress":"string","idracSubnetMask":"string","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1EsxIpAddress":"string","scaleIoData1EsxSubnetMask":"string","scaleIoData1SvmIpAddress":"string","scaleIoData1SvmSubnetMask":"string","scaleIoData2EsxIpAddress":"string","scaleIoData2EsxSubnetMask":"string","scaleIoData2SvmIpAddress":"string","scaleIoData2SvmSubnetMask":"string","scaleIoSvmManagementGatewayAddress":"string","scaleIoSvmManagementIpAddress":"string","scaleIoSvmManagementSubnetMask":"string","vMotionManagementIpAddress":"string","vMotionManagementSubnetMask":"string"}]'
+    request_body = json.loads(request_body)
+
+    endpoint_post = '/multinode/addnodes'
+    url_body_post = protocol + setup['IP'] + dne_port + endpoint_post
+
+    try:
+        # POST to the addnodes workflow
+        response = requests.post(url_body_post, json=request_body, headers=headers, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 on /multinode/addnodes'
+        data = response.json()
+
+        # save the workflowID as this will be used next to get the status of the job
+        addnodes_workflow_id = data['id']
+        print('WorkflowID: ', addnodes_workflow_id)
+
+        time.sleep(10)
+
+        endpoint_get = '/multinode/status/'
+        url_body_get = protocol + setup['IP'] + dne_port + endpoint_get + addnodes_workflow_id
+
+        # GET on /multinode/status/
+        response = requests.get(url_body_get, verify=False)
+        assert response.status_code == 200, 'Error: Did not get a 200 response on /multinode/status/'
+        #data = response.text
+        #data = json.loads(data, encoding='utf-8')
+
+        #error_list = []
+        #jobState = data['state']
+        #errorCode = data['errors'][0]['errorCode']
+
+        #if jobState != 'FAILED':
+        #    error_list.append(jobState)
+
+        #if errorCode != 'Retrieve-Default-Esxi-Credentials':
+        #    error_list.append(errorCode)
+
+        #assert not error_list, 'Test Failed'
+        print('Test Pass: Addnodes API Responding as expected.')
+
+    except Exception as err:
+        # Return code error (e.g. 404, 501, ...)
+        print(err, '\n')
+        raise Exception(err)
+        
 #####################################################################
 # These are the main functions called in the test.
 
