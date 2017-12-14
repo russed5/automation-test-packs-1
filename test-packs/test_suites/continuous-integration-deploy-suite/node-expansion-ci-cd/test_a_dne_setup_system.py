@@ -97,7 +97,7 @@ def setup():
 
 
 #####################################################################
-
+@pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_setup_system(setup):
@@ -120,19 +120,19 @@ def test_dne_setup_system(setup):
 
     assert api_addsystem(setup, the_payload), 'Error: System not configured correctly'
 
-
+@pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_RegisterRackHD(setup):
     assert registerRackHD(setup), 'Error: unable to register the RackHD endpoint'
 
-
+@pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_RegisterVcenter(setup):
     assert registerVcenter(setup), 'Error: unable to register the vCenter endpoint'
 
-
+@pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_dne_RegisterScaleIO(setup):
