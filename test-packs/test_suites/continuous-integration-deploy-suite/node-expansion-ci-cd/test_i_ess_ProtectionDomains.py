@@ -172,6 +172,8 @@ def test_requestBreaksWarn1():
 
 #######################################################################################
 
+@pytest.mark.daily_status
+@pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_requestBreaksWarn2():
     """ Verify that a request message which breaks the rule for warning #2 is handled correctly
@@ -936,8 +938,6 @@ def test_requestPDListEmpty():
 
 #########################################################################################
 
-@pytest.mark.daily_status
-@pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_requestNoNodesListed():
     """ Verify that a request message with no nodes in the PD list is handled correctly """
