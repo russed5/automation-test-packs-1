@@ -407,7 +407,7 @@ def verifyRESTdownloadMultiFileRequest(filename, train, version, fileCount):
             print(fileCount)
             print(len(statusResp["tasks"]))
             while i < len(statusResp["tasks"]):
-                assert statusResp["tasks"][i]["file"]["downloadedSize"] != 0, "Unexpected download size returned."
+                assert statusResp["tasks"][i]["file"]["downloadedSize"] >= 0, "Unexpected download size returned."
                 assert statusResp["tasks"][i]["file"]["size"] != 0, "Unexpected file size returned."
                 if statusResp["tasks"][i]["file"]["size"] == statusResp["tasks"][i]["file"]["downloadedSize"]:
                     assert statusResp["tasks"][i]["file"]["url"] is not None, "Unexpected url returned."
