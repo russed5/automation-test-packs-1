@@ -783,7 +783,7 @@ def test_requestBreaksWarn3Rec1Multi():
 @pytest.mark.daily_status
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_requestBreaksWarn1Warn2Warn3Rec1Multi():
+def test_requestBreaksWarn1Warn2Warn3Multi():
     """ Verify that a request message which breaks warn1 (wrong node type) for PD1,
         warn#2 (less then 10 nodes) for PD2
         and breaks warn #3 (more then 30 nodes) for PD3 is handled correctly """
@@ -905,7 +905,8 @@ def test_requestBreaksWarn1Warn2Warn3Rec1Multi():
 
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_requestPDListEmpty():
-    """ Verify that a request message with no pd list included """
+    """ Verify that a request message with no pd list included prompts a 
+        response with a new protection domain named, PD_ess-created-0 """
 
     # ARRANGE
     #
@@ -931,8 +932,8 @@ def test_requestPDListEmpty():
 
     # ASSERT
     # verify the response data, the order of the data is critical
-    if (essRsp['validProtectionDomains']):
-        error_list.append("Error : No valid protection domains should be listed as none were submitted")
+    if essRsp['validProtectionDomains'][0]['protectionDomain']['name'] != "PD_ess-created-0":
+        error_list.append("Error :wrong Protection Domain identified")
 
     assert not error_list
 
@@ -966,12 +967,8 @@ def test_requestNoNodesListed():
 
     # ASSERT
     # verify the response data, the order of the data is critical
-    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
-        error_list.append("Error :wrong PD identified")
-    if essRsp['validProtectionDomains'][0]['recommendedMessages']:
-        error_list.append("Error :wrong recommendation given for  d0000000001")
-    if "No Less than 10 nodes" not in (essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']):
-        error_list.append("Error :wrong warning given for  d0000000001")
+    if essRsp['validProtectionDomains']:
+        error_list.append("Error : No PDs should be identified ")
 
     assert not error_list
 
