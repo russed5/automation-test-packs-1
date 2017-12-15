@@ -534,6 +534,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print(updatedMessage['fileName'])
     strPayload = str(updatedMessage)
     strPayload = restoreStr(strPayload)
+    print(strPayload)
 
     secUpdatedMessage = convertStrToDict(secPayLoad)
     secUpdatedMessage['fileName'] = getRequiredFilename(secTrain, secVersion, secCompName, secType, secFile)
@@ -541,6 +542,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print(updatedMessage['fileName'])
     secStrPayload = str(secUpdatedMessage)
     secStrPayload = restoreStr(secStrPayload)
+    print(secStrPayload)
 
     thirdUpdatedMessage = convertStrToDict(thirdPayLoad)
     thirdUpdatedMessage['fileName'] = getRequiredFilename(thirdTrain, thirdVersion, thirdCompName, thirdType, thirdFile)
@@ -548,6 +550,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print(thirdUpdatedMessage['fileName'])
     thirdStrPayload = str(thirdUpdatedMessage)
     thirdStrPayload = restoreStr(thirdStrPayload)
+    print(thirdStrPayload)
 
     messageReqHeaderESRS = {'__TypeId__': 'com.dell.cpsd.esrs.service.download.credentials.requested'}
     messageReqHeaderDownload = {'__TypeId__': 'com.dell.cpsd.service.prepositioning.downloader.api.FileDownloadRequest'}
@@ -558,7 +561,12 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
                                 "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
-    print("Previous downloads deleted.")
+    print("Previous downloads deleted.\n")
+    print(strPayload)
+    print("\n")
+    print(secStrPayload)
+    print("\n")
+    print(thirdStrPayload)
 
     af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
@@ -596,6 +604,12 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
 
     convertResponseToDownloadFormatInput(path + requestCredentials)
 
+    print(multi_download[0])
+    print("\n")
+    print(multi_download[1])
+    print("\n")
+    print(multi_download[2])
+
     af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
@@ -612,7 +626,6 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
                                          headers=messageReqHeaderDownload, payload=multi_download[2], payload_type='json')
 
     print("Download request published.")
-
 
     time.sleep(2)
 
