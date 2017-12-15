@@ -540,6 +540,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     secUpdatedMessage['fileName'] = getRequiredFilename(secTrain, secVersion, secCompName, secType, secFile)
     print("File 2:")
     print(updatedMessage['fileName'])
+    secUpdatedMessage['correlationId'] = "23452345-2222-3333-9999-54325432"
     secStrPayload = str(secUpdatedMessage)
     secStrPayload = restoreStr(secStrPayload)
     print(secStrPayload)
@@ -582,6 +583,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
                                          headers=messageReqHeaderESRS, payload=thirdStrPayload, payload_type='json')
 
     print("Three file download requests published.")
+    # assert False, "Exiting......"
 
     time.sleep(5)
 
