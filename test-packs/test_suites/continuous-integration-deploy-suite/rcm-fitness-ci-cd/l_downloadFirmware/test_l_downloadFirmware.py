@@ -534,6 +534,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print(updatedMessage['fileName'])
     strPayload = str(updatedMessage)
     strPayload = restoreStr(strPayload)
+    print(strPayload)
 
     secUpdatedMessage = convertStrToDict(secPayLoad)
     secUpdatedMessage['fileName'] = getRequiredFilename(secTrain, secVersion, secCompName, secType, secFile)
@@ -541,6 +542,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print(updatedMessage['fileName'])
     secStrPayload = str(secUpdatedMessage)
     secStrPayload = restoreStr(secStrPayload)
+    print(secStrPayload)
 
     thirdUpdatedMessage = convertStrToDict(thirdPayLoad)
     thirdUpdatedMessage['fileName'] = getRequiredFilename(thirdTrain, thirdVersion, thirdCompName, thirdType, thirdFile)
@@ -548,6 +550,7 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     print(thirdUpdatedMessage['fileName'])
     thirdStrPayload = str(thirdUpdatedMessage)
     thirdStrPayload = restoreStr(thirdStrPayload)
+    print(thirdStrPayload)
 
     messageReqHeaderESRS = {'__TypeId__': 'com.dell.cpsd.esrs.service.download.credentials.requested'}
     messageReqHeaderDownload = {'__TypeId__': 'com.dell.cpsd.service.prepositioning.downloader.api.FileDownloadRequest'}
@@ -558,7 +561,12 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
     deletePreviousDownloadFiles("BIOS_PFWCY_WN64_2.2.5.EXE",
                                 "/opt/dell/cpsd/prepositioning-downloader-service/repository/downloads/")
 
-    print("Previous downloads deleted.")
+    print("Previous downloads deleted.\n")
+    print(strPayload)
+    print("\n")
+    print(secStrPayload)
+    print("\n")
+    print(thirdStrPayload)
 
     af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.esrs.request",
@@ -596,6 +604,12 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
 
     convertResponseToDownloadFormatInput(path + requestCredentials)
 
+    print(multi_download[0])
+    print("\n")
+    print(multi_download[1])
+    print("\n")
+    print(multi_download[2])
+
     af_support_tools.rmq_publish_message(host=hostTLS, port=portTLS, ssl_enabled=True,
                                          exchange="exchange.dell.cpsd.prepositioning.downloader.request",
                                          routing_key="dell.cpsd.prepositioning.downloader.request",
@@ -612,7 +626,6 @@ def downloadFWFileMulti(train, version, compName, type, file, secTrain, secVersi
                                          headers=messageReqHeaderDownload, payload=multi_download[2], payload_type='json')
 
     print("Download request published.")
-
 
     time.sleep(2)
 
@@ -1453,85 +1466,85 @@ def getRequiredFilename(train, version, compName, type, fileName):
 # def test_downloadNonRCMfiles8():
 #     downloadNonRCMfiles(messageNxos_4, 'nxos_4.json', 'nxos_4_resp.json', 'nxos_4_req.json', 'nxos_4_creds.json')
 
-@pytest.mark.rcm_fitness_mvp_extended
-def test_downloadFWFileRequestInvalid():
-    downloadFWFileRequestInvalid(messageInvalidFile, 'invalidFileFWRequest.json', 'invalidFileFWCredentials.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyConsumedInvalidAttributes1():
-    verifyConsumedAttributesInvalid(path + 'invalidFileFWRequest.json', path + 'invalidFileFWCredentials.json',
-                                    "SHA-256", "VCEVision")
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_downloadFWFileRequestInvalid4():
-    downloadFWFileRequestInvalid(messageInvalidAll, 'invalidAllFWRequest.json', 'invalidAllFWCredentials.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyConsumedInvalidAttributes4():
-    verifyConsumedAttributesInvalid(path + 'invalidAllFWRequest.json', path + 'invalidAllFWCredentials.json',
-                                    "SHA-256", "VCEVision")
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_downloadFWFileRequestInvalid5():
-    downloadFWFileRequestInvalid(messageNoFile, 'noFileFWRequest.json', 'noFileFWCredentials.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyConsumedInvalidAttributes5():
-    verifyConsumedAttributesInvalid(path + 'noFileFWRequest.json', path + 'noFileFWCredentials.json', "SHA-256",
-                                    "VCEVision")
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_downloadFWFileRequestNone8():
-    downloadFWFileRequestNone(messageNoAll, 'noAllFWRequest.json', 'noAllFWResponse.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyConsumedNoneAttributes8():
-    verifyConsumedAttributesNone(path + 'noAllFWRequest.json', path + 'noAllFWResponse.json', "SHA-256",
-                                 "VCEVision")
-
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_downloadFWFileRequest9():
-    downloadFWFileRequest("3.2", "3.2.1", "Dell BIOS Firmware", "Compute", message, 'downloadFWRequest.json',
-                          'downloadFWResponse.json', 'requestFWCredentials.json', 'returnedFWCredentials.json',
-                          "RCM/3.2.1/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE", 24992920)
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyPublishedAttributes9():
-    verifyPublishedAttributes(path + 'requestFWCredentials.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyConsumedAttributes9():
-    verifyConsumedAttributes("RCM/3.2.1/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE",
-                             path + 'requestFWCredentials.json', path + 'returnedFWCredentials.json',
-                             path + 'downloadFWResponse.json', "SHA-256", "BETA2ENG218",
-                             "https://10.234.100.5:9443/")
-
-@pytest.mark.rcm_fitness_mvp
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyProgressMessage9():
-    verifyProgressMessage(path + 'requestFWCredentials.json', path + 'returnedFWCredentials.json',
-                          path + 'downloadFWResponse.json')
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_downloadFWFileRequest11():
-    downloadFWFileRequest("3.2", "3.2.1", "Dell PERC H730P Firmware", "Compute", messageSas2,
-                          'sasDownloadFWRequest.json', 'sasDownloadFWResponse.json', 'sasRequestFWCredentials.json',
-                          'sasReturnedFWCredentials.json',
-                          "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
-                          16505448)
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyConsumedAttributes11():
-    verifyConsumedAttributes(
-        "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
-        path + 'sasRequestFWCredentials.json', path + 'sasReturnedFWCredentials.json',
-        path + 'sasDownloadFWResponse.json', "SHA-256", "BETA2ENG218", "https://10.234.100.5:9443/")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_downloadFWFileRequestInvalid():
+#     downloadFWFileRequestInvalid(messageInvalidFile, 'invalidFileFWRequest.json', 'invalidFileFWCredentials.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyConsumedInvalidAttributes1():
+#     verifyConsumedAttributesInvalid(path + 'invalidFileFWRequest.json', path + 'invalidFileFWCredentials.json',
+#                                     "SHA-256", "VCEVision")
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_downloadFWFileRequestInvalid4():
+#     downloadFWFileRequestInvalid(messageInvalidAll, 'invalidAllFWRequest.json', 'invalidAllFWCredentials.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyConsumedInvalidAttributes4():
+#     verifyConsumedAttributesInvalid(path + 'invalidAllFWRequest.json', path + 'invalidAllFWCredentials.json',
+#                                     "SHA-256", "VCEVision")
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_downloadFWFileRequestInvalid5():
+#     downloadFWFileRequestInvalid(messageNoFile, 'noFileFWRequest.json', 'noFileFWCredentials.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyConsumedInvalidAttributes5():
+#     verifyConsumedAttributesInvalid(path + 'noFileFWRequest.json', path + 'noFileFWCredentials.json', "SHA-256",
+#                                     "VCEVision")
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_downloadFWFileRequestNone8():
+#     downloadFWFileRequestNone(messageNoAll, 'noAllFWRequest.json', 'noAllFWResponse.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyConsumedNoneAttributes8():
+#     verifyConsumedAttributesNone(path + 'noAllFWRequest.json', path + 'noAllFWResponse.json', "SHA-256",
+#                                  "VCEVision")
+#
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_downloadFWFileRequest9():
+#     downloadFWFileRequest("3.2", "3.2.1", "Dell BIOS Firmware", "Compute", message, 'downloadFWRequest.json',
+#                           'downloadFWResponse.json', 'requestFWCredentials.json', 'returnedFWCredentials.json',
+#                           "RCM/3.2.1/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE", 24992920)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyPublishedAttributes9():
+#     verifyPublishedAttributes(path + 'requestFWCredentials.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyConsumedAttributes9():
+#     verifyConsumedAttributes("RCM/3.2.1/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE",
+#                              path + 'requestFWCredentials.json', path + 'returnedFWCredentials.json',
+#                              path + 'downloadFWResponse.json', "SHA-256", "BETA2ENG218",
+#                              "https://10.234.100.5:9443/")
+#
+# @pytest.mark.rcm_fitness_mvp
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyProgressMessage9():
+#     verifyProgressMessage(path + 'requestFWCredentials.json', path + 'returnedFWCredentials.json',
+#                           path + 'downloadFWResponse.json')
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_downloadFWFileRequest11():
+#     downloadFWFileRequest("3.2", "3.2.1", "Dell PERC H730P Firmware", "Compute", messageSas2,
+#                           'sasDownloadFWRequest.json', 'sasDownloadFWResponse.json', 'sasRequestFWCredentials.json',
+#                           'sasReturnedFWCredentials.json',
+#                           "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
+#                           16505448)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyConsumedAttributes11():
+#     verifyConsumedAttributes(
+#         "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
+#         path + 'sasRequestFWCredentials.json', path + 'sasReturnedFWCredentials.json',
+#         path + 'sasDownloadFWResponse.json', "SHA-256", "BETA2ENG218", "https://10.234.100.5:9443/")
 
 #
 @pytest.mark.rcm_fitness_mvp_extended
@@ -1572,82 +1585,82 @@ def test_verifyMultiConsumedAttributes12():
 # #                                   path + 'secMultiDownloadFWResponse.json', "SHA-256", "BETA2ENG218", "https://10.234.100.5:9443/")
 # # # # #
 
-@pytest.mark.rcm_fitness_mvp_extended
-def test_downloadFWFileRequest14():
-    downloadFWFileMulti("3.2", "3.2.1", "Dell BIOS Firmware", "Compute",
-                        "RCM/3.2.1/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE", "3.2", "3.2.2",
-                        "Dell BIOS Firmware", "Compute - Dell (R630/R730)",
-                        "RCM/3.2.2/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE", "3.2", "3.2.3",
-                        "Dell BIOS Firmware", "Compute - Dell (R630/R730)",
-                        "RCM/3.2.3/VxRack_1000_FLEX/Component/BIOS/2.4.3/BIOS_6YDCM_WN64_2.4.3.EXE", messageBios1,
-                        messageBios2, messageBios3, 'downloadAllBiosFWRequest.json',
-                        'downloadAllBiosFWCredentials.json',
-                        'downloadAllBiosFWResponse.json', "BIOS_PFWCY_WN64_2.2.5.EXE", 24992920,
-                        "BIOS_6YDCM_WN64_2.4.3.EXE", 22808880)
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyMultiConsumedAttributes14():
-    verifyMultiConsumedAttributes(path + 'downloadAllBiosFWRequest.json',
-                                  path + 'downloadAllBiosFWCredentials.json',
-                                  path + 'downloadAllBiosFWResponse.json', "SHA-256", "BETA2ENG218",
-                                  "https://10.234.100.5:9443/")
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_downloadFWFileRequest15():
-    downloadFWFileMulti("3.2", "3.2.1", "Dell PERC H730P Firmware", "Compute",
-                        "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
-                        "3.2", "3.2.2", "Dell PERC H730P Firmware", "Compute - Dell (R630/R730)",
-                        "RCM/3.2.2/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE",
-                        "3.2", "3.2.3", "Dell PERC H730 Firmware", "Compute - Dell (R630/R730)",
-                        "RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE",
-                        messageSas1, messageSas3, messageSas2, 'downloadAllSasFWRequest.json',
-                        'downloadAllSasFWCredentials.json',
-                        'downloadAllSasFWResponse.json', "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
-                        16505448, "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE", 16729560)
-
-@pytest.mark.rcm_fitness_mvp_extended
-def test_verifyMultiConsumedAttributes15():
-    verifyMultiConsumedAttributes(path + 'downloadAllSasFWRequest.json', path + 'downloadAllSasFWCredentials.json',
-                                  path + 'downloadAllSasFWResponse.json', "SHA-256", "BETA2ENG218",
-                                  "https://10.234.100.5:9443/")
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_downloadFWFileRequest16():
-    downloadFWFileRequest("3.2", "3.2.1", "VMware vSphere Hypervisor ESXi 6.0", "Compute", messageEsxi1,
-                          'esxiIndDownloadFWRequest.json', 'esxiIndDownloadFWResponse.json',
-                          'esxiIndRequestFWCredentials.json',
-                          'esxiIndReturnedFWCredentials.json',
-                          "RCM/3.2.1/VxRack_1000_FLEX/Component/ESXi/ESXi600-201610001-Build-4510822.ZIP",
-                          366458004)
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyConsumedAttributes16():
-    verifyConsumedAttributes("RCM/3.2.1/VxRack_1000_FLEX/Component/ESXi/ESXi600-201610001-Build-4510822.ZIP",
-                             path + 'esxiIndRequestFWCredentials.json', path + 'esxiIndReturnedFWCredentials.json',
-                             path + 'esxiIndDownloadFWResponse.json', "SHA-256", "BETA2ENG218",
-                             "https://10.234.100.5:9443/")
-
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_downloadFWFileRequest17():
-    downloadFWFileRequest("3.2", "3.2.2", "VMware vSphere Hypervisor ESXi 6.0", "Compute - Dell (R630/R730)",
-                          messageEsxi2, 'REPesxiIndDownloadFWRequest.json', 'REPesxiIndDownloadFWResponse.json',
-                          'REPesxiIndRequestFWCredentials.json',
-                          'REPesxiIndReturnedFWCredentials.json',
-                          "RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/ESXi600-201703001-Build-5224934.ZIP",
-                          367863254)
-
-@pytest.mark.rcm_fitness_mvp_extended
-@pytest.mark.rcm_fitness_mvp
-def test_verifyConsumedAttributes17():
-    verifyConsumedAttributes("RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/ESXi600-201703001-Build-5224934.ZIP",
-                             path + 'REPesxiIndRequestFWCredentials.json',
-                             path + 'REPesxiIndReturnedFWCredentials.json',
-                             path + 'REPesxiIndDownloadFWResponse.json', "SHA-256", "BETA2ENG218",
-                             "https://10.234.100.5:9443/")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_downloadFWFileRequest14():
+#     downloadFWFileMulti("3.2", "3.2.1", "Dell BIOS Firmware", "Compute",
+#                         "RCM/3.2.1/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE", "3.2", "3.2.2",
+#                         "Dell BIOS Firmware", "Compute - Dell (R630/R730)",
+#                         "RCM/3.2.2/VxRack_1000_FLEX/Component/BIOS/2.2.5/BIOS_PFWCY_WN64_2.2.5.EXE", "3.2", "3.2.3",
+#                         "Dell BIOS Firmware", "Compute - Dell (R630/R730)",
+#                         "RCM/3.2.3/VxRack_1000_FLEX/Component/BIOS/2.4.3/BIOS_6YDCM_WN64_2.4.3.EXE", messageBios1,
+#                         messageBios2, messageBios3, 'downloadAllBiosFWRequest.json',
+#                         'downloadAllBiosFWCredentials.json',
+#                         'downloadAllBiosFWResponse.json', "BIOS_PFWCY_WN64_2.2.5.EXE", 24992920,
+#                         "BIOS_6YDCM_WN64_2.4.3.EXE", 22808880)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyMultiConsumedAttributes14():
+#     verifyMultiConsumedAttributes(path + 'downloadAllBiosFWRequest.json',
+#                                   path + 'downloadAllBiosFWCredentials.json',
+#                                   path + 'downloadAllBiosFWResponse.json', "SHA-256", "BETA2ENG218",
+#                                   "https://10.234.100.5:9443/")
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_downloadFWFileRequest15():
+#     downloadFWFileMulti("3.2", "3.2.1", "Dell PERC H730P Firmware", "Compute",
+#                         "RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
+#                         "3.2", "3.2.2", "Dell PERC H730P Firmware", "Compute - Dell (R630/R730)",
+#                         "RCM/3.2.2/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE",
+#                         "3.2", "3.2.3", "Dell PERC H730 Firmware", "Compute - Dell (R630/R730)",
+#                         "RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE",
+#                         messageSas1, messageSas3, messageSas2, 'downloadAllSasFWRequest.json',
+#                         'downloadAllSasFWCredentials.json',
+#                         'downloadAllSasFWResponse.json', "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE",
+#                         16505448, "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE", 16729560)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_verifyMultiConsumedAttributes15():
+#     verifyMultiConsumedAttributes(path + 'downloadAllSasFWRequest.json', path + 'downloadAllSasFWCredentials.json',
+#                                   path + 'downloadAllSasFWResponse.json', "SHA-256", "BETA2ENG218",
+#                                   "https://10.234.100.5:9443/")
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_downloadFWFileRequest16():
+#     downloadFWFileRequest("3.2", "3.2.1", "VMware vSphere Hypervisor ESXi 6.0", "Compute", messageEsxi1,
+#                           'esxiIndDownloadFWRequest.json', 'esxiIndDownloadFWResponse.json',
+#                           'esxiIndRequestFWCredentials.json',
+#                           'esxiIndReturnedFWCredentials.json',
+#                           "RCM/3.2.1/VxRack_1000_FLEX/Component/ESXi/ESXi600-201610001-Build-4510822.ZIP",
+#                           366458004)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyConsumedAttributes16():
+#     verifyConsumedAttributes("RCM/3.2.1/VxRack_1000_FLEX/Component/ESXi/ESXi600-201610001-Build-4510822.ZIP",
+#                              path + 'esxiIndRequestFWCredentials.json', path + 'esxiIndReturnedFWCredentials.json',
+#                              path + 'esxiIndDownloadFWResponse.json', "SHA-256", "BETA2ENG218",
+#                              "https://10.234.100.5:9443/")
+#
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_downloadFWFileRequest17():
+#     downloadFWFileRequest("3.2", "3.2.2", "VMware vSphere Hypervisor ESXi 6.0", "Compute - Dell (R630/R730)",
+#                           messageEsxi2, 'REPesxiIndDownloadFWRequest.json', 'REPesxiIndDownloadFWResponse.json',
+#                           'REPesxiIndRequestFWCredentials.json',
+#                           'REPesxiIndReturnedFWCredentials.json',
+#                           "RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/ESXi600-201703001-Build-5224934.ZIP",
+#                           367863254)
+#
+# @pytest.mark.rcm_fitness_mvp_extended
+# @pytest.mark.rcm_fitness_mvp
+# def test_verifyConsumedAttributes17():
+#     verifyConsumedAttributes("RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/ESXi600-201703001-Build-5224934.ZIP",
+#                              path + 'REPesxiIndRequestFWCredentials.json',
+#                              path + 'REPesxiIndReturnedFWCredentials.json',
+#                              path + 'REPesxiIndDownloadFWResponse.json', "SHA-256", "BETA2ENG218",
+#                              "https://10.234.100.5:9443/")
 
 
 # @pytest.mark.rcm_fitness_mvp_extended
