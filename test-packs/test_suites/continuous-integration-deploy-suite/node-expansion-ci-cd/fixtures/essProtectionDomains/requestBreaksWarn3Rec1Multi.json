@@ -4,11 +4,11 @@
 		"correlationId": "148a375c-64a8-4408-b8e9-7447905c0f20",
 		"replyTo": "dne-paqx.b1d958050f7a"
 	},
-	"nodeData": {
+	"nodeDatas": [{
 		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c45",
 		"type": "1U1N",
 		"protectionDomainId": ""
-	},
+	}],
 	"protectionDomains" : [
 		{
 			"id" : "d0000000001",
