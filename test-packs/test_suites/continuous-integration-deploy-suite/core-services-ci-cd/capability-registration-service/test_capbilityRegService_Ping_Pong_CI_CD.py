@@ -83,8 +83,9 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_core():
                                                           remove_message=False, return_basic_properties=True)
 
     # Save the correlationID to be used in next part of the test
-    correlationID = return_message[0].correlation_id
-    correlationID = json.dumps(correlationID)
+    #correlationID = return_message[0].correlation_id
+    #correlationID = json.dumps(correlationID)
+    correlationID = return_message[0]['correlation_id']
 
     print('The CorrelationID for this Control Msg:', correlationID)
 
@@ -157,8 +158,9 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_core():
                                                               queue='test.capability.registry.binding', ssl_enabled=True,
                                                               remove_message=False, return_basic_properties=True)
 
-        testcorrelationID = return_message[0].correlation_id
-        testcorrelationID = json.dumps(testcorrelationID)
+        #testcorrelationID = return_message[0].correlation_id
+        #testcorrelationID = json.dumps(testcorrelationID)
+        testcorrelationID = return_message[0]['correlation_id']
 
         if testcorrelationID == correlationID:  # Only check messages that have the same CorrelationID as the ping message
 
@@ -291,9 +293,10 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_dne():
                                                           remove_message=False, return_basic_properties=True)
 
     # Save the correlationID to be used in next part of the test
-    correlationID = return_message[0].correlation_id
-    correlationID = json.dumps(correlationID)
-
+    #correlationID = return_message[0].correlation_id
+    #correlationID = json.dumps(correlationID)
+    correlationID = return_message[0]['correlation_id']
+	
     print('The CorrelationID for this Control Msg:', correlationID)
 
     # The message is consumed again, checked for errors and converted to JSON. The body of the message contains the
@@ -355,8 +358,9 @@ def test_capabilityRegistry_Control_and_Binding_Pong_Message_dne():
                                                               queue='test.capability.registry.binding', ssl_enabled= True,
                                                               remove_message=False, return_basic_properties=True)
 
-        testcorrelationID = return_message[0].correlation_id
-        testcorrelationID = json.dumps(testcorrelationID)
+        #testcorrelationID = return_message[0].correlation_id
+        #testcorrelationID = json.dumps(testcorrelationID)
+        testcorrelationID = return_message[0]['correlation_id']
 
         if testcorrelationID == correlationID:  # Only check messages that have the same CorrelationID as the ping message
 
