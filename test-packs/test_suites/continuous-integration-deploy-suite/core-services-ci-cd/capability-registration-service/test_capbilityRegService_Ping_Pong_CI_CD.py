@@ -296,7 +296,7 @@ def test_capabilityRegistry_Control_and_Binding_Ping_Message_dne():
     #correlationID = return_message[0].correlation_id
     #correlationID = json.dumps(correlationID)
     correlationID = return_message[0]['correlation_id']
-	
+
     print('The CorrelationID for this Control Msg:', correlationID)
 
     # The message is consumed again, checked for errors and converted to JSON. The body of the message contains the
