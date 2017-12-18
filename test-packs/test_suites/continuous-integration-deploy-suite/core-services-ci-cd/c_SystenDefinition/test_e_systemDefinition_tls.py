@@ -24,15 +24,11 @@ def test_sds_consul():
             Returns: None
         """    
     sysdef = 'system-definition-service.cpsd.dell'
-    hostname = socket.gethostname()
     consul_url = 'https://' + sysdef + ':8080/about'
     print('Console URL : ' + consul_url)
-    resp = requests.get(consul_url, cert=(
-        '/usr/local/share/ca-certificates/' + hostname + '.crt',
-        '/usr/local/share/ca-certificates/' + hostname + '.key'),
-                     verify='/usr/local/share/ca-certificates/cpsd.dell.ca.crt')
+    resp = af_support_tools.scomm_get_request(get_url=consul_url)
     print("---------------------------")
-    print(resp.text)
+    print(resp[1])
     print("---------------------------")
 
-    assert resp.status_code == 200, "Request has not been acknowledged as expected."
+    assert resp[0] == '200', "Request has not been acknowledged as expected."
