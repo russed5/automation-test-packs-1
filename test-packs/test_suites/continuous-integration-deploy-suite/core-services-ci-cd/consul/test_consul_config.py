@@ -69,11 +69,10 @@ def test_service_is_registered_with_consul(service_name):
 
     consul_url = 'https://' + consulHost + ':8500/v1/catalog/services'
     print('sending GET request:', consul_url)
-    response = requests.get(consul_url, verify= '/usr/local/share/ca-certificates/' + hostname + '.ca.crt')
-    data = json.loads(response.text)
+    response = af_support_tools.scomm_get_request(get_url=consul_url)
+    data = json.loads(response[1])
 
-
-    assert response.status_code == 200, "Error---Request has not been acknowledged as expected"
+    assert response[0] == '200', "Error---Request has not been acknowledged as expected"
     assert service_name in data, 'ERROR--- Service is not Registered in Consul\n'
     assert "consul" in data, 'ERROR--- consul is not Registered in Consul\n'
 
@@ -98,8 +97,8 @@ def test_service_status_is_healthy_in_consul(service_name):
     consul_url = 'https://' + consulHost + ':8500/v1/health/checks/' + service_name
     print('GET:', consul_url)
 
-    response = requests.get(consul_url, verify='/usr/local/share/ca-certificates/' + hostname + '.ca.crt')
+    response = af_support_tools.scomm_get_request(get_url=consul_url)
     service_status = '"Status":"passing"'
 
-    assert response.status_code == 200, "Error---Request has not been acknowledged as expected"
-    assert service_status in response.text, ('ERROR:', service_name, 'is not Passing in Consul\n')
+    assert response[0] == '200', "Error---Request has not been acknowledged as expected"
+    assert service_status in response[1], ('ERROR:', service_name, 'is not Passing in Consul\n')
