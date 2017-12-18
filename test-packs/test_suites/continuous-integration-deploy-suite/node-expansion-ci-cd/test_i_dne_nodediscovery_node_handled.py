@@ -109,7 +109,7 @@ def test_dne_discovered_node_handled(setup):
     cleanup('test.eids.identity.response')
 
 
-#@pytest.mark.dne_paqx_parent_mvp
+@pytest.mark.dne_paqx_parent_mvp
 def test_dne_node_in_esx_cannot_be_provisioned(setup):
     '''
     Attempt to use the dummy node and use the name of an ESXi Hostname existing node
@@ -118,7 +118,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
     :return: none
     '''
 
-    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","esxiManagementHostname":"fpr1-h14","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementGatewayIpAddress":"string","esxiManagementIpAddress":"string","esxiManagementSubnetMask":"string","idracGatewayIpAddress":"string","idracIpAddress":"string","idracSubnetMask":"string","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1EsxIpAddress":"string","scaleIoData1EsxSubnetMask":"string","scaleIoData1SvmIpAddress":"string","scaleIoData1SvmSubnetMask":"string","scaleIoData2EsxIpAddress":"string","scaleIoData2EsxSubnetMask":"string","scaleIoData2SvmIpAddress":"string","scaleIoData2SvmSubnetMask":"string","scaleIoSvmManagementGatewayAddress":"string","scaleIoSvmManagementIpAddress":"string","scaleIoSvmManagementSubnetMask":"string","vMotionManagementIpAddress":"string","vMotionManagementSubnetMask":"string"}]'
+    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","esxiManagementHostname":"fpr1-h14","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementIpAddress":"10.0.0.1","esxiManagementGatewayIpAddress":"10.255.255.255","esxiManagementSubnetMask":"255.0.0.0","idracIpAddress":"10.0.0.2","idracGatewayIpAddress":"10.255.255.255","idracSubnetMask":"255.0.0.0","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1SvmIpAddress":"10.0.0.3","scaleIoData1SvmSubnetMask":"255.0.0.0","scaleIoData2SvmIpAddress":"10.0.0.4","scaleIoData2SvmSubnetMask":"255.0.0.0","scaleIoData1EsxIpAddress":"10.0.0.5","scaleIoData1EsxSubnetMask":"255.0.0.0","scaleIoData2EsxIpAddress":"10.0.0.6","scaleIoData2EsxSubnetMask":"255.0.0.0","scaleIoSvmManagementIpAddress":"10.0.0.7","scaleIoSvmManagementGatewayAddress":"10.255.255.255","scaleIoSvmManagementSubnetMask":"255.0.0.0","vMotionManagementIpAddress":"10.0.0.8","vMotionManagementSubnetMask":"255.0.0.0"}]'
 
     request_body = json.loads(request_body)
 
@@ -146,24 +146,28 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         data = json.loads(data, encoding='utf-8')
 
         jobState = data['state']
-        errorCode = data['errors'][0]['errorCode']
-        processStatusLog = data['additionalProperties']['processStatusLogs'][1]
+        subProcess_jobState = data['subProcesses'][0]['state']
+        errorCode = data['subProcesses'][0]['errors'][0]['errorCode']
+        errorMessage= data['subProcesses'][0]['errors'][0]['errorMessage']
 
         error_list = []
 
-        if jobState != 'FAILED':
+        if jobState != 'COMPLETED':
             error_list.append(jobState)
 
-        if errorCode != 'Verify-Nodes-Selected-Failed':
-            error_list.append(errorCode)
+        if subProcess_jobState != 'FAILED':
+            error_list.append(subProcess_jobState)
 
-        if processStatusLog != 'The following Nodes have already been added.  Please remove the Nodes from the request and try again.  Nodes currently in use: XXTESTX':
-            error_list.append(processStatusLog)
+        # if errorCode != 'Verify-Node-Detail-Failed':
+        #     error_list.append(errorCode)
+
+        # if errorMessage != '':
+        #     error_list.append(errorMessage)
 
         assert not error_list, 'Test Failed'
         print('Test Pass: Unable to provision node as expected.'
               '\nESXi Hostname already in use.'
-              '\nError returned: ' + processStatusLog)
+              '\nError returned: ' + errorMessage)
 
     except Exception as err:
         # Return code error (e.g. 404, 501, ...)
@@ -171,7 +175,7 @@ def test_dne_node_in_esx_cannot_be_provisioned(setup):
         raise Exception(err)
 
 
-#@pytest.mark.dne_paqx_parent_mvp
+@pytest.mark.dne_paqx_parent_mvp
 def test_dne_node_in_sdc_cannot_be_provisioned(setup):
     '''
     Attempt to use the dummy node and use the IP of an existing ESXi Mgmt node
@@ -180,7 +184,7 @@ def test_dne_node_in_sdc_cannot_be_provisioned(setup):
     :return: none
     '''
 
-    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","esxiManagementIpAddress":"10.239.139.21","esxiManagementHostname":"string","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementGatewayIpAddress":"string","esxiManagementSubnetMask":"string","idracGatewayIpAddress":"string","idracIpAddress":"string","idracSubnetMask":"string","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1EsxIpAddress":"string","scaleIoData1EsxSubnetMask":"string","scaleIoData1SvmIpAddress":"string","scaleIoData1SvmSubnetMask":"string","scaleIoData2EsxIpAddress":"string","scaleIoData2EsxSubnetMask":"string","scaleIoData2SvmIpAddress":"string","scaleIoData2SvmSubnetMask":"string","scaleIoSvmManagementGatewayAddress":"string","scaleIoSvmManagementIpAddress":"string","scaleIoSvmManagementSubnetMask":"string","vMotionManagementIpAddress":"string","vMotionManagementSubnetMask":"string"}]'
+    request_body = '[{"id":"' + element_id + '","serviceTag":"XXTESTX","esxiManagementHostname":"dummy_test","clusterName":"string","deviceToDeviceStoragePool":{},"esxiManagementIpAddress":"10.239.139.21","esxiManagementGatewayIpAddress":"10.239.139.1","esxiManagementSubnetMask":"255.255.255.224","idracIpAddress":"10.0.0.2","idracGatewayIpAddress":"10.255.255.255","idracSubnetMask":"255.0.0.0","protectionDomainId":"string","protectionDomainName":"string","scaleIoData1SvmIpAddress":"10.0.0.3","scaleIoData1SvmSubnetMask":"255.0.0.0","scaleIoData2SvmIpAddress":"10.0.0.4","scaleIoData2SvmSubnetMask":"255.0.0.0","scaleIoData1EsxIpAddress":"10.0.0.5","scaleIoData1EsxSubnetMask":"255.0.0.0","scaleIoData2EsxIpAddress":"10.0.0.6","scaleIoData2EsxSubnetMask":"255.0.0.0","scaleIoSvmManagementIpAddress":"10.0.0.7","scaleIoSvmManagementGatewayAddress":"10.255.255.255","scaleIoSvmManagementSubnetMask":"255.0.0.0","vMotionManagementIpAddress":"10.0.0.8","vMotionManagementSubnetMask":"255.0.0.0"}]'
     request_body = json.loads(request_body)
 
     endpoint_post = '/multinode/addnodes'
@@ -207,31 +211,35 @@ def test_dne_node_in_sdc_cannot_be_provisioned(setup):
         data = json.loads(data, encoding='utf-8')
 
         jobState = data['state']
-        errorCode = data['errors'][0]['errorCode']
-        processStatusLog = data['additionalProperties']['processStatusLogs'][1]
+        subProcess_jobState = data['subProcesses'][0]['state']
+        errorCode = data['subProcesses'][0]['errors'][0]['errorCode']
+        errorMessage= data['subProcesses'][0]['errors'][0]['errorMessage']
 
         error_list = []
 
-        if jobState != 'FAILED':
+        if jobState != 'COMPLETED':
             error_list.append(jobState)
 
-        if errorCode != 'Verify-Nodes-Selected-Failed':
+        if subProcess_jobState != 'FAILED':
+            error_list.append(subProcess_jobState)
+
+        if errorCode != 'Verify-Node-Detail-Failed':
             error_list.append(errorCode)
 
-        if processStatusLog != 'The following Nodes have already been added.  Please remove the Nodes from the request and try again.  Nodes currently in use: XXTESTX':
-            error_list.append(processStatusLog)
+        if errorMessage != 'Node details are invalid!  Please correct Node details with the following information and try again. IP Address already in use: ESXi IP Address.':
+            error_list.append(errorMessage)
 
         assert not error_list, 'Test Failed'
         print('Test Pass: Unable to provision node as expected.'
               '\nESXi IP already in use.'
-              '\nError returned: ' + processStatusLog)
+              '\nError returned: ' + errorMessage)
 
     except Exception as err:
         # Return code error (e.g. 404, 501, ...)
         print(err, '\n')
         raise Exception(err)
 
-        
+
 @pytest.mark.dne_paqx_parent_mvp
 def test_dne_preprocess_api_200_response(setup):
     '''
@@ -274,7 +282,7 @@ def test_dne_preprocess_api_200_response(setup):
         if jobState != 'FAILED':
             error_list.append(jobState)
 
-        if errorCode != 'Inventory-Node-Failed':
+        if errorCode != 'Inventory-Nodes-Failed':
             error_list.append(errorCode)
 
         assert not error_list, 'Test Failed'
@@ -318,27 +326,32 @@ def test_dne_addnodes_api_200_response(setup):
         # GET on /multinode/status/
         response = requests.get(url_body_get, verify=False)
         assert response.status_code == 200, 'Error: Did not get a 200 response on /multinode/status/'
-        #data = response.text
-        #data = json.loads(data, encoding='utf-8')
+        data = response.text
+        data = json.loads(data, encoding='utf-8')
 
-        #error_list = []
-        #jobState = data['state']
-        #errorCode = data['errors'][0]['errorCode']
+        error_list = []
+        jobState = data['state']
+        subProcess_jobState = data['subProcesses'][0]['state']
+        errorCode = data['subProcesses'][0]['additionalProperties']['errorCode']
 
-        #if jobState != 'FAILED':
-        #    error_list.append(jobState)
+        if jobState != 'COMPLETED':
+            error_list.append(jobState)
 
-        #if errorCode != 'Retrieve-Default-Esxi-Credentials':
-        #    error_list.append(errorCode)
+        if subProcess_jobState != 'FAILED':
+            error_list.append(subProcess_jobState)
 
-        #assert not error_list, 'Test Failed'
+        if errorCode != 'Verify-Node-Detail-Failed':
+            error_list.append(errorCode)
+
+        assert not error_list, 'Test Failed'
         print('Test Pass: Addnodes API Responding as expected.')
 
     except Exception as err:
         # Return code error (e.g. 404, 501, ...)
         print(err, '\n')
         raise Exception(err)
-        
+
+
 #####################################################################
 # These are the main functions called in the test.
 
