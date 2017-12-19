@@ -1,0 +1,53 @@
+{
+	"messageProperties": {
+		"timestamp": "2017-08-29T15:19:41.954Z",
+		"correlationId": "148a375c-64a8-4408-b8e9-7447905c0f20",
+		"replyTo": "dne-paqx.b1d958050f7a"
+	},
+	"nodeDatas": [
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c45",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               }
+	],
+	"protectionDomains" : [
+		{
+			"id" : "d0000000001",
+			"name": "RVX1-PD",
+			"state" : "Active",
+			"scaleIODataServers" : [
+				{
+					"id" : "63dd10be00000001",
+					"name": "10.234.121.96-ESX",
+					"type": "2U1N"
+				},
+				{
+					"id" : "63dd37cd00000002",
+					"name": "10.234.121.95-ESX",
+					"type": "2U1N"
+				},
+				{
+					"id" : "63dd10be00000003",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+								{
+					"id" : "63dd10be00000004",
+					"name": "10.234.121.96-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd37cd00000005",
+					"name": "10.234.121.95-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000006",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				}
+			]
+		}
+	]
+}
