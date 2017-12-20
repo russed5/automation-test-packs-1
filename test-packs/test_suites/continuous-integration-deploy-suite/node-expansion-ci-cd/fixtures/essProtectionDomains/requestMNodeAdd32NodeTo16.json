@@ -1,0 +1,258 @@
+{
+	"messageProperties": {
+		"timestamp": "2017-08-29T15:19:41.954Z",
+		"correlationId": "148a375c-64a8-4408-b8e9-7447905c0f20",
+		"replyTo": "dne-paqx.b1d958050f7a"
+	},
+	"nodeDatas": [
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c01",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c02",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c03",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c04",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c05",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c06",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c07",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c08",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c09",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c10",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c11",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c12",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c13",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c14",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c15",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c16",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c17",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c18",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c19",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c20",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c21",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c22",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c23",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c24",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c25",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c26",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c27",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c28",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c29",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c30",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c31",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               },
+               {
+		"symphonyUuid": "3f446129-d576-48bf-a283-d6dd12385c32",
+		"type": "1U1N",
+		"protectionDomainId": ""
+               }
+	],
+	"protectionDomains" : [
+		{
+			"id" : "d0000000001",
+			"name": "RVX1-PD",
+			"state" : "Active",
+			"scaleIODataServers" : [
+				{
+					"id" : "63dd10be00000001",
+					"name": "10.234.121.96-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd37cd00000002",
+					"name": "10.234.121.95-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000003",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+								{
+					"id" : "63dd10be00000004",
+					"name": "10.234.121.96-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd37cd00000005",
+					"name": "10.234.121.95-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000006",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+								{
+					"id" : "63dd10be00000007",
+					"name": "10.234.121.96-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd37cd00000008",
+					"name": "10.234.121.95-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000009",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+								{
+					"id" : "63dd10be00000010",
+					"name": "10.234.121.96-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000011",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000012",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000013",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000014",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000015",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				},
+				{
+					"id" : "63dd10be00000016",
+					"name": "10.234.121.77-ESX",
+					"type": "1U1N"
+				}
+			]
+		}
+	]
+}

@@ -974,6 +974,407 @@ def test_requestNoNodesListed():
 
 #########################################################################################
 
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd6NoWarnings():
+    """ Verify that requesting 6 nodes be added to a 10 node Protection Domain
+        results in an ESS response containing 1 PD with 16 nodes, no warnings """
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd6NoWarnings.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+
+    # verify only 1 PD in the response
+    if (len(essRsp['validProtectionDomains']) > 1):
+        error_list.append("Error : a second PD should not have been created")
+
+    # verify the response data. The order of the data is critical
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if essRsp['validProtectionDomains'][0]['warningMessages']:
+        error_list.append("Error :wrong warning given for  d0000000001")
+
+    assert not error_list
+
+##############################################################################################
+
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd10NodesNewPD():
+    """ Verify that requesting 10 nodes be added to a 16 node Protection Domain
+        results in an ESS response containing 2 PDs, 1 containing 16 nodes, 1 with 10.
+        No warnings are expected.  """
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd10NodesNewPD.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+
+    # verify 2 PDs in the response
+    if (len(essRsp['validProtectionDomains']) != 2):
+        error_list.append("Error : Only 2 Protection Domains should have been listed in the response")
+
+    # verify there are exactly 10 nodes in the second PD
+    if (len(essRsp['validProtectionDomains'][1]['protectionDomain']['scaleIODataServers']) != 10):
+        error_list.append("Error : the second PD should have contained 10 nodes")
+
+
+    # verify the response data, the order of the data is critical
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if essRsp['validProtectionDomains'][0]['warningMessages']:
+        error_list.append("Error :wrong warning given for  d0000000001")
+
+
+    if essRsp['validProtectionDomains'][1]['protectionDomain']['name'] != "PD_ess-created-0":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  PD_ess-created-0")
+    if essRsp['validProtectionDomains'][1]['warningMessages']:
+        error_list.append("Error :wrong warning given for  PD_ess-created-0")
+
+
+    assert not error_list
+
+##############################################################################################
+
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd1NodeTo30():
+    """ Verify that requesting 1 node be added to a 30 node Protection Domain
+        results in an ESS response containing 1 PD with 31 nodes.
+        A warning is expected about having more then 30 nodes in a domain.  """
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd1NodeTo30.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+    # verify the response data, the order of the data is critical
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if "No more than 30 nodes in a protection domain" not in essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']:
+        error_list.append("Error :wrong warning  or no warning given for  d0000000001")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error : No recommendation expected for d0000000001")
+
+
+    if (len(essRsp['validProtectionDomains']) > 1):
+        error_list.append("Error : a second PD should not have been created")
+
+    # verify there are exactly 31 nodes in the PD
+    if (len(essRsp['validProtectionDomains'][0]['protectionDomain']['scaleIODataServers']) != 31):
+        error_list.append("Error : the  PD should contain exactly 31 nodes")
+
+
+    assert not error_list
+
+##############################################################################################
+
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd5NodeTo26():
+    """ Verify that requesting 5 nodes be added to a 26 node Protection Domain
+        results in an ESS response containing 2 PDs, 1 with 26 nodes, 1 with 5.
+        A warning is expected with PD2 about having less then 10 nodes in a domain.  """
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd5NodeTo26.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+
+    # Verify there are 2 PDs in the response
+    if (len(essRsp['validProtectionDomains']) != 2 ):
+        error_list.append("Error : there should be 2 domains listed in the response")
+
+    # verify there are exactly 5 nodes in the 2nd PD
+    if (len(essRsp['validProtectionDomains'][1]['protectionDomain']['scaleIODataServers']) != 5):
+        error_list.append("Error : the  PD should contain exactly 5 nodes")
+
+
+    # verify the response data, the order of the data is critical
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if essRsp['validProtectionDomains'][0]['warningMessages']:
+        error_list.append("Error :wrong warning given for  d0000000001")
+
+    if essRsp['validProtectionDomains'][1]['protectionDomain']['name'] != "PD_ess-created-0":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  PD_ess-created-0")
+    if "No Less than 10 nodes in a protection domain" not in essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']:
+        error_list.append("Error :wrong warning  or no warning given for PD_ess-created-0")
+
+
+    assert not error_list
+
+##############################################################################################
+
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd32NodeTo16():
+    """ Verify that requesting 32 nodes be added to a 16 node Protection Domain
+        results in an ESS response containing 3 PDs, 1 with 16 nodes, and the 2 others with 16 each.
+        No warnings are expected.  """
+
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd32NodeTo16.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+    # Verify there are 3 PDs in the response
+    if (len(essRsp['validProtectionDomains']) != 3 ):
+        error_list.append("Error : there should be 3 domains listed in the response")
+
+    # verify there are exactly 16 nodes in the 2nd PD
+    if (len(essRsp['validProtectionDomains'][1]['protectionDomain']['scaleIODataServers']) != 16):
+        error_list.append("Error : the  PD should contain exactly 16 nodes")
+
+    # verify there are exactly 16 nodes in the 3rd PD
+    if (len(essRsp['validProtectionDomains'][2]['protectionDomain']['scaleIODataServers']) != 16):
+        error_list.append("Error : the  PD should contain exactly 16 nodes")
+
+    # verify the response data, the order of the data is critical
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if essRsp['validProtectionDomains'][0]['warningMessages']:
+        error_list.append("Error :wrong warning given for  d0000000001")
+
+    if essRsp['validProtectionDomains'][1]['protectionDomain']['name'] != "PD_ess-created-0":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  PD_ess-created-0")
+    if essRsp['validProtectionDomains'][1]['warningMessages']:
+        error_list.append("Error :no warning expected for PD_ess-created-0")
+
+    if essRsp['validProtectionDomains'][2]['protectionDomain']['name'] != "PD_ess-created-1":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][2]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  PD_ess-created-1")
+    if essRsp['validProtectionDomains'][2]['warningMessages']:
+        error_list.append("Error :no warning expected for PD_ess-created-1")
+
+
+
+    assert not error_list
+
+##############################################################################################
+
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd1NodeToMixed6():
+    """ Verify that requesting 1 node be added to a mixed-node Protection Domain with 6 nodes
+        results in an ESS response containing 1 PD, 7 nodes.
+        2 warnings are expected, mixed type nodes and less then 10 nodes in the domain.  """
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd1NodeToMixed6.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+    # verify the response data, the order of the data is critical
+
+    # ensure only 1 protectionDomain in the response message
+    if (len(essRsp['validProtectionDomains']) > 1):
+        error_list.append("Error : a second PD should not have been created")
+
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if "No Less than 10 nodes in a protection domain" not in essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']:
+        error_list.append("Error : warning 2 not  given for d0000000001")
+    if "must be of the same type" not in essRsp['validProtectionDomains'][0]['warningMessages'][1]['message']:
+        error_list.append("Error : warning 1 not given for  d0000000001")
+
+
+    assert not error_list
+
+##############################################################################################
+
+@pytest.mark.daily_status
+@pytest.mark.dne_paqx_parent_mvp
+@pytest.mark.dne_paqx_parent_mvp_extended
+def test_requestMNodeAdd4NodeToMixed6():
+    """ Verify that requesting 4 nodes be added to a mixed-node Protection Domain with 6 nodes
+        results in an ESS response containing 2 PDs, the original with 6 nodes and a new one with 4.
+        2 warnings are expected for PD1, mixed type nodes and less then 10 nodes in the domain.
+        1 warning is expected for PD2, less then 10 nodes in the domain """
+
+
+    # ARRANGE
+    #
+    filePath = os.environ[
+        'AF_TEST_SUITE_PATH'] + FIXTURES_PATH + 'requestMNodeAdd4NodeToMixed6.json'
+    with open(filePath) as fixture:
+        request_body = json.loads(fixture.read())
+
+    # Create & bind the test queue called testQueue to the ESS response queue
+    bindQueues("exchange.dell.cpsd.service.ess.response", "ess.service.response.#")
+
+    error_list = []
+
+    # ACT
+    # query the ESS and consume the response
+    sendRequestMessageToESS(request_body)
+    time.sleep(5)
+    essRsp = consumeResponseMessageFromESS()
+
+    print('********** test_requestNoWarnings *******************')
+    print(essRsp)
+    print('*****************************************************')
+
+    # ASSERT
+    # verify the response data, the order of the data is critical
+
+    # ensure  2 protectionDomains in the response message
+    if (len(essRsp['validProtectionDomains']) != 2):
+        error_list.append("Error : 2 PDs should have been created")
+
+    if essRsp['validProtectionDomains'][0]['protectionDomain']['name'] != "PD_ess-created-0":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if "No Less than 10 nodes in a protection domain" not in essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']:
+        error_list.append("Error : warning 2 not  given for d0000000001")
+
+
+    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if "No Less than 10 nodes in a protection domain" not in essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']:
+        error_list.append("Error : warning 2 not  given for d0000000001")
+    if "must be of the same type" not in essRsp['validProtectionDomains'][1]['warningMessages'][1]['message']:
+        error_list.append("Error : warning 1 not given for  d0000000001")
+
+
+    assert not error_list
+
+##############################################################################################
+
+def sendRequestMessageToESS(my_payload):
+    """ Use the AMQP bus to send a Request message to the ESS.
+    """
+
+    my_exchange = "exchange.dell.cpsd.service.ess.request"
+    my_routing_key = "ess.service.request"
+
 def sendRequestMessageToESS(my_payload):
     """ Use the AMQP bus to send a Request message to the ESS.
     """
