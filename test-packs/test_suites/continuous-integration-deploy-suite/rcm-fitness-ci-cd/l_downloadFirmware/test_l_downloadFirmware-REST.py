@@ -498,11 +498,11 @@ def test_verifyRESTdownloadSingleFileRequestSTATUS1():
         "3.2", "3.2.1")
 
 
-# @pytest.mark.daily_status
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyRESTrepositoryStatus1():
-#     verifyRESTrepositoryStatus("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/",
-#                                "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE")
+@pytest.mark.daily_status
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyRESTrepositoryStatus1():
+    verifyRESTrepositoryStatus("RCM/3.2.1/VxRack_1000_FLEX/Component/Controller_Firmware/",
+                               "SAS-RAID_Firmware_VH28K_WN64_25.4.0.0017_A06.EXE")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -519,10 +519,10 @@ def test_verifyRESTdownloadSingleFileRequestSTATUS2():
         "3.2", "3.2.3")
 
 
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_verifyRESTrepositoryStatus2():
-#     verifyRESTrepositoryStatus("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/",
-#                                "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE")
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyRESTrepositoryStatus2():
+    verifyRESTrepositoryStatus("RCM/3.2.3/VxRack_1000_FLEX/Component/Controller_Firmware/",
+                               "SAS-RAID_Firmware_2H45F_WN64_25.5.0.0018_A08.EXE")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
