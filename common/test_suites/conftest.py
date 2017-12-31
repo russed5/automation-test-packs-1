@@ -2,10 +2,10 @@
 import af_support_tools
 import os
 import pytest
-import subprocess
+#import subprocess
 import requests
 import json
-import socket
+#import socket
 import time
 
 @pytest.fixture(autouse=True, scope='session')
