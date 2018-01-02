@@ -361,13 +361,12 @@ def test_consul_verify_rackHD_registered():
     print('GET:', my_url)
 
     try:
-        url_response = requests.get(my_url,verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt")
-        url_response.raise_for_status()
+        url_response = af_support_tools.scomm_post_request(post_url=my_url, verify=True)
 
-        # A 200 has been received
-        print(url_response)
-
-        the_response = url_response.text
+        # Check the response code
+        print('Return Code: %s' % url_response[0])
+        assert url_response[0] == '200', ('Return Code NOT 200')
+        the_response = url_response[1]
 
         # Create the sting as it should appear in the API
         serviceToCheck = '"Service":"' + service + '"'
@@ -375,10 +374,7 @@ def test_consul_verify_rackHD_registered():
         assert serviceToCheck in the_response, ('ERROR:', service, 'is not in Consul\n')
 
         print(service, 'Registered in Consul')
-
-    # Error check the response
     except Exception as err:
-        # Return code error (e.g. 404, 501, ...)
         print(err)
         print('\n')
         raise Exception(err)
@@ -402,20 +398,17 @@ def test_consul_verify_rackHD_passing_status():
     print('GET:', my_url)
 
     try:
-        url_response = requests.get(my_url, verify ="/usr/local/share/ca-certificates/cpsd.dell.ca.crt")
-        url_response.raise_for_status()
+        url_response = af_support_tools.scomm_post_request(post_url=my_url, verify=True)
 
-        # A 200 has been received
-        print(url_response)
-        the_response = url_response.text
+        # Check the response code
+        print('Return Code: %s' % url_response[0])
+        assert url_response[0] == '200', ('Return Code NOT 200')
+        the_response = url_response[1]
 
         serviceStatus = '"Status":"passing"'
         assert serviceStatus in the_response, ('ERROR:', service, 'is not Passing in Consul\n')
         print(service, 'Status = Passing in consul\n\n')
-
-    # Error check the response
     except Exception as err:
-        # Return code error (e.g. 404, 501, ...)
         print(err)
         print('\n')
         raise Exception(err)
