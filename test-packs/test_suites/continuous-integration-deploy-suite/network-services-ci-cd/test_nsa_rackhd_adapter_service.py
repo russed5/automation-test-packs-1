@@ -365,8 +365,7 @@ def test_consul_verify_rackHD_registered():
 
         # Check the response code
         print('Return Code: %s' % url_response[0])
-        assert url_response[0] == '200', 'Return Code NOT 200'
-
+        assert url_response[0] == '200', ('Return Code NOT 200')
         the_response = url_response[1]
 
         # Create the sting as it should appear in the API
