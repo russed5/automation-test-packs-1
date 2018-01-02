@@ -409,8 +409,7 @@ def test_consul_verify_rackHD_passing_status():
         the_response = url_response[1]
 
         serviceStatus = '"Status":"passing"'
-        #assert serviceStatus in the_response, ('ERROR:', service, 'is not Passing in Consul\n')
-        assert serviceStatus in the_response, 'ERROR:', service, 'is not Passing in Consul\n'
+        assert serviceStatus in the_response, ('ERROR:', service, 'is not Passing in Consul\n')
         print(service, 'Status = Passing in consul\n\n')
     except Exception as err:
         print(err)
