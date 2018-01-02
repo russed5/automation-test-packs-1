@@ -363,7 +363,7 @@ def test_consul_verify_rackHD_registered():
     try:
         url_response = af_support_tools.scomm_post_request(post_url=my_url, verify=True)
         
-		    # Check the response code
+        # Check the response code
         print('Return Code: %s' % url_response[0])
         assert url_response[0] == '200', ('Return Code NOT 200')
         the_response = url_response[1]
@@ -400,7 +400,7 @@ def test_consul_verify_rackHD_passing_status():
     try:
         url_response = af_support_tools.scomm_post_request(post_url=my_url, verify=True)
 
-		    # Check the response code
+        # Check the response code
         print('Return Code: %s' % url_response[0])
         assert url_response[0] == '200', ('Return Code NOT 200')
         the_response = url_response[1]
