@@ -812,19 +812,19 @@ def test_requestBreaksWarn1Warn2Warn3Multi():
 
     # ASSERT
     # verify the response data, the order of the data is critical
-    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000002":
         error_list.append("Error :wrong PD identified")
-    if essRsp['validProtectionDomains'][0]['recommendedMessages']:
-        error_list.append("Error :wrong recommendation given for  d0000000001")
-    if "must be of the same type" not in (essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']):
-        error_list.append("Error :wrong warning given for  d0000000001")
-
-    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000002":
-        error_list.append("Error :wrong PD identified")
-    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
+    if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
         error_list.append("Error :wrong recommendation given for  d0000000002")
-    if "No Less than 10 nodes" not in (essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']):
+    if "No Less than 10 nodes" not in (essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']):
         error_list.append("Error :wrong warning given for  d0000000002")
+
+    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if essRsp['validProtectionDomains'][1]['recommendedMessages']:
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if "must be of the same type" not in (essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']):
+        error_list.append("Error :wrong warning given for  d0000000001")
 
     if essRsp['validProtectionDomains'][2]['protectionDomainID'] != "d0000000003":
         error_list.append("Error :wrong PD identified")
@@ -878,19 +878,19 @@ def test_requestBreaksWarn1Warn2Warn3Rec1Multi():
     if essRsp['validProtectionDomains'][0]['warningMessages']:
         error_list.append("Error :wrong warning given for  d0000000004")
 
-    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000001":
+    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000002":
         error_list.append("Error :wrong PD identified")
-    if essRsp['validProtectionDomains'][1]['recommendedMessages']:
-        error_list.append("Error :wrong recommendation given for  d0000000001")
-    if "must be of the same type" not in (essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']):
-        error_list.append("Error :wrong warning given for  d0000000001")
-
-    if essRsp['validProtectionDomains'][2]['protectionDomainID'] != "d0000000002":
-        error_list.append("Error :wrong PD identified")
-    if (essRsp['validProtectionDomains'][2]['recommendedMessages']):
+    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
         error_list.append("Error :wrong recommendation given for  d0000000002")
-    if "No Less than 10 nodes" not in (essRsp['validProtectionDomains'][2]['warningMessages'][0]['message']):
+    if "No Less than 10 nodes" not in (essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']):
         error_list.append("Error :wrong warning given for  d0000000002")
+
+    if essRsp['validProtectionDomains'][2]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if essRsp['validProtectionDomains'][2]['recommendedMessages']:
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if "must be of the same type" not in (essRsp['validProtectionDomains'][2]['warningMessages'][0]['message']):
+        error_list.append("Error :wrong warning given for  d0000000001")
 
     if essRsp['validProtectionDomains'][3]['protectionDomainID'] != "d0000000003":
         error_list.append("Error :wrong PD identified")
