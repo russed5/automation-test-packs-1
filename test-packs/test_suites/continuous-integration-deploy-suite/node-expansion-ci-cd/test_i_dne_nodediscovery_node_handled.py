@@ -334,7 +334,7 @@ def test_dne_addnodes_api_200_response(setup):
         subProcess_jobState = data['subProcesses'][0]['state']
         errorCode = data['subProcesses'][0]['additionalProperties']['errorCode']
 
-        if jobState != 'COMPLETED':
+        if not (jobState == 'FAILED') or (jobState == 'COMPLETED'):
             error_list.append(jobState)
 
         if subProcess_jobState != 'FAILED':
