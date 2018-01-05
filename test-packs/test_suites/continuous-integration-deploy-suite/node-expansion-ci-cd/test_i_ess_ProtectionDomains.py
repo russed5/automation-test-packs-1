@@ -527,19 +527,19 @@ def test_requestBreaksWarn1Warn2Multi():
 
     # ASSERT
     # verify the response data, the order of the data is critical
-    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000002":
         error_list.append("Error :wrong PD identified")
     if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
-        error_list.append("Error :wrong recommendation given for  d0000000001")
-    if "must be of the same type" not in essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']:
-        error_list.append("Error :wrong warning given for  d0000000001")
+        error_list.append("Error :wrong recommendation given for  d0000000002")
+    if "No Less than 10 nodes" not in essRsp['validProtectionDomains'][0]['warningMessages'][0]['message']:
+        error_list.append("Error :wrong warning given for  d0000000002")
 
-    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000002":
+    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000001":
         error_list.append("Error :wrong PD identified")
     if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
-        error_list.append("Error :wrong recommendation given for  d0000000002")
-    if "No Less than 10 nodes" not in essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']:
-        error_list.append("Error :wrong warning given for  d0000000002")
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if "must be of the same type" not in essRsp['validProtectionDomains'][1]['warningMessages'][0]['message']:
+        error_list.append("Error :wrong warning given for  d0000000001")
 
     assert not error_list
 
@@ -1018,7 +1018,8 @@ def test_requestMNodeAdd6NoWarnings():
     assert not error_list
 
 ##############################################################################################
-
+@pytest.mark.daily_status
+@pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_requestMNodeAdd10NodesNewPD():
     """ Verify that requesting 10 nodes be added to a 16 node Protection Domain
@@ -1053,27 +1054,26 @@ def test_requestMNodeAdd10NodesNewPD():
     if (len(essRsp['validProtectionDomains']) != 2):
         error_list.append("Error : Only 2 Protection Domains should have been listed in the response")
 
-    # verify there are exactly 10 nodes in the second PD
-    if (len(essRsp['validProtectionDomains'][1]['protectionDomain']['scaleIODataServers']) != 10):
-        error_list.append("Error : the second PD should have contained 10 nodes")
+    # verify there are exactly 10 nodes in the first PD (the new one)
+    if (len(essRsp['validProtectionDomains'][0]['protectionDomain']['scaleIODataServers']) != 10):
+        error_list.append("Error : the first PD should have contained 10 nodes")
 
 
     # verify the response data, the order of the data is critical
-    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+
+    if essRsp['validProtectionDomains'][0]['protectionDomain']['name'] != "PD_ess-created-0":
         error_list.append("Error :wrong PD identified")
     if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
-        error_list.append("Error :wrong recommendation given for  d0000000001")
-    if essRsp['validProtectionDomains'][0]['warningMessages']:
-        error_list.append("Error :wrong warning given for  d0000000001")
-
-
-    if essRsp['validProtectionDomains'][1]['protectionDomain']['name'] != "PD_ess-created-0":
-        error_list.append("Error :wrong PD identified")
-    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
         error_list.append("Error :wrong recommendation given for  PD_ess-created-0")
-    if essRsp['validProtectionDomains'][1]['warningMessages']:
+    if essRsp['validProtectionDomains'][0]['warningMessages']:
         error_list.append("Error :wrong warning given for  PD_ess-created-0")
 
+    if essRsp['validProtectionDomains'][1]['protectionDomainID'] != "d0000000001":
+        error_list.append("Error :wrong PD identified")
+    if (essRsp['validProtectionDomains'][1]['recommendedMessages']):
+        error_list.append("Error :wrong recommendation given for  d0000000001")
+    if essRsp['validProtectionDomains'][1]['warningMessages']:
+        error_list.append("Error :wrong warning given for  d0000000001")
 
     assert not error_list
 
@@ -1222,21 +1222,21 @@ def test_requestMNodeAdd32NodeTo16():
     if (len(essRsp['validProtectionDomains']) != 3 ):
         error_list.append("Error : there should be 3 domains listed in the response")
 
+    # verify there are exactly 16 nodes in the 1st PD
+    if (len(essRsp['validProtectionDomains'][0]['protectionDomain']['scaleIODataServers']) != 16):
+        error_list.append("Error : the  PD should contain exactly 16 nodes")
+
     # verify there are exactly 16 nodes in the 2nd PD
     if (len(essRsp['validProtectionDomains'][1]['protectionDomain']['scaleIODataServers']) != 16):
         error_list.append("Error : the  PD should contain exactly 16 nodes")
 
-    # verify there are exactly 16 nodes in the 3rd PD
-    if (len(essRsp['validProtectionDomains'][2]['protectionDomain']['scaleIODataServers']) != 16):
-        error_list.append("Error : the  PD should contain exactly 16 nodes")
-
     # verify the response data, the order of the data is critical
-    if essRsp['validProtectionDomains'][0]['protectionDomainID'] != "d0000000001":
+    if essRsp['validProtectionDomains'][0]['protectionDomain']['name'] != "PD_ess-created-1":
         error_list.append("Error :wrong PD identified")
     if (essRsp['validProtectionDomains'][0]['recommendedMessages']):
-        error_list.append("Error :wrong recommendation given for  d0000000001")
+        error_list.append("Error :wrong recommendation given for  PD_ess-created-1")
     if essRsp['validProtectionDomains'][0]['warningMessages']:
-        error_list.append("Error :wrong warning given for  d0000000001")
+        error_list.append("Error :no warning expected for PD_ess-created-1")
 
     if essRsp['validProtectionDomains'][1]['protectionDomain']['name'] != "PD_ess-created-0":
         error_list.append("Error :wrong PD identified")
@@ -1245,14 +1245,12 @@ def test_requestMNodeAdd32NodeTo16():
     if essRsp['validProtectionDomains'][1]['warningMessages']:
         error_list.append("Error :no warning expected for PD_ess-created-0")
 
-    if essRsp['validProtectionDomains'][2]['protectionDomain']['name'] != "PD_ess-created-1":
+    if essRsp['validProtectionDomains'][2]['protectionDomainID'] != "d0000000001":
         error_list.append("Error :wrong PD identified")
     if (essRsp['validProtectionDomains'][2]['recommendedMessages']):
-        error_list.append("Error :wrong recommendation given for  PD_ess-created-1")
+        error_list.append("Error :wrong recommendation given for d0000000001 ")
     if essRsp['validProtectionDomains'][2]['warningMessages']:
-        error_list.append("Error :no warning expected for PD_ess-created-1")
-
-
+        error_list.append("Error :no warning expected for d0000000001")
 
     assert not error_list
 
