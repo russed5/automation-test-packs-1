@@ -32,12 +32,10 @@ def load_test_data(setup):
     my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/setup_config.properties'
     af_support_tools.set_config_file_property_by_data_file(my_data_file)
 
-    global scaleIoToken
-    scaleIoToken = retrieveScaleIoToken(setup)
 
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
-def test_enterMultiNodes(setup):
+def test_enterMultiNodes_to_preprocess(setup):
     """ Verify that multiple node details can be input to the preprocess flow and that the correct
          results for the preprocess flow are then returned.
 
@@ -49,6 +47,9 @@ def test_enterMultiNodes(setup):
         Post-test environment - DNE will have discovered any compute nodes listed at the rackHD
     """
 
+    # retrieve the scaleio api token
+    global scaleIoToken
+    scaleIoToken = retrieveScaleIoToken(setup)
 
     # ------------------- ARRANGE -------------------------------------------------------------------
     # Objective : to populate the input data (json) to submit to the multi-node dne preprocess api
@@ -571,9 +572,9 @@ def retrieveScaleIoToken(setup):
     url = "https://" + setup['scaleio_IP_gateway'] + "/api/login"
     header = {'Content-Type': 'application/json'}
     resp = requests.get(url, auth=(setup['scaleio_username'], setup['scaleio_password']), verify=False)
-    scaleIoToken = resp.text
-    scaleIoToken = scaleIoToken.strip('"')
-    return scaleIoToken
+    token = resp.text
+    token = token.strip('"')
+    return token
 
 
 def retrieveScaleIOProtectionDomain(setup):
