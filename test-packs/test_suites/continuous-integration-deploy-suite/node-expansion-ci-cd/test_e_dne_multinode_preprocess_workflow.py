@@ -47,6 +47,7 @@ def test_enterMultiNodes_to_preprocess(setup):
         Post-test environment - DNE will have discovered any compute nodes listed at the rackHD
     """
 
+    # retrieve the scaleio api token
     global scaleIoToken
     scaleIoToken = retrieveScaleIoToken(setup)
 
