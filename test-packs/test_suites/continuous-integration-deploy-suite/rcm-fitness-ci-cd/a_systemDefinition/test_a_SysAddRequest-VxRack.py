@@ -5,8 +5,8 @@ import os
 import time
 import requests
 import af_support_tools
-
-
+#import test-packs.test_suites.continuous-integration-deploy-suite.rcm-fitness-ci-cd.a_systemDefinition.dbUtils.dbconnection as dbconnection
+import dbUtils.dbconnection as dbconnection
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -158,8 +158,14 @@ def test_HAL_CollectComponentVersion():
     assert return_json['messageProperties']['replyTo']
     assert return_json['systems']
     assert return_json['groups']
-    #assert return_json['devices']
+    assert return_json['devices']
     #assert return_json['subComponents']
+
+    #sleep added to wait for rcm database to be updated with collected version
+    time.sleep(30)
+    query = 'select count(*) from rcds.version;'
+    result = dbconnection.test_db(query,"rcm-compliance-data-service")
+    assert result.strip() == '1'
 
     print('\nTEST: CollectComponentVersions run: PASSED')
 
