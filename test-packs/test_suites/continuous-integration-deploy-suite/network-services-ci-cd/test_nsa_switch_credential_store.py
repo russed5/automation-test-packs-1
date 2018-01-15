@@ -57,7 +57,7 @@ def load_test_data():
 #####################################################################
 # These are the main tests.
 #####################################################################
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_AddVxRackSystem():
     print('Setup: Add VxRack RTP system via SDS Service')
@@ -82,7 +82,7 @@ def test_AddVxRackSystem():
     else:
         raise Exception('Error: Error running command:%s' % (cmd))
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_switch_credential_store():
     """

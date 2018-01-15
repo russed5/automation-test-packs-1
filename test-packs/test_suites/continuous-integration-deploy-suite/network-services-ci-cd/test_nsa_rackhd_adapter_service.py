@@ -75,6 +75,7 @@ def load_test_data():
 #####################################################################
 # These are the main tests.
 #####################################################################
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_enable_rabbitmq_management():
     """
@@ -90,6 +91,7 @@ def test_enable_rabbitmq_management():
     my_return_status = my_return_status.strip()
     print('\namqp rabbitmq-plugins enable rabbitmq_management :', my_return_status, '\n')
 
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackHD_adapter_servicerunning():
     """
@@ -113,7 +115,7 @@ def test_rackHD_adapter_servicerunning():
     print('\nDocker Container is:', my_return_status, '\n')
     assert my_return_status == 'Up', (service_name + " not running")
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_registerRackHD():
     # Until consul is  working properly & integrated with the rackhd adapter in the same environment we need to register
@@ -199,6 +201,7 @@ def test_registerRackHD():
     ('exchange.dell.cpsd.endpoint.registration.event', 'queue.dell.cpsd.controlplane.rackhd.endpoint-events'),
     ('exchange.dell.cpsd.controlplane.rackhd.request', 'queue.dell.cpsd.controlplane.rackhd.register')])
 
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 @pytest.mark.skip(reason="Currently under review if these tests should be performed at unit test level")
 def test_rackHD_RMQ_bindings_core(exchange, queue):
@@ -223,6 +226,7 @@ def test_rackHD_RMQ_bindings_core(exchange, queue):
 @pytest.mark.parametrize('exchange, queue', [
     ('exchange.dell.cpsd.controlplane.rackhd.response', 'controlplane.hardware.list.nodes.response')])
 
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 @pytest.mark.skip(reason="Currently under review if these tests should be performed at unit test level")
 def test_rackHD_RMQ_bindings_dne(exchange, queue):
@@ -243,7 +247,7 @@ def test_rackHD_RMQ_bindings_dne(exchange, queue):
     assert queue in queues, 'The queue "' + queue + '" is not bound to the exchange "' + exchange + '"'
     print(exchange, '\nis bound to\n', queue, '\n')
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackHD_adapter_full_ListCapabilities():
     """
@@ -341,7 +345,7 @@ def test_rackHD_adapter_full_ListCapabilities():
 
     cleanup('test.capability.registry.response')
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_consul_verify_rackHD_registered():
     """
@@ -379,7 +383,7 @@ def test_consul_verify_rackHD_registered():
         print('\n')
         raise Exception(err)
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_consul_verify_rackHD_passing_status():
     """
@@ -413,7 +417,7 @@ def test_consul_verify_rackHD_passing_status():
         print('\n')
         raise Exception(err)
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackHD_adapter_log_files_exist():
     """
@@ -446,7 +450,7 @@ def test_rackHD_adapter_log_files_exist():
 
     print('Valid log files exist')
 
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackhd_adapter_log_files_free_of_exceptions():
     """

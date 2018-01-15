@@ -80,7 +80,7 @@ def load_test_data():
 #####################################################################
 # These are the main tests.
 #####################################################################
-
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackhd_login_api():
     # Get the RackHD Authentication Token
@@ -88,6 +88,7 @@ def test_rackhd_login_api():
     token = retrieveRHDToken()
     print('The token is: ', token, '\n')
 
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackhd_get_switch_firmware():
     switch_api = '/switchFirmware'
@@ -95,6 +96,7 @@ def test_rackhd_get_switch_firmware():
     assert switch_firmware["version"] == switchVersion
     print('The switch firmware is: ', switch_firmware)
 
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackhd_get_switch_version():
     switch_api = '/switchVersion'
@@ -102,6 +104,7 @@ def test_rackhd_get_switch_version():
     assert switch_version["rr_sys_ver"] == switchVersion
     print('The switch version is: ', switch_version)
 
+@pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 def test_rackhd_get_switch_config():
     switch_api = '/switchConfig'
