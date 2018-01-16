@@ -542,17 +542,9 @@ def test_getRCMDefinition31():
     getRCMDefinition("Dell Ethernet X520 NDCi350/X520/X540 Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json",
                      "ORIGINAL")
 
-
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_getRCMEval132():
-#     getRCMEvaluation("Dell Ethernet X520 NDCi350/X520/X540 Firmware", "Intel(R) Ethernet 10G 2P X520 Adapter", "VxRack", "1000 FLEX", "DELL",
-#                      "POWEREDGE", "R630", path + "rcmEvaluationDetails-VxRack.json", systemUUID)
-#
-#
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition33():
     getRCMDefinition("Dell PERC HBA330 Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json", "ORIGINAL")
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMEval34():
