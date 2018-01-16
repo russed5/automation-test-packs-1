@@ -577,3 +577,7 @@ def test_verifyRESTdownloadInvalidFileRequest10():
 @pytest.mark.rcm_fitness_mvp
 def test_verifyRESTdownloadMultiFileRequest11():
     verifyRESTdownloadMultiFileRequest("RCM/3.2.2/VxRack_1000_FLEX/Component/ESXi/", "3.2", "3.2.2", 3)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_verifyRESTdownloadSingleFileRequestFor3kSwitch():
+    verifyRESTdownloadMultiFileRequest("RCM/3.2.2/VxRack_1000_FLEX/Component/Cisco/Nexus3k/3172TQ/","3.2", "3.2.2", 2)
