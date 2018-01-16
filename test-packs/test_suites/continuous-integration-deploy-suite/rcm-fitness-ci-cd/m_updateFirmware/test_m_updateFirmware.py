@@ -908,8 +908,3 @@ def test_verifyInvalidRESTUpdateRequest4():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_verifyInvalidRESTUpdateRequest5():
     verifyInvalidRESTUpdateRequest("out_restErrorBody_5.json", "", "BIOS", "")
-
-# @pytest.mark.rcm_fitness_mvp_extended
-# @pytest.mark.rcm_fitness_mvp
-# def test_duplicateUpdateFWRequest():
-#     duplicateUpdateFWRequest(message_update, message_dup_update, message_dup2_update, "out_dupUpdateRequest.json", "out_dupRequestCreds.json", "out_dupResponseCreds.json", "out_dupUpdateResponse.json")
