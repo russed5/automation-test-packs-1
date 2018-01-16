@@ -596,8 +596,3 @@ def test_getComplianceDataDevice30():
     getComplianceDataDeviceSubComps("SUB_ESXI", "ScaleIO VM", "VCENTER-WINDOWS", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataDevicePOWEREDGE.json", systemUUID)
 
-# @pytest.mark.rcm_fitness_mvp
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_getComplianceDataDevice31():
-#     getComplianceDataDeviceSubComps("SUB_ESXI", "ixgbe", "VCENTER-WINDOWS", path + "rcmSystemDefinition-VxRack.json",
-#                                     path + "complianceDataDevicePOWEREDGE.json", systemUUID)
