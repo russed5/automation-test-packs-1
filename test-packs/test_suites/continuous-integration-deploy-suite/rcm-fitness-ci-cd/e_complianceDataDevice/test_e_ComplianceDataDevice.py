@@ -73,7 +73,7 @@ def getSystemDefinition():
                 secondSystemUUID = data["systems"][1]["uuid"]
     return systemUUID
 
-def getComplianceData(product, family, model, deviceProduct, deviceType, filename, sysUUID, minSubCount, maxSubCount):
+def getComplianceData(product, family, model, identifier, deviceProduct, deviceType, filename, sysUUID, minSubCount, maxSubCount):
     compIndex = 0
     groupIndex = 0
     i = 0
@@ -94,20 +94,33 @@ def getComplianceData(product, family, model, deviceProduct, deviceType, filenam
 
     totalComponents = len(data["components"])
     if data != "":
+        print("1")
         while compIndex < totalComponents:
-            if "modelFamily" in data["components"][compIndex]["definition"] and \
+            print("2")
+            print(data["components"][compIndex]["identity"]["identifier"])
+            print(data["components"][compIndex]["definition"]["model"])
+            if identifier in data["components"][compIndex]["identity"]["identifier"] and \
                             data["components"][compIndex]["definition"]["model"] == model:
+                print("3")
+                # if data["components"][compIndex]["identity"]["identifier"] == "VCENTER-APPLIANCE-CUSTOMER":
+                #     global compUUID
+                #     compUUID = data["components"][compIndex]["uuid"]
+                #     print(compUUID)
+                # else:
                 global compUUID
                 compUUID = data["components"][compIndex]["uuid"]
+                print(compUUID)
+
                 newComp = compUUID[:8]
                 compURLSec = 'https://' + host + ':19080/rcm-fitness-api/api/compliance/data/device/' + compUUID
 
                 compResp = requests.get(compURLSec, verify=False)
                 compData = json.loads(compResp.text)
-
+                print(compData)
                 assert compResp.status_code == 200, "Request has not been acknowledged as expected."
 
                 totalSubComponents = len(compData["subComponents"])
+                print(totalSubComponents)
                 assert totalSubComponents == minSubCount or maxSubCount, "Unexpected number of subcomponents returned."
 
                 with open(filename, 'a') as outfile:
@@ -251,11 +264,22 @@ def getComplianceDataDeviceSubComps(elementType, identifier, model, sysDefFilena
             index += 1
             continue
         if sysCompData["components"][index]["definition"]["model"] == model:
-            if "MGMT" in sysCompData["components"][index]["identity"]["identifier"]:
+            if "CUSTOMER" in sysCompData["components"][index]["identity"]["identifier"]:
+                print("CUSTOMER")
                 componentID = sysCompData["components"][index]["uuid"]
+                print(componentID)
+                index += 1
+                break
             else:
+                print("ELSE")
                 componentID = sysCompData["components"][index]["uuid"]
-            index += 1
+                print(componentID)
+                index += 1
+                # continue
+                # componentID = sysCompData["components"][index]["uuid"]
+                # print(componentID)
+            print(componentID)
+
 
     # compURL = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/device/' + componentID
     # compURLSec = 'https://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/compliance/data/device/' + componentID
@@ -270,12 +294,15 @@ def getComplianceDataDeviceSubComps(elementType, identifier, model, sysDefFilena
         json.dump(compData, outfile, sort_keys=True, indent=4, ensure_ascii=False)
 
     if len(compData["subComponents"]) != "":
+        print("1")
         totalSubComponents = len(compData["subComponents"])
         while subIndex < totalSubComponents:
+            print("2")
             if identifier not in compData["subComponents"][subIndex]["elementData"]["identifier"]:
                 subIndex += 1
                 continue
             if identifier in compData["subComponents"][subIndex]["elementData"]["identifier"]:
+                print("3")
                 assert "uuid" in compData["subComponents"][subIndex], "Response detailed an empty group UUID."
                 assert "parentDeviceUuid" in compData["subComponents"][
                     subIndex], "Response not detail parent Group UUID."
@@ -375,7 +402,7 @@ def getComplianceData_NULL():
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataDevice1():
-    getComplianceData("VXRACK", "FLEX", "R730XD", "POWEREDGE", "SERVER", path + "complianceDataDevicePOWEREDGE.json",
+    getComplianceData("VXRACK", "FLEX", "R730XD", ":", "POWEREDGE", "SERVER", path + "complianceDataDevicePOWEREDGE.json",
                       systemUUID, 5, 5)
 
 @pytest.mark.rcm_fitness_mvp
@@ -419,7 +446,7 @@ def test_getComplianceDataDevice6a():
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataDevice7():
-    getComplianceData("VXRACK", "FLEX", "R630", "POWEREDGE", "SERVER", path + "complianceDataDevicePOWEREDGE.json",
+    getComplianceData("VXRACK", "FLEX", "R630", ":", "POWEREDGE", "SERVER", path + "complianceDataDevicePOWEREDGE.json",
                       systemUUID, 5, 5)
 
 @pytest.mark.daily_status
@@ -462,14 +489,14 @@ def test_getComplianceDataDevice12a():
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataDevice13():
-    getComplianceData("VXRACK", "FLEX", "VCENTER-WINDOWS", "VCENTER", "VCENTER", path + "complianceDataDeviceVCENTER.json",
+    getComplianceData("VXRACK", "FLEX", "VCENTER-WINDOWS", "WINDOWS", "VCENTER", "VCENTER", path + "complianceDataDeviceVCENTER.json",
                       systemUUID, 3, 18)
 
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataDevice14():
-    getComplianceData("VXRACK", "FLEX", "VCENTER-APPLIANCE", "VCENTER", "VCENTER", path + "complianceDataDeviceVCENTER.json",
+    getComplianceData("VXRACK", "FLEX", "VCENTER-APPLIANCE", "APPLIANCE", "VCENTER", "VCENTER", path + "complianceDataDeviceVCENTER.json",
                       systemUUID, 3, 3)
 
 @pytest.mark.daily_status
@@ -527,7 +554,7 @@ def test_getComplianceDataDevice23():
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataDevice24():
-    getComplianceData("VXRACK", "FLEX", "SCALEIO", "SCALEIO", "SCALEIO", path + "complianceDataDevicePOWEREDGE.json",
+    getComplianceData("VXRACK", "FLEX", "SCALEIO", "SCALEIO-1", "SCALEIO", "SCALEIO", path + "complianceDataDevicePOWEREDGE.json",
                       systemUUID, 6, 6)
 #elementType, identifier, model, sysDefFilename, compDataFilename, sysUUID
 @pytest.mark.rcm_fitness_mvp
@@ -536,11 +563,11 @@ def test_getComplianceDataDevice25():
     getComplianceDataDeviceSubComps("SVM", "lab.vce.com-ESX", "SCALEIO", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataDevicePOWEREDGE.json", systemUUID)
 
-#(product, family, model, deviceProduct, deviceType, filename, sysUUID, minSubCount, maxSubCount)
+#(product, family, model, identifier, deviceProduct, deviceType, filename, sysUUID, minSubCount, maxSubCount)
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getComplianceDataDevice26():
-    getComplianceData("VXRACK", "FLEX", "VCENTER-APPLIANCE", "VCENTER", "VCENTER", path + "complianceDataDevicePOWEREDGE.json",
+    getComplianceData("VXRACK", "FLEX", "VCENTER-APPLIANCE", "VCENTER", "VCENTER", "VCENTER", path + "complianceDataDevicePOWEREDGE.json",
                       systemUUID, 6, 6)
 
 #elementType, identifier, model, sysDefFilename, compDataFilename, sysUUID
@@ -555,3 +582,22 @@ def test_getComplianceDataDevice27():
 def test_getComplianceDataDevice28():
     getComplianceDataDeviceSubComps("SUB_ESXI", "ixgbe", "VCENTER-APPLIANCE", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataDevicePOWEREDGE.json", systemUUID)
+
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataDevice29():
+    getComplianceData("VXRACK", "FLEX", "VCENTER-WINDOWS", "CUSTOMER", "VCENTER", "VCENTER", path + "complianceDataDevicePOWEREDGE.json",
+                      systemUUID, 6, 6)
+
+#elementType, identifier, model, sysDefFilename, compDataFilename, sysUUID
+@pytest.mark.rcm_fitness_mvp
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataDevice30():
+    getComplianceDataDeviceSubComps("SUB_ESXI", "ScaleIO VM", "VCENTER-WINDOWS", path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataDevicePOWEREDGE.json", systemUUID)
+
+# @pytest.mark.rcm_fitness_mvp
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_getComplianceDataDevice31():
+#     getComplianceDataDeviceSubComps("SUB_ESXI", "ixgbe", "VCENTER-WINDOWS", path + "rcmSystemDefinition-VxRack.json",
+#                                     path + "complianceDataDevicePOWEREDGE.json", systemUUID)

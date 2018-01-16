@@ -264,9 +264,10 @@ def getComponentBySystemUUID(family, series, type, tag, model, endpoints, sysUUI
             print("\nTotal components: %d" % totalComponents)
             # print("\nExtracting groupUUID from response....\n")
             while compIndex < totalComponents:
-                if series in data["components"][compIndex]["definition"]["modelFamily"] and tag in \
-                        data["components"][compIndex]["identity"]["identifier"]:
+                if series in data["components"][compIndex]["definition"]["modelFamily"] and \
+                        data["components"][compIndex]["identity"]["identifier"] == tag:
                     print("Here now....2")
+                    print(data)
                     assert data["components"][compIndex]["parentGroupUuids"][
                                0] != "", "Response includes unexpected group ID."
                     assert data["components"][compIndex]["definition"][
@@ -280,6 +281,7 @@ def getComponentBySystemUUID(family, series, type, tag, model, endpoints, sysUUI
                     assert tag in data["components"][compIndex]["identity"][
                         "identifier"], "Response includes unexpected Identifier."
                     totalEndpts = len(data["components"][compIndex]["endpoints"])
+                    print(data["components"][compIndex]["endpoints"])
                     assert totalEndpts == endpoints, "Empty list of Endpoints returned for this component."
                     print("\nComponent: %s" % data["components"][compIndex]["definition"]["modelFamily"])
                     print("Tag: %s" % data["components"][compIndex]["identity"]["identifier"])
@@ -515,11 +517,11 @@ def test_getSysDef2():
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDef3():
-    getComponentBySystemUUID("VCENTER", "VCENTER", "VCENTER", "VCENTER-WINDOWS", "VCENTER", 1, systemUUID)
+    getComponentBySystemUUID("VCENTER", "VCENTER", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS", 1, systemUUID)
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDef4():
-    getComponentBySystemUUID("VCENTER", "VCENTER", "VCENTER", "VCENTER-APPLIANCE", "VCENTER", 1, systemUUID)
+    getComponentBySystemUUID("VCENTER", "VCENTER", "VCENTER", "VCENTER-APPLIANCE-CUSTOMER", "VCENTER-WINDOWS", 2, systemUUID)
 
 #family, series, type, tag, model, endpoints, sysUUID
 @pytest.mark.rcm_fitness_mvp_extended
@@ -528,7 +530,7 @@ def test_getSysDef5():
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDef6():
-    getComponentBySystemUUID("VCENTER", "VCENTER", "VCENTER", "VCENTER-APPLIANCE-MGMT", "VCENTER-APPLIANCE", 1, systemUUID)
+    getComponentBySystemUUID("VCENTER", "VCENTER", "VCENTER", "VCENTER-APPLIANCE", "VCENTER-APPLIANCE", 1, systemUUID)
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDef7():

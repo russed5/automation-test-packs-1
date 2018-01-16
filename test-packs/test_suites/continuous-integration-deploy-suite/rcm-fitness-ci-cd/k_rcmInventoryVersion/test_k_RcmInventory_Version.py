@@ -158,9 +158,9 @@ def test_getRCM2():
 @pytest.mark.rcm_fitness_mvp
 def test_getRCM3():
     getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.3")
-@pytest.mark.rcm_fitness_mvp_extended
-def test_getRCM4():
-    getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1.1")
+# @pytest.mark.rcm_fitness_mvp_extended
+# def test_getRCM4():
+#     getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1.1")
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCM5():
     getAvailableRCMs_Invalid("VxRack", "1000 FLEX", "9.2", "9.2.99")

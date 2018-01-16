@@ -450,12 +450,12 @@ def test_getComplianceData14():
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getAvailableRCM15():
-    getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1", "MANUFACTURING", path + "rcmAvailableRCMs-VxRack-Mismatch.json")
+    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.1", "ORIGINAL", path + "rcmAvailableRCMs-VxRack-Mismatch.json")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition16():
-    getRCMDefinition("Dell BIOS Firmware", path + "rcmRCMDefinitionDetails-VxRack.json", "MANUFACTURING")
+    getRCMDefinition("Dell BIOS Firmware", path + "rcmRCMDefinitionDetails-VxRack.json", "ORIGINAL")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -467,7 +467,7 @@ def test_getRCMEval17():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition18():
     getRCMDefinition("Dell iDRAC / Lifecycle Controller Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json",
-                     "MANUFACTURING")
+                     "ORIGINAL")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -479,7 +479,7 @@ def test_getRCMEval19():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition20():
     getRCMDefinition("VMware vSphere Hypervisor ESXi 6.0", path + "rcmRCMDefinitionDetails-VxRack2.json",
-                     "MANUFACTURING")
+                     "ORIGINAL")
 
 
 # @pytest.mark.rcm_fitness_mvp_extended
@@ -490,7 +490,7 @@ def test_getRCMDefinition20():
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition22():
-    getRCMDefinition("Dell PERC H730P Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json", "MANUFACTURING")
+    getRCMDefinition("Dell PERC H730P Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json", "ORIGINAL")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -511,12 +511,12 @@ def test_getComplianceDataSystem25():
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getAvailableRCM26():
-    getAvailableRCMs("VxRack", "1000 FLEX", "9.2", "9.2.1.1", "ADDENDUM", path + "rcmAvailableRCMs-VxRack.json")
+    getAvailableRCMs("VxRack", "1000 FLEX", "3.2", "3.2.3", "ORIGINAL", path + "rcmAvailableRCMs-VxRack.json")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition27():
-    getRCMDefinition("Dell BIOS Firmware", path + "rcmRCMDefinitionDetails-VxRack.json", "ADDENDUM")
+    getRCMDefinition("Dell BIOS Firmware", path + "rcmRCMDefinitionDetails-VxRack.json", "ORIGINAL")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -528,7 +528,7 @@ def test_getRCMEval28():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition29():
     getRCMDefinition("Dell iDRAC / Lifecycle Controller Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json",
-                     "ADDENDUM")
+                     "ORIGINAL")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
@@ -540,7 +540,7 @@ def test_getRCMEval30():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition31():
     getRCMDefinition("Dell Ethernet X520 NDCi350/X520/X540 Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json",
-                     "ADDENDUM")
+                     "ORIGINAL")
 
 
 # @pytest.mark.rcm_fitness_mvp_extended
@@ -551,7 +551,7 @@ def test_getRCMDefinition31():
 #
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getRCMDefinition33():
-    getRCMDefinition("Dell PERC HBA330 Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json", "ADDENDUM")
+    getRCMDefinition("Dell PERC HBA330 Firmware", path + "rcmRCMDefinitionDetails-VxRack2.json", "ORIGINAL")
 
 
 @pytest.mark.rcm_fitness_mvp_extended
