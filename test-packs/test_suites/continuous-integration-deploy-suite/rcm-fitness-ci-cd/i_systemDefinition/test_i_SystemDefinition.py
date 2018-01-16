@@ -536,32 +536,17 @@ def test_getSysDef6():
 def test_getSysDef7():
     getComponentBySystemUUID("POWEREDGE", "630", "SERVER", "0a:d8", "R630", 1, systemUUID)
 
-
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDef8():
     getComponentBySystemUUID("POWEREDGE", "730", "SERVER", "e0:b8", "R730XD", 1, systemUUID)
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDefInvalid9():
     getSystemDefinitionInvalidUUID(systemUUID[:8])
 
-
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getSysDefInvalid10():
     getSystemDefinitionInvalidUUID("1111")
-
-
-##@pytest.mark.TC546466_Vblock
-##def test_getCompSysDefInvalid():
-##    getComponentByInvalidSystemUUID(systemUUID[:8])
-##@pytest.mark.TC546466_Vblock
-##def test_getCompSysDefInvalid2():
-##    getComponentByInvalidSystemUUID("1111")
-# @pytest.mark.rcm_fitness_mvp_extended
-# def test_getSysDefNull9():
-#     getSystemDefinitionNullUUID("VXRACKFLEX", "VCESYSTEM", "VXRACK", "FLEX", "1000")
-
 
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getCompByCompUUID10():
