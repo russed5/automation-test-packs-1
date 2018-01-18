@@ -163,9 +163,17 @@ def test_HAL_CollectComponentVersion():
 
     #sleep added to wait for rcm database to be updated with collected version
     time.sleep(30)
-    query = 'select count(*) from rcds.version;'
-    result = dbconnection.test_db(query,"rcm-compliance-data-service")
-    assert result.strip() == '1'
+    systemDefComponentQuery =  "select identifier from component where element_type='SWITCH';"
+    systemDefComponentResults =  dbconnection.test_db(systemDefComponentQuery,"system-definition-service")
+    systemDefComponentResults = systemDefComponentResults.split("\n")
+
+    for systemDefComponentId in  systemDefComponentResults:
+        if(systemDefComponentId.strip()):
+            rcdsDeviceIdQuery = "select device_id from rcds.device where identifier='" + systemDefComponentId.strip() + "';"
+            rcdsDeviceIdResult = dbconnection.test_db(rcdsDeviceIdQuery,"rcm-compliance-data-service")
+            rcdsVersionQuery = "select count(*) from rcds.version where deviceparent_device_id='" + rcdsDeviceIdResult.strip() + "';"
+            rcdsVersionResult = dbconnection.test_db(rcdsVersionQuery,"rcm-compliance-data-service")
+            assert rcdsVersionResult.strip() == '1'
 
     print('\nTEST: CollectComponentVersions run: PASSED')
 
