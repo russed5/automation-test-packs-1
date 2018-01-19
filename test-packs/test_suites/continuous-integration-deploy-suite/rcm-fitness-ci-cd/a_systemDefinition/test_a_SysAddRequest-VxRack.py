@@ -5,8 +5,14 @@ import os
 import time
 import requests
 import af_support_tools
-#import test-packs.test_suites.continuous-integration-deploy-suite.rcm-fitness-ci-cd.a_systemDefinition.dbUtils.dbconnection as dbconnection
+import pika
+import re
+import datetime
+import string
+import requests
+import collections
 import dbUtils.dbconnection as dbconnection
+
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -56,7 +62,7 @@ def test_SystemAdditionRequested():
     q_len = 0
     timeout = 0
     cleanupSDS()
-
+    bounceSysDef()
     bindSDSQueus()
 
     # Get the payload data from the config symphony-sds.ini file.
@@ -314,6 +320,19 @@ def verify_SystemExists():
     my_systemUuid = config['convergedSystems'][0]['uuid']
     print('\nTEST: System Exists - System UUID: ', my_systemUuid)
 
+def bounceSysDef():
+
+    sendCommand = "docker stop dell-cpsd-core-system-definition-service"
+    af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
+                                                  command=sendCommand, return_output=True)
+
+    time.sleep(20)
+
+    sendCommand = "docker start dell-cpsd-core-system-definition-service"
+    af_support_tools.send_ssh_command(host=host, username=cli_username, password=cli_password,
+                                                  command=sendCommand, return_output=True)
+
+    time.sleep(10)
 
 def verifyConsulUpdate(paqx, context):
     url = 'https://' + host + ':8500/v1/catalog/services'
