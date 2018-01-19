@@ -51,9 +51,9 @@ def test_handle_validateVcenterCluster_message_1():
 
     if responseMsg['clusters']['XXTESTXX1'] != 'test_cluster_63hosts':
         error_list.append('Error :wrong cluster identified')
-    if responseMsg['clusters']['XXTESTXX2'] != 'test_cluster_63hosts':
+    if responseMsg['clusters']['XXTESTXX2'] != 'test_cluster_1host':
         error_list.append('Error :wrong cluster identified')
-    if responseMsg['clusters']['XXTESTXX3'] != 'test_cluster_63hosts':
+    if responseMsg['clusters']['XXTESTXX3'] != 'test_cluster_1host':
         error_list.append('Error :wrong cluster identified')
 
 
