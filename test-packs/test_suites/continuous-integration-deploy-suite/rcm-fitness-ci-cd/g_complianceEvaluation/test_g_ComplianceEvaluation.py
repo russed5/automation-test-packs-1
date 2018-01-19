@@ -117,9 +117,9 @@ def sys():
     ("3.2", "3.2.3", "NonRAID", "630", "Dell HBA330 Mini"),
     ("3.2", "3.2.3", "PERCCLI", "R730XD", "PercCli SAS Customization Utility"),
     ("3.2", "3.2.3", "PERCCLI", "R630", "PercCli SAS Customization Utility"),
-    ("3.2", "3.2.1", "SWITCH", "3172TQ", "KatSwitch"),
-    ("3.2", "3.2.2", "SWITCH", "3172TQ", "KatSwitch"),
-    ("3.2", "3.2.3", "SWITCH", "3172TQ", "KatSwitch"),
+    # ("3.2", "3.2.1", "SWITCH", "3172TQ", "KatSwitch"),
+    # ("3.2", "3.2.2", "SWITCH", "3172TQ", "KatSwitch"),
+    # ("3.2", "3.2.3", "SWITCH", "3172TQ", "KatSwitch"),
     ("3.2", "3.2.3", "RAID", "730", "PERC H730 Mini"),
     ("3.2", "3.2.3", "SUB_ESXI", "VCENTER-WINDOWS", "ScaleIO VM")])
 def test_post_eval(sys, train, version, type, model, identifier):
