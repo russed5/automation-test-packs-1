@@ -194,7 +194,6 @@ def test_HAL_CollectComponentVersion():
 
 #######################################################################################################################
 
-
 def cleanupSDS():
     # Delete the test queues
     print('Cleaning up...')
@@ -208,7 +207,6 @@ def cleanupSDS():
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testSystemDefinitionEvent')
 
-
 def cleanupHAL():
     # Delete the test queues
     print('Cleaning up...')
@@ -216,7 +214,6 @@ def cleanupHAL():
                                       queue='testHalOrchestratorRequest')
     af_support_tools.rmq_delete_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                       queue='testHalOrchestratorResponse')
-
 
 def bindSDSQueus():
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
@@ -239,7 +236,6 @@ def bindSDSQueus():
                                     exchange='exchange.dell.cpsd.cms.credentials.request',
                                     routing_key='#')
 
-
 def bindHALQueus():
     af_support_tools.rmq_bind_queue(host=hostTLS, port=portTLS, ssl_enabled=True,
                                     queue='testHalOrchestratorRequest',
@@ -251,7 +247,6 @@ def bindHALQueus():
                                     queue='testHalOrchestratorResponse',
                                     exchange='exchange.dell.cpsd.hal.orchestrator.response',
                                     routing_key='#')
-
 
 def verifyCSmessage():
     # We need to verify that the triggered component.credentials.addition.requested is valid.
