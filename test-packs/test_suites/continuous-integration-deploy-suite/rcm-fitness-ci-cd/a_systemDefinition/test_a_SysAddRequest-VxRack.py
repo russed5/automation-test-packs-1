@@ -189,7 +189,6 @@ def test_HAL_CollectComponentVersion():
     assert return_json['subComponents']
 
     print('\nTEST: CollectComponentVersions run: PASSED')
-
     cleanupHAL()
 
 #######################################################################################################################
