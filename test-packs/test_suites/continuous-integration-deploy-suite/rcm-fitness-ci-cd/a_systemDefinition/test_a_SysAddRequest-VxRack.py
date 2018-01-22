@@ -69,7 +69,6 @@ def load_test_data():
     message_vcenter = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                         property=payload_vcenter)
 
-
 #######################################################################################################################
 
 # *** THIS IS THE MAIN TEST *** Add a system
