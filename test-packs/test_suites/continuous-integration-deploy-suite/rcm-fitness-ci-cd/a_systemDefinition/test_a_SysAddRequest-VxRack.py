@@ -12,7 +12,6 @@ import string
 import requests
 import collections
 
-
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
     global path
