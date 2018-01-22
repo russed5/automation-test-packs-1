@@ -131,7 +131,6 @@ def test_SystemAdditionRequested():
 
     cleanupSDS()
 
-
 # *** Kick of the collectComponentVersion Msg
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
