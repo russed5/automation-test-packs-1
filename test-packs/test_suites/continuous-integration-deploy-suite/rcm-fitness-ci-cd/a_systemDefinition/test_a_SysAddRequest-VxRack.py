@@ -13,8 +13,6 @@ import requests
 import collections
 import dbUtils.dbconnection as dbconnection
 
-
-
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
     global path
@@ -50,7 +48,6 @@ def load_test_data():
     global message_vcenter
     message_vcenter = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                         property=payload_vcenter)
-
 
 #######################################################################################################################
 
@@ -182,11 +179,9 @@ def test_HAL_CollectComponentVersion():
             assert rcdsVersionResult.strip() == '1'
 
     print('\nTEST: CollectComponentVersions run: PASSED')
-
     cleanupHAL()
 
 #######################################################################################################################
-
 
 def cleanupSDS():
     # Delete the test queues
@@ -197,13 +192,11 @@ def cleanupSDS():
     af_support_tools.rmq_delete_queue(queue='testComponentCredentialRequest')
     af_support_tools.rmq_delete_queue(queue='testSystemDefinitionEvent')
 
-
 def cleanupHAL():
     # Delete the test queues
     print('Cleaning up...')
     af_support_tools.rmq_delete_queue(queue='testHalOrchestratorRequest')
     af_support_tools.rmq_delete_queue(queue='testHalOrchestratorResponse')
-
 
 def bindSDSQueus():
     af_support_tools.rmq_bind_queue(queue='testSystemListRequest',
@@ -222,7 +215,6 @@ def bindSDSQueus():
                                     exchange='exchange.dell.cpsd.cms.credentials.request',
                                     routing_key='#')
 
-
 def bindHALQueus():
     af_support_tools.rmq_bind_queue(queue='testHalOrchestratorRequest',
                                     exchange='exchange.dell.cpsd.hal.orchestrator.request',
@@ -232,7 +224,6 @@ def bindHALQueus():
     af_support_tools.rmq_bind_queue(queue='testHalOrchestratorResponse',
                                     exchange='exchange.dell.cpsd.hal.orchestrator.response',
                                     routing_key='#')
-
 
 def verifyCSmessage():
     # We need to verify that the triggered component.credentials.addition.requested is valid.
