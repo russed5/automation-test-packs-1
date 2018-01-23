@@ -43,6 +43,7 @@ def load_test_data():
     cli_password = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                              property='password')
 
+
     # Set Vars
     global payload_file
     payload_file = 'continuous-integration-deploy-suite/symphony-sds-network-VxRack.ini'
@@ -57,18 +58,68 @@ def load_test_data():
     global payload_rackHD
     payload_rackHD = 'register_rackhd'
 
-    global nsa_rackhd_ip
-    nsa_rackhd_ip = '10.234.122.45'
+    data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/setup_config.properties'
+    af_support_tools.set_config_file_property_by_data_file(data_file)
+
+    global setup_config_file
+    setup_config_file = 'continuous-integration-deploy-suite/setup_config.ini'
+
+    global rackhd_ip
+    rackhd_ip = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                          heading="config_details",
+                                                          property='rackhd_ip')
+    global rackhd_username
+    rackhd_username = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                              heading="config_details",
+                                                              property='rackhd_username')
+    global rackhd_password
+    rackhd_password = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                              heading="config_details",
+                                                              property='rackhd_password')
+
+
     global rackhd_port
     rackhd_port = '32080'
-    global nsa_rackhd_username
-    nsa_rackhd_username = 'admin'
-    global nsa_rackhd_password
-    nsa_rackhd_password = 'admin123'
+
+    global on_nw_port
+    on_nw_port ='33080'
 
     global message_rackHD
     message_rackHD = af_support_tools.get_config_file_property(config_file=payload_file, heading=payload_header,
                                                         property=payload_rackHD)
+
+    global nsa_switch_9k_username
+    nsa_switch_9k_username = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                                       heading="config_details",
+                                                                       property='nsa_switch_9k_username')
+    global nsa_switch_9k_password
+    nsa_switch_9k_password = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                                       heading="config_details",
+                                                                       property='nsa_switch_9k_password')
+    global nsa_switch_9k_ip
+    nsa_switch_9k_ip = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                                 heading="config_details",
+                                                                 property='nsa_switch_9k_ip')
+    global nsa_rackhd_username
+    nsa_rackhd_username = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                                    heading="config_details",
+                                                                    property='nsa_rackhd_username')
+    global nsa_rackhd_password
+    nsa_rackhd_password = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                                    heading="config_details",
+                                                                    property='nsa_rackhd_password')
+    global nsa_rackhd_ip
+    nsa_rackhd_ip = af_support_tools.get_config_file_property(config_file=setup_config_file,
+                                                             heading="config_details",
+                                                             property='nsa_rackhd_ip')
+    global switchVersion
+    switchVersion = '7.0(3)I4(3)'
+
+    global switch_type
+    switch_type = 'cisco'
+
+    global apibody
+    apibody = '{"endpoint":{"ipaddress":"' + nsa_switch_9k_ip + '", "username": "' + nsa_switch_9k_username + '", "password": "' + nsa_switch_9k_password + '", "switchType": "' + switch_type + '"}}'
 
 #######################################################################################################################
 
@@ -139,7 +190,7 @@ def test_verifyRackhdNodes():
     print("#### Registering Rackhd to Symphony vm ####")
     #registerRackHD(message_rackHD, "out_registerRackHDResp.json")
     registerRackHD()
-    time.sleep(600)
+    time.sleep(360)
     auth_token = retrieveRHDToken()
     json_data = get_rackhd_api_response('nodes',auth_token)
     print(json_data)
@@ -157,18 +208,24 @@ def test_CollectComponentVersion():
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
     response = requests.post(urlcollect, data=the_payload, headers=headers)
     print(response.status_code)
+    time.sleep(5)
     assert response.status_code == 200
 
     print('\nTEST: CollectComponentVersions run: PASSED')
 
-def test_get_collected_version():
 
+@pytest.mark.daily_status
+@pytest.mark.network_services_mvp
+@pytest.mark.network_services_mvp_extended
+def test_get_collected_version():
     auth_token = retrieveRHDToken()
     json_data = get_rackhd_api_response('nodes', auth_token)
 
     assert json_data != ''
 
+    time.sleep(5)
     firm_ver = "7.0"
+
     pcmd = "select version from rcds.version"
     sendcommand = "docker exec -t postgres psql -U postgres -d rcm-compliance-data-service -c '" + pcmd + "'"
     print(sendcommand)
@@ -185,6 +242,42 @@ def test_get_collected_version():
         return
 
     assert False
+
+
+@pytest.mark.daily_status
+@pytest.mark.network_services_mvp
+def test_rackhd_login_api():
+    # Get the RackHD Authentication Token
+    global token
+    token = retrieveOnwToken()
+    print('The token is: ', token, '\n')
+    assert token != ''
+
+@pytest.mark.daily_status
+@pytest.mark.network_services_mvp
+def test_rackhd_get_switch_firmware():
+    switch_api = '/switchFirmware'
+    token = retrieveOnwToken()
+    switch_firmware = get_switch_api(switch_api, apibody, token)
+    assert switch_firmware["version"] == switchVersion
+    print('The switch firmware is: ', switch_firmware)
+
+@pytest.mark.daily_status
+@pytest.mark.network_services_mvp
+def test_rackhd_get_switch_version():
+    switch_api = '/switchVersion'
+    switch_version = get_switch_api(switch_api, apibody, token)
+    assert switch_version["rr_sys_ver"] == switchVersion
+    print('The switch version is: ', switch_version)
+
+@pytest.mark.daily_status
+@pytest.mark.network_services_mvp
+def test_rackhd_get_switch_config():
+    switch_api = '/switchConfig'
+    switch_config = get_switch_api(switch_api, apibody, token)
+    assert 'config' in switch_config
+    print('The switch configuration is: ', switch_config)
+
 
 #######################################################################################################################
 
@@ -331,9 +424,9 @@ def verifyConsulUpdate(paqx):
 
 def retrieveRHDToken():
     # retrieve rackhd auth token
-    url = "http://" + nsa_rackhd_ip +":"+ rackhd_port + "/login"
+    url = "http://" + rackhd_ip +":"+ rackhd_port + "/login"
     header = {'Content-Type': 'application/json'}
-    body = '{"username": "' + nsa_rackhd_username + '", "password": "' + nsa_rackhd_password + '"}'
+    body = '{"username": "' + rackhd_username + '", "password": "' + rackhd_password + '"}'
 
     resp = requests.post(url, headers=header, data=body)
     tokenJson = json.loads(resp.text, encoding='utf-8')
@@ -343,7 +436,7 @@ def retrieveRHDToken():
 
 def get_rackhd_api_response(rackhdapi, token):
     "http://10.234.122.45:32080/api/2.0/nodes"
-    url = 'http://' + nsa_rackhd_ip + ':' + rackhd_port +'/api/2.0/'+ rackhdapi
+    url = 'http://' + rackhd_ip + ':' + rackhd_port +'/api/2.0/'+ rackhdapi
     print(url)
     headers = {'Content-type': 'application/json', 'Accept': 'application/json', "Authorization": "JWT " + token}
     print(headers)
@@ -353,6 +446,30 @@ def get_rackhd_api_response(rackhdapi, token):
     data_json = json.loads(response.text, encoding='utf-8')
     print('retrieved json:', data_json, '\n')
     assert response.status_code == 200
+    return data_json
+
+def retrieveOnwToken():
+    # retrieve a token
+    url = 'http://' + nsa_rackhd_ip + ':' + on_nw_port + '/login'
+    header = {'Content-Type': 'application/json'}
+    body = '{"username": "' + nsa_rackhd_username + '", "password": "' + nsa_rackhd_password + '"}'
+
+    resp = requests.post(url, headers=header, data=body)
+    tokenJson = json.loads(resp.text, encoding='utf-8')
+    token = tokenJson["token"]
+
+    return token
+
+def get_switch_api(switch_api, apibody, token):
+    # Test rackhd API can retrieve switch firmware version
+    url = 'http://' + nsa_rackhd_ip + ':' + on_nw_port + switch_api
+    #print('token passed is: ', apibody, '\n')
+    headerstring = {"Content-Type": "application/json", "Authorization": "Bearer " + token}
+    #print('The headstring for switch api: ', headerstring)
+    response = requests.post(url, headers=headerstring, data=apibody)
+    data_text = response.text
+    data_json = json.loads(response.text, encoding='utf-8')
+    print('returned json: ', data_json , '\n')
     return data_json
 
 def registerRackHD():
