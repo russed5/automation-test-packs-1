@@ -331,17 +331,21 @@ def test_dne_addnodes_api_200_response(setup):
 
         error_list = []
         jobState = data['state']
-        subProcess_jobState = data['subProcesses'][0]['state']
-        errorCode = data['subProcesses'][0]['additionalProperties']['errorCode']
+        nrOfInstances = data['additionalProperties']['nrOfInstances']
+        #subProcess_jobState = data['subProcesses'][0]['state']
+        #errorCode = data['subProcesses'][0]['additionalProperties']['errorCode']
 
         if not (jobState == 'FAILED') or (jobState == 'COMPLETED'):
             error_list.append(jobState)
 
-        if subProcess_jobState != 'FAILED':
-            error_list.append(subProcess_jobState)
+        if nrOfInstances != '1':
+            error_list.append(nrOfInstances)
+            
+        #if subProcess_jobState != 'FAILED':
+        #    error_list.append(subProcess_jobState)
 
-        if errorCode != 'Verify-Node-Detail-Failed':
-            error_list.append(errorCode)
+        #if errorCode != 'Verify-Node-Detail-Failed':
+        #    error_list.append(errorCode)
 
         assert not error_list, 'Test Failed'
         print('Test Pass: Addnodes API Responding as expected.')
