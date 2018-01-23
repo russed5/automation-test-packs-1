@@ -408,7 +408,7 @@ def registerRackHD(payLoad, responseRegRackHD):
         q_len = af_support_tools.rmq_message_count(host=hostTLS, port=portTLS, ssl_enabled=True,
                                                    queue='testRegisterRackHDResponse')
 
-        if timeout > 10:
+        if timeout > 180:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
             break
 
@@ -474,7 +474,7 @@ def registerVcenter(payLoad, responseRegVcenter):
                                                    queue='testRegisterVcenterResponse')
 
         # If the test queue doesn't get a message then something is wrong
-        if timeout > 10:
+        if timeout > 180:
             print('ERROR: Sys Found Response Message took to long to return. Something is wrong')
             break
 
