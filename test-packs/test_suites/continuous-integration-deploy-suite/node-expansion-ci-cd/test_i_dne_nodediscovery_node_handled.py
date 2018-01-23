@@ -338,7 +338,7 @@ def test_dne_addnodes_api_200_response(setup):
         if not (jobState == 'FAILED') or (jobState == 'COMPLETED'):
             error_list.append(jobState)
 
-        if nrOfInstances != '1':
+        if nrOfInstances != 1:
             error_list.append(nrOfInstances)
             
         #if subProcess_jobState != 'FAILED':
