@@ -551,3 +551,28 @@ def test_getSysDefInvalid10():
 @pytest.mark.rcm_fitness_mvp_extended
 def test_getCompByCompUUID10():
     getComponentByComponentUUID()
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getSysDef11():
+     getComponentBySystemUUID("NEXUS","N3K","SWITCH","SLB-TAF-3164A","3164Q",1,systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getSysDef12():
+    getComponentBySystemUUID("NEXUS", "N3K", "SWITCH", "SLB-TAF-3164B", "3164Q", 1, systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getSysDef13():
+    getComponentBySystemUUID("NEXUS", "N3K", "SWITCH", "SLB-TAF-3172TQ", "3172TQ", 1, systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getSysDef14():
+    getComponentBySystemUUID("NEXUS", "N3K", "SWITCH", "SLB-TAF-3132A", "3132QX", 1, systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getSysDef15():
+    getComponentBySystemUUID("NEXUS", "N3K", "SWITCH", "SLB-TAF-93180A", "93180YC-EX", 1, systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getSysDef16():
+    getComponentBySystemUUID("NEXUS", "N3K", "SWITCH", "SLB-TAF-9332A", "9332PQ", 1, systemUUID)
+

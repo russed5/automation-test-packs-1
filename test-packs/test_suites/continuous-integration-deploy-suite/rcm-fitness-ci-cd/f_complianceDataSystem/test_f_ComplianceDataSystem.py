@@ -513,3 +513,31 @@ def test_getComplianceDataSystem24():
 def test_getComplianceDataSystem26():
     getComplianceDataSystemSubComps("VCENTER-WINDOWS", "SUB_ESXI", "ScaleIO VM", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataSystemPOWEREDGE.json", systemUUID)
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem27():
+    getComplianceDataSystemSubComps("3164Q","SWITCH","SLB-TAF-3164A",path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemSWITCH.json", systemUUID)
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem28():
+    getComplianceDataSystemSubComps("3164Q","SWITCH","SLB-TAF-3164B",path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemSWITCH.json", systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem29():
+    getComplianceDataSystemSubComps("3172TQ","SWITCH","SLB-TAF-3172TQ",path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemSWITCH.json", systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem30():
+    getComplianceDataSystemSubComps("3132QX","SWITCH","SLB-TAF-3132A",path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemSWITCH.json", systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem31():
+    getComplianceDataSystemSubComps("93180YC-EX","SWITCH","SLB-TAF-93180A",path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemWITCH.json", systemUUID)
+
+@pytest.mark.rcm_fitness_mvp_extended
+def test_getComplianceDataSystem32():
+    getComplianceDataSystemSubComps("9332PQ","SWITCH","SLB-TAF-9332A",path + "rcmSystemDefinition-VxRack.json",
+                                    path + "complianceDataSystemSWITCH.json", systemUUID)
