@@ -9,6 +9,15 @@ import os
 @pytest.fixture(scope="session")
 def setup():
     parameters = {}
+
+    # Update config ini files at runtime
+    my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/symphony-sds.properties'
+    af_support_tools.set_config_file_property_by_data_file(my_data_file)
+
+    # Update setup_config.ini file at runtime
+    my_data_file = os.environ.get('AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/setup_config.properties'
+    af_support_tools.set_config_file_property_by_data_file(my_data_file)
+
     env_file = 'env.ini'
     ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                           property='hostname')
