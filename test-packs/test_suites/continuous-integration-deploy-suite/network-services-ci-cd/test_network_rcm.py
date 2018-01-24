@@ -123,7 +123,7 @@ def load_test_data():
 
 #######################################################################################################################
 
-# *** THIS IS THE MAIN TEST *** Add a system
+# *** THIS IS THE MAIN TEST *** Add a system and verify Credentials associated with the component
 @pytest.mark.daily_status
 @pytest.mark.network_services_mvp
 @pytest.mark.network_services_mvp_extended
@@ -190,7 +190,7 @@ def test_verifyRackhdNodes():
     print("#### Registering Rackhd to Symphony vm ####")
     #registerRackHD(message_rackHD, "out_registerRackHDResp.json")
     registerRackHD()
-    time.sleep(360)
+    time.sleep(390)
     auth_token = retrieveRHDToken()
     json_data = get_rackhd_api_response('nodes',auth_token)
     print(json_data)
@@ -208,7 +208,8 @@ def test_CollectComponentVersion():
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
     response = requests.post(urlcollect, data=the_payload, headers=headers)
     print(response.status_code)
-    time.sleep(5)
+    print("### Waiting for components version retrieval ###")
+    time.sleep(15)
     assert response.status_code == 200
 
     print('\nTEST: CollectComponentVersions run: PASSED')
@@ -222,7 +223,7 @@ def test_get_collected_version():
     json_data = get_rackhd_api_response('nodes', auth_token)
 
     assert json_data != ''
-
+    print("get Firmware version")
     time.sleep(5)
     firm_ver = "7.0"
 
