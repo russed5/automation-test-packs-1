@@ -11,8 +11,7 @@ import af_support_tools
 
 @pytest.fixture(scope="module", autouse=True)
 def load_test_data():
-    global path
-    path = "/home/autouser/PycharmProjects/auto-framework/test_suites/continuous-integration-deploy-suite/network-services-ci-cd/"
+    
     my_data_file = os.environ.get(
         'AF_RESOURCES_PATH') + '/continuous-integration-deploy-suite/symphony-sds-network-VxRack.properties'
     af_support_tools.set_config_file_property_by_data_file(my_data_file)
