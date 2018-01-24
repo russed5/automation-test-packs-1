@@ -56,19 +56,6 @@ def sys():
     ("9.2", "9.2.1", "RAID", "730", "PERC H730 Mini"),
     ("9.2", "9.2.1", "VCENTER", "VCENTER-APPLIANCE", "VCENTER-APPLIANCE"),
     ("9.2", "9.2.1", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
-    # ("9.2", "9.2.1.1", "iDRAC", "630", "Integrated Remote Access Controller"),
-    # ("9.2", "9.2.1.1", "NIC", "630", "Intel(R) Gigabit 4P X520/I350 rNDC -"),
-    # ("9.2", "9.2.1.1", "NIC", "630", "Intel(R) Ethernet 10G 2P X520 Adapter -"),
-    # ("9.2", "9.2.1.1", "BIOS", "630", "BIOS"),
-    # ("9.2", "9.2.1.1", "NonRAID", "630", "Dell HBA330 Mini"),
-    # ("9.2", "9.2.1.1", "iDRAC", "730", "Integrated Remote Access Controller"),
-    # ("9.2", "9.2.1.1", "NIC", "730", "Intel(R) Ethernet 10G 4P X520/I350 rNDC -"),
-    # ("9.2", "9.2.1.1", "NIC", "730", "Intel(R) Ethernet 10G 2P X520 Adapter -"),
-    # ("9.2", "9.2.1.1", "BIOS", "730", "BIOS"),
-    # ("9.2", "9.2.1.1", "ESXI", "VCENTER", "lab.vce.com"),
-    # ("9.2", "9.2.1.1", "RAID", "730", "PERC H730 Mini"),
-    # ("9.2", "9.2.1.1", "VCENTER", "VCENTER-APPLIANCE", "VCENTER-APPLIANCE"),
-    # ("9.2", "9.2.1.1", "VCENTER", "VCENTER-WINDOWS", "VCENTER-WINDOWS"),
     ("9.2", "9.2.2", "BIOS", "630", "BIOS"),
     ("9.2", "9.2.3", "BIOS", "630", "BIOS"),
     ("9.2", "9.2.2", "BIOS", "730", "BIOS"),
@@ -94,7 +81,8 @@ def sys():
     ("3.2", "3.2.1", "SVM", "SCALEIO", "Manager2"),
     ("3.2", "3.2.1", "SCALEIO", "SCALEIO", "SCALEIO-1"),
     ("3.2", "3.2.1", "SVM", "SCALEIO", "lab.vce.com"),
-    ("3.2", "3.2.1", "SUB_ESXI", "VCENTER-APPLIANCE", "i40e"),
+    # ("3.2", "3.2.1", "SUB_ESXI", "VCENTER-APPLIANCE", "i40e"),
+    # ("3.2", "3.2.1", "SUB_ESXI", "VCENTER-WINDOWS", "ScaleIO VM"),
     ("3.2", "3.2.2", "BIOS", "630", "BIOS"),
     ("3.2", "3.2.2", "BIOS", "730", "BIOS"),
     ("3.2", "3.2.2", "NIC", "630", "Intel(R) Gigabit 4P X520/I350 rNDC -"),
@@ -112,6 +100,7 @@ def sys():
     ("3.2", "3.2.2", "SVM", "SCALEIO", "Manager2"),
     ("3.2", "3.2.2", "SCALEIO", "SCALEIO", "SCALEIO-1"),
     ("3.2", "3.2.2", "SVM", "SCALEIO", "lab.vce.com"),
+    # ("3.2", "3.2.2", "SUB_ESXI", "VCENTER-WINDOWS", "ScaleIO VM"),
     ("3.2", "3.2.3", "BIOS", "630", "BIOS"),
     ("3.2", "3.2.3", "BIOS", "730", "BIOS"),
     ("3.2", "3.2.3", "NIC", "630", "Intel(R) Gigabit 4P X520/I350 rNDC -"),
@@ -128,10 +117,29 @@ def sys():
     ("3.2", "3.2.3", "NonRAID", "630", "Dell HBA330 Mini"),
     ("3.2", "3.2.3", "PERCCLI", "R730XD", "PercCli SAS Customization Utility"),
     ("3.2", "3.2.3", "PERCCLI", "R630", "PercCli SAS Customization Utility"),
-    ("3.2", "3.2.1", "SWITCH", "3172TQ", "KatSwitch"),
-    ("3.2", "3.2.2", "SWITCH", "3172TQ", "KatSwitch"),
-    ("3.2", "3.2.3", "SWITCH", "3172TQ", "KatSwitch"),
-    ("3.2", "3.2.3", "RAID", "730", "PERC H730 Mini")])
+    # ("3.2", "3.2.1", "SWITCH", "3132QX", "SLB-3132A"),
+    # ("3.2", "3.2.2", "SWITCH", "3132QX", "SLB-3132A"),
+    # ("3.2", "3.2.3", "SWITCH", "3132QX", "SLB-3132A"),
+    # ("3.2", "3.2.4", "SWITCH", "3132QX", "SLB-3132A"),
+    # ("3.2", "3.2.1", "SWITCH", "3164Q", "SLB-3164A"),
+    # ("3.2", "3.2.2", "SWITCH", "3164Q", "SLB-3164A"),
+    # ("3.2", "3.2.3", "SWITCH", "3164Q", "SLB-3164A"),
+    # ("3.2", "3.2.4", "SWITCH", "3164Q", "SLB-3164A"),
+    # ("3.2", "3.2.1", "SWITCH", "3164Q", "SLB-3164B"),
+    # ("3.2", "3.2.2", "SWITCH", "3164Q", "SLB-3164B"),
+    # ("3.2", "3.2.3", "SWITCH", "3164Q", "SLB-3164B"),
+    # ("3.2", "3.2.4", "SWITCH", "3164Q", "SLB-3164B"),
+    # ("3.2", "3.2.1", "SWITCH", "3172TQ", "SLB-3172TQ"),
+    # ("3.2", "3.2.2", "SWITCH", "3172TQ", "SLB-3172TQ"),
+    # ("3.2", "3.2.3", "SWITCH", "3172TQ", "SLB-3172TQ"),
+    # ("3.2", "3.2.4", "SWITCH", "3172TQ", "SLB-3172TQ"),
+    # ("3.2", "3.2.1", "SWITCH", "9332PQ", "SLB-9332A"),
+    # ("3.2", "3.2.2", "SWITCH", "9332PQ", "SLB-9332A"),
+    # ("3.2", "3.2.3", "SWITCH", "9332PQ", "SLB-9332A"),
+    # ("3.2", "3.2.4", "SWITCH", "9332PQ", "SLB-9332A"),
+    # ("3.2", "3.2.4", "SWITCH", "93180YC-EX", "SLB-93180A"),
+    ("3.2", "3.2.3", "RAID", "730", "PERC H730 Mini"),
+    ("3.2", "3.2.3", "SUB_ESXI", "VCENTER-WINDOWS", "ScaleIO VM")])
 def test_post_eval(sys, train, version, type, model, identifier):
     # url = 'http://' + host + ':10000/rcm-fitness-paqx/rcm-fitness-api/api/rcm/inventory/VxRack/1000 FLEX/' + train + '/' + version + '/'
     urlSec = 'https://' + host + ':19080/rcm-fitness-api/api/rcm/inventory/VxRack/1000 FLEX/' + train + '/' + version + '/'
@@ -172,18 +180,16 @@ def test_post_eval(sys, train, version, type, model, identifier):
                        data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['componentUuid']
                 if 'serialNumber' in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity']:
                     assert type in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['identity']['serialNumber']
-                assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['productFamily'].lower() == \
-                       data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['productFamily'].lower()
-
-                if 'product' in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']:
-                    assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['product'] == \
-                       data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['product']
+                assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['productFamily'] == \
+                       data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['productFamily']
+                assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['product'] == \
+                      data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['product']
                 mFamily = data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['modelFamily']
                 mFamily = mFamily[1:]
                 modelM = data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['model']
                 modelM = modelM[2:-2]
-                assert mFamily in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['modelFamily']
-                assert modelM in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['model']
+                assert mFamily.lower() in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['modelFamily'].lower()
+                assert modelM.lower() in data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['definition']['model'].lower()
                 assert data['rcmEvaluationResults'][results]['evaluatedVersionDatum']['versions'][0]['version'] == \
                        data['rcmEvaluationResults'][results]['actualValue']
                 assert data['rcmEvaluationResults'][results]['evaluatedRcmDatum']['versions'][0] == \
@@ -194,15 +200,16 @@ def test_post_eval(sys, train, version, type, model, identifier):
                     assert (data['rcmEvaluationResults'][results]['evaluationResult']) == "match", "Expect a match"
 
                 else:
-                    assert (data['rcmEvaluationResults'][results]['evaluationResult']) == "mismatch", "Expect a mismatch"
+                    assert (
+                           data['rcmEvaluationResults'][results]['evaluationResult']) == "mismatch", "Expect a mismatch"
 
-                print(data['rcmEvaluationResults'][results]['evaluationResult'])
                 stripActual = actual.strip("0")
                 stripExpected = expected.strip("0")
                 if stripExpected in stripActual:
                     assert (data['rcmEvaluationResults'][results]['evaluationResult']) == "match", "Expect a match"
                 else:
-                    assert (data['rcmEvaluationResults'][results]['evaluationResult']) == "mismatch", "Expect a mismatch"
+                    assert (
+                           data['rcmEvaluationResults'][results]['evaluationResult']) == "mismatch", "Expect a mismatch"
 
                 return
             instances += 1

@@ -510,6 +510,6 @@ def test_getComplianceDataSystem24():
 @pytest.mark.daily_status
 @pytest.mark.rcm_fitness_mvp
 @pytest.mark.rcm_fitness_mvp_extended
-def test_getComplianceDataSystem25():
-    getComplianceDataSystemSubComps("VCENTER-APPLIANCE", "SUB_ESXI", "i40e", path + "rcmSystemDefinition-VxRack.json",
+def test_getComplianceDataSystem26():
+    getComplianceDataSystemSubComps("VCENTER-WINDOWS", "SUB_ESXI", "ScaleIO VM", path + "rcmSystemDefinition-VxRack.json",
                                     path + "complianceDataSystemPOWEREDGE.json", systemUUID)

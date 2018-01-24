@@ -9,6 +9,7 @@ import os
 @pytest.fixture(scope="session")
 def setup():
     parameters = {}
+
     env_file = 'env.ini'
     ipaddress = af_support_tools.get_config_file_property(config_file=env_file, heading='Base_OS',
                                                           property='hostname')
