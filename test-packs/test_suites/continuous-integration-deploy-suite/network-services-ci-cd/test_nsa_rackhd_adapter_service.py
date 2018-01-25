@@ -117,6 +117,7 @@ def test_rackHD_adapter_servicerunning():
 
 @pytest.mark.daily_status
 @pytest.mark.network_services_mvp
+@pytest.mark.skip(reason="This Test is being executed in other script test_network_rcm")
 def test_registerRackHD():
     # Until consul is  working properly & integrated with the rackhd adapter in the same environment we need to register
     # it manually by sending this message.  This test is a prerequisite to getting the full list of
@@ -347,6 +348,7 @@ def test_rackHD_adapter_full_ListCapabilities():
 
 @pytest.mark.daily_status
 @pytest.mark.network_services_mvp
+@pytest.mark.skip(reason="This Test is being executed in other script test_network_rcm")
 def test_consul_verify_rackHD_registered():
     """
     Test Case Title :       Verify RackHD is registered with Consul
@@ -385,6 +387,7 @@ def test_consul_verify_rackHD_registered():
 
 @pytest.mark.daily_status
 @pytest.mark.network_services_mvp
+@pytest.mark.skip(reason="This Test is being executed in other script test_network_rcm")
 def test_consul_verify_rackHD_passing_status():
     """
     Test Case Title :       Verify RackHD is Passing in Consul
